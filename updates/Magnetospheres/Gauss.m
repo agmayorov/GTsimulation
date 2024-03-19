@@ -1,0 +1,267 @@
+classdef Gauss < BfieldAbs
+    
+    properties
+        Model
+        Ver
+        Type
+        Date                 
+        gh                    
+        coord       
+        GCoeffs
+    end
+    
+    methods
+        function self = Gauss(GCparam)
+            arguments
+                GCparam.Model           char    {mustBeMember(GCparam.Model, ...
+                                                    {'IGRF', 'CHAOS', 'CM', 'COV-OBS', 'LCS', 'SIFM', 'DIFI'})}
+                GCparam.Ver     (1,1)   double  {mustBePositive(GCparam.Ver)}
+                GCparam.Type            char    {mustBeMember(GCparam.Type, {'core', 'static', 'ionosphere'})}
+                GCparam.Date            double  {mustBePositive(GCparam.Date)}          = 0
+                GCparam.gh              double  {mustBeMember(GCparam.gh, [0 1])}       = 1   % Works only for 1
+                GCparam.coord             = 1  
+            end
+            
+            self.ModelName = "Gauss";
+            self.Region = "M";
+            self.Model = GCparam.Model;
+            self.Ver = GCparam.Ver;
+            self.Type = GCparam.Type;
+            self.Date = GCparam.Date;
+            self.gh = GCparam.gh;
+            self.coord = GCparam.coord;
+            self.GCoeffs = self.LoadGaussCoeffs().gh; % TODO
+        end
+
+        function coefs_otp = LoadGaussCoeffs(self)
+            FModel = GetBfieldFullModelName('Model', self.Model, 'Ver', self.Ver, 'Type', self.Type);
+
+            % Convert time to fractional years
+            if ismember(length(self.Date), [3 6])
+                DTnum = datenum(self.Date);
+            elseif length(self.Date) == 1
+                DTnum = self.Date;
+            else
+                error('LoadGaussCoeffs: Date is wrongly defined');
+            end
+                
+            timevec = datevec(DTnum);
+            time = timevec(1) + (DTnum - datenum([timevec(1) 1 1]))./(365 + double(...
+                (~mod(timevec(1),4) & mod(timevec(1),100)) | (~mod(timevec(1),400))));
+        
+            % Load coefs and years variables
+            load(FModel.MatFileLoc)
+            yrs = cell2mat({coefs.year});
+            nyrs = numel(yrs);
+            
+            if nyrs == 1
+                if self.gh == 0
+                    coefs_otp.g = coefs.g;
+                    coefs_otp.h = coefs.h;
+                else
+                    coefs_otp.gh = coefs.gh;
+                end
+        
+            else
+                % Check validity on time.    
+                if time < yrs(1) || time > yrs(end)
+                    error('LoadGaussCoeffs:timeOutOfRange', [self.Model ' is only valid between ' ...
+                        num2str(yrs(1)) ' and ' num2str(yrs(end))]);
+                end
+        
+                % Get the nearest epoch that the current time is between.
+                lastepoch = find(yrs - time < 0, 1, 'last');
+                if isempty(lastepoch)
+                    lastepoch = 1;
+                end
+                nextepoch = lastepoch + 1;
+        
+                % Output either g and h matrices or gh vector
+                if self.gh == 0
+        
+                    % Get the coefficients based on the epoch.
+                    lastg = coefs(lastepoch).g; lasth = coefs(lastepoch).h;
+                    nextg = coefs(nextepoch).g; nexth = coefs(nextepoch).h;
+        
+                    % If one of the coefficient matrices is smaller than the other, enlarge
+                    % the smaller one with 0's.
+                    if size(lastg, 1) > size(nextg, 1)
+                        smalln = size(nextg, 1);
+                        nextg = zeros(size(lastg));
+                        nextg(1:smalln, (0:smalln)+1) = coefs(nextepoch).g;
+                        nexth = zeros(size(lasth));
+                        nexth(1:smalln, (0:smalln)+1) = coefs(nextepoch).h;
+                    elseif size(lastg, 1) < size(nextg, 1)
+                        smalln = size(lastg, 1);
+                        lastg = zeros(size(nextg));
+                        lastg(1:smalln, (0:smalln)+1) = coefs(lastepoch).g;
+                        lasth = zeros(size(nexth));
+                        lasth(1:smalln, (0:smalln)+1) = coefs(lastepoch).h;
+                    end
+        
+                    % Calculate g and h using a linear interpolation between the last and
+                    % next epoch.
+                    if isfield(coefs(nextepoch), 'slope') && coefs(nextepoch).slope
+                        gslope = nextg;
+                        hslope = nexth;
+                    else
+                        gslope = (nextg - lastg)/diff(yrs([lastepoch nextepoch]));
+                        hslope = (nexth - lasth)/diff(yrs([lastepoch nextepoch]));
+                    end
+                    coefs_otp.g = lastg + gslope*(time - yrs(lastepoch));
+                    coefs_otp.h = lasth + hslope*(time - yrs(lastepoch));
+        
+                else
+        
+                    % Get the coefficients based on the epoch.
+                    lastgh = coefs(lastepoch).gh;
+                    nextgh = coefs(nextepoch).gh;
+        
+                    % If one of the coefficient vectors is smaller than the other, enlarge
+                    % the smaller one with 0's.
+                    if length(lastgh) > length(nextgh)
+                        smalln = length(nextgh);
+                        nextgh = zeros(size(lastgh));
+                        nextgh(1:smalln) = coefs(nextepoch).gh;
+                    elseif length(lastgh) < length(nextgh)
+                        smalln = length(lastgh);
+                        lastgh = zeros(size(nextgh));
+                        lastgh(1:smalln) = coefs(lastepoch).gh;
+                    end
+        
+                    % Calculate gh using a linear interpolation between the last and next
+                    % epoch.
+                    if isfield(coefs(nextepoch), 'slope') && coefs(nextepoch).slope
+                        ghslope = nextgh;
+                    else
+                        ghslope = (nextgh - lastgh)/diff(yrs([lastepoch nextepoch]));
+                    end
+                    coefs_otp.gh = lastgh + ghslope*(time - yrs(lastepoch));
+        
+                end
+            end
+        end
+        
+        function [Bx, By, Bz] = GetBfield(self, X, Y, Z, ~)
+            arguments
+                self, X, Y, Z, ~
+            end
+            [theta, phi, altitude] = Gauss.Cartesian2Sphere(X, Y, Z);
+            Rearth_km = 6371.2;
+
+            costheta = cos(theta);
+            sintheta = sin(theta);
+            if self.coord == 0
+                a = 6378.137; f = 1/298.257223563; b = a*(1 - f);
+                rho = hypot(a*sintheta, b*costheta);
+                r = sqrt( altitude.^2 + 2*altitude.*rho + ...
+                    (a^4*sintheta.^2 + b^4*costheta.^2) ./ rho.^2 );
+                cd = (altitude + rho) ./ r;
+                sd = (a^2 - b^2) ./ rho .* costheta.*sintheta./r;
+                oldcos = costheta;
+                costheta = costheta.*cd - sintheta.*sd;
+                sintheta = sintheta.*cd + oldcos.*sd;
+            else
+                r = altitude;
+                cd = 1;
+                sd = 0;
+            end
+        
+            nmax = sqrt(numel(self.GCoeffs) + 1) - 1;
+        
+            % We need cos(m*phi) and sin(m*phi) multiple times, so precalculate into a vector here:
+            cosphi = cos((1:nmax)*phi);
+            sinphi = sin((1:nmax)*phi);
+        
+            Pmax = (nmax+1)*(nmax+2)/2;
+        
+            %%% BEGIN MAGNETIC FIELD CALCULATION %%%
+            % Initialize variables used in for loop below.
+            Br = 0; Bt = 0; Bp = 0;
+            P = zeros(1, Pmax);  P(1) = 1;  P(3) = sintheta;
+            dP = zeros(1, Pmax); dP(1) = 0; dP(3) = costheta;
+        
+            % For this initial condition, the first if will result in n = 1, m = 0.
+            m = 1; n = 0; coefindex = 1;
+        
+            a_r = (Rearth_km/r)^2;
+        
+            % Increment through all the n's and m's. gh will be a vector with g
+            % followed by h for incrementing through n and m except when h would be
+            % redundant (i.e., when m = 0).
+            for Pindex = 2:Pmax
+        
+                % Increment to the next n when m becomes larger than n.
+                if n < m
+                    m = 0;
+                    n = n + 1;
+                    a_r = a_r*(Rearth_km/r); % We need (Rearth_km./r)^(n+2)
+                end
+        
+                % Calculate P and dP
+                if m < n && Pindex ~= 3 % (Pindex=3 is n=1, m=1, initial cond. above)
+                    last1n = Pindex - n;
+                    last2n = Pindex - 2*n + 1;
+                    P(Pindex) = (2*n - 1)/sqrt(n^2 - m^2)*costheta*P(last1n) - ...
+                        sqrt(((n-1)^2 - m^2) / (n^2 - m^2)) * P(last2n);
+                    dP(Pindex) = (2*n - 1)/sqrt(n^2 - m^2)*(costheta*dP(last1n) - ...
+                        sintheta*P(last1n)) - sqrt(((n-1)^2 - m^2) / (n^2 - m^2)) * ...
+                        dP(last2n);
+                elseif Pindex ~= 3
+                    lastn = Pindex - n - 1;
+                    P(Pindex) = sqrt(1 - 1/(2*m))*sintheta*P(lastn);
+                    dP(Pindex) = sqrt(1 - 1/(2*m))*(sintheta*dP(lastn) + ...
+                        costheta*P(lastn));
+                end
+        
+                if m == 0 % Implies h = 0, so only coefficient in gh is g
+                    coef = a_r*self.GCoeffs(coefindex); %*cos(0*phi) = 1
+                    Br = Br + (n+1)*coef*P(Pindex);
+                    Bt = Bt - coef*dP(Pindex);
+                    % Bp is 0 for m = 0.
+                    coefindex = coefindex + 1; % Only need to skip over g this time.
+                else
+                    coef = a_r*(self.GCoeffs(coefindex)*cosphi(m) + self.GCoeffs(coefindex+1)*sinphi(m));
+                    Br = Br + (n+1)*coef*P(Pindex);
+                    Bt = Bt - coef*dP(Pindex);
+                    if sintheta == 0 % Use different formula when dividing by 0.
+                        Bp = Bp - costheta*a_r*(-self.GCoeffs(coefindex)*sinphi(m) + ...
+                            self.GCoeffs(coefindex+1)*cosphi(m))*dP(Pindex);
+                    else
+                        Bp = Bp - 1/sintheta*a_r*m*(-self.GCoeffs(coefindex)*sinphi(m) + ...
+                            self.GCoeffs(coefindex+1)*cosphi(m))*P(Pindex);
+                    end
+                    coefindex = coefindex + 2; % Skip over g and h this time.
+                end
+        
+                % Increment m.
+                m = m + 1;    
+            end
+        
+            % Convert from spherical to (x,y,z) = (North,East,Down).
+            Bx = -Bt;
+            By = Bp;
+            Bz = -Br;
+        
+            % Convert back to geodetic coordinates if necessary.
+            if self.coord == 0
+                Bx_old = Bx;
+                Bx = Bx.*cd + Bz.*sd;
+                Bz = Bz.*cd - Bx_old.*sd;
+            end
+        end 
+    end
+
+    methods(Static)
+        % I am not sure, whether the coordinate transformation should be done this
+        % way
+        function [theta, phi, altitude] = Cartesian2Sphere(X, Y, Z)
+            altitude = sqrt(X.^2 + Y.^2 + Z.^2);
+            theta = acos(Z./altitude);
+            phi = atan2(Y, X);
+        end  
+    end
+end
+
+
+
