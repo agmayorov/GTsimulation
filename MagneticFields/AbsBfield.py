@@ -10,3 +10,7 @@ class AbsBfield(ABC):
     @abstractmethod
     def GetBfield(self, x, y, z, **kwargs):
         pass
+
+    @abstractmethod
+    def UpdateState(self, new_date):
+        pass

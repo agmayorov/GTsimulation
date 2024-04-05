@@ -10,36 +10,42 @@ class Dipole(AbsBfield):
         super().__init__()
         self.Region = "Magnetosphere"
         self.Model = "Dipole"
+        self.date = date
+        self.units = units
         self.psi = psi
         if M is not None:
             self.M = M
         elif date == 0:
             self.M = 30100
         elif isinstance(date, datetime.date):
-            self.SetEarthDipMagMom(date, units)
+            self.__SetEarthDipMagMom()
 
-    def SetEarthDipMagMom(self, date, units):
-        assert units in ["SI_nT", "SI", "CGS_G", "CGS", "SEC"]
-        assert 1900 <= date.year <= 2021
+    def UpdateState(self, new_date: datetime.date):
+        self.date = new_date
+        self.__SetEarthDipMagMom()
+
+    def __SetEarthDipMagMom(self):
+        assert self.units in ["SI_nT", "SI", "CGS_G", "CGS", "SEC"]
+        assert 1900 <= self.date.year <= 2021
         coefs = np.load("MagneticFields/Magnetosphere/HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
         g10sm = np.poly1d(coefs["g10_fit"])
         g11sm = np.poly1d(coefs["g11_fit"])
         h11sm = np.poly1d(coefs["h11_fit"])
-        ND, N = Dipole.GetNDaysInMonth(date.year, date.month)
-        D = date.year + (date.day + np.sum(ND[:date.month - 1]) - 0.5) / np.sum(ND)
-        if units == "SI_nT":
+        ND, N = Dipole.GetNDaysInMonth(self.date.year, self.date.month)
+        D = self.date.year + (self.date.day + np.sum(ND[:self.date.month - 1]) - 0.5) / np.sum(ND)
+        if self.units == "SI_nT":
             Mx = g11sm(D)
             My = h11sm(D)
             Mz = g10sm(D)
-        elif units == "SI":
+        elif self.units == "SI":
             Mx = (self.Re ** 3 / 1e-7) * g11sm(D) / 1e9
             My = (self.Re ** 3 / 1e-7) * h11sm(D) / 1e9
             Mz = (self.Re ** 3 / 1e-7) * g10sm(D) / 1e9
-        elif units == 'CGS_G':
+        elif self.units == 'CGS_G':
             Mx = g11sm(D) / 1e9 * 1e4
             My = h11sm(D) / 1e9 * 1e4
             Mz = g10sm(D) / 1e9 * 1e4
-        elif units == "CGS":
+        elif self.units == "CGS":
             Mx = (self.Re * 1e2) ** 3 * g11sm(D) / 1e9 * 1e4
             My = (self.Re * 1e2) ** 3 * h11sm(D) / 1e9 * 1e4
             Mz = (self.Re * 1e2) ** 3 * g10sm(D) / 1e9 * 1e4
