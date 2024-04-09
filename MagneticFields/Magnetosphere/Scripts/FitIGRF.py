@@ -3,7 +3,7 @@ import scipy.io
 
 import matplotlib.pyplot as plt
 
-coeffs = scipy.io.loadmat("HarmonicCoeffsIGRF.mat")
+coeffs = scipy.io.loadmat("../Data/HarmonicCoeffsIGRF.mat")
 
 d = coeffs["d"][0]
 g10 = coeffs["g10"][0]
@@ -40,4 +40,4 @@ Coeffs = {"d": d, "g10": g10, "g10_fit": g10_poly,
                   "g11": g11, "g11_fit": g11_poly,
                   "h11": h11, "h11_fit": h11_poly}
 
-np.save("HarmonicCoeffsIGRF.npy", Coeffs)
+np.save("../Data/HarmonicCoeffsIGRF.npy", Coeffs)
