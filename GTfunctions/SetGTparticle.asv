@@ -1,0 +1,208 @@
+function GTparticle = SetGTparticle(GTparam)
+    if GTparam.Verbose
+        fprintf(['   GTparticle simulation for ' num2str(GTparam.IOinfo.Nfiles) ' file(s)'])
+        if GTparam.Verbose > 1
+            fprintf('\n')
+        else
+            fprintf('     ...   successfully \n')
+        end
+    end
+
+    % Scaling map for energy units
+    UeV2GeV = containers.Map( ...
+        {'eV', 'keV', 'MeV', 'GeV', 'TeV', 'PeV', 'EeV', 'ZeV',  'V',  'kV',  'MV',  'GV',  'TV',  'PV',  'EV',  'ZV'}, ...
+        {1e-9,  1e-6,  1e-3,     1,   1e3,   1e6,   1e9,  1e12, 1e-9,  1e-6,  1e-3,     1,   1e3,   1e6,   1e9,  1e12} ...
+    );
+    kes = UeV2GeV(GTparam.Particle.Units);
+
+    GTparticle(1:GTparam.IOinfo.Nfiles) = struct;
+    for ifile = 1:GTparam.IOinfo.Nfiles
+        K = Simulation(GTparam, ifile, kes);
+        for fn = fieldnames(K)'
+            GTparticle(ifile).(fn{1}) = K.(fn{1});
+        end
+        clear K
+    end
+    
+    if GTparam.Verbose > 1
+        fprintf('   successfully \n')
+    end    
+    
+    % ---
+    if ~isempty(GTparam.GTfile)
+		if GTparam.Verbose
+		    fprintf('   Save GTparticle to file                 ...')
+		end		
+		if ~isempty(GTparam.GTfile.dir.particle)
+		    save(GTparam.GTfile.file.particle, 'GTparticle')
+		end
+		if GTparam.Verbose
+		    fprintf('   done \n')
+		end
+    end
+end
+
+function GTparticle = Simulation(GTparam, ifile, kes)
+    rng(GTparam.RandSeed(ifile));
+
+    %%
+    if GTparam.Verbose > 1
+        fprintf('      + Toward/outward the center of CRF   ...')
+    end
+
+    if ~isempty(GTparam.Vo.IO)
+        if strcmp(GTparam.Vo.IO, 'In')
+            Mode = 'inward';
+        else
+            Mode = 'outward';
+        end
+    else
+        Mode = 'outward';
+    end
+    
+    % x=GTparticle(1).Ro(:,1);  y=GTparticle(1).Ro(:,2);  z=GTparticle(1).Ro(:,3);
+    %Vx=GTparticle(1).Vo(:,1); Vy=GTparticle(1).Vo(:,2); Vz=GTparticle(1).Vo(:,3);
+    %quiver3(x,y,z,Vx,Vy,Vz)
+
+    %%
+    if GTparam.Verbose > 1
+        fprintf(['      + Simulation (file No ' num2str(ifile) ')             ...'])
+    end
+
+    GTparam.Particle.RT    = GTparam.Particle.RT*kes;
+    GTparam.Particle.RTmin = GTparam.Particle.RTmin*kes; 
+    GTparam.Particle.RTmax = GTparam.Particle.RTmax*kes;
+
+    if strcmp(GTparam.Particle.Sbas, 'F')
+        [R, V, T, P] = GeneratorCR( ...
+            {'Mode', Mode, 'Radius', GTparam.Ro.Radius, 'Center', GTparam.Ro.Center}, ...
+            {[GTparam.Particle.RTs 'min'], GTparam.Particle.RTmin, ...
+             [GTparam.Particle.RTs 'max'], GTparam.Particle.RTmax, ...
+             'Base', 'F', 'Index', GTparam.Particle.Sind}, ...
+            {'Type', {'GCR'}}, ...            
+            GTparam.Nevents, 0);
+    else
+        if ~GTparam.Particle.Mono
+            [R, V, T, P] = GeneratorCR( ...
+                {'Mode', Mode, 'Radius', GTparam.Ro.Radius, 'Center', GTparam.Ro.Center}, ...
+                {[GTparam.Particle.RTs 'min'], GTparam.Particle.RTmin, ...
+                 [GTparam.Particle.RTs 'max'], GTparam.Particle.RTmax, ...
+                 'Base', GTparam.Particle.Sbas, 'Index', GTparam.Particle.Sind}, ...
+                {'Type', {GTparam.Particle.Type}}, ...
+                GTparam.Nevents, 0);
+        else
+            [R, V, T, P] = GeneratorCR( ...
+                {'Mode', Mode, 'Radius', GTparam.Ro.Radius, 'Center', GTparam.Ro.Center}, ...
+                {GTparam.Particle.RTs, GTparam.Particle.RT}, ...
+                {'Type', {GTparam.Particle.Type}}, ...                
+                GTparam.Nevents, 0);
+        end
+    end
+
+    if ~GTparam.Vo.Isotropic
+        V(:,1) = GTparam.Vo.Directions(1);
+        V(:,2) = GTparam.Vo.Directions(2);
+        V(:,3) = GTparam.Vo.Directions(3);
+    end
+    
+    if GTparam.Verbose > 1
+        fprintf(['   done (' num2str(GTparam.Nevents) ' particles)\n'])
+    end
+
+    if GTparam.Verbose > 1
+        fprintf(['   ' num2str(length(T)) ' particles selected\n'])
+    end
+    %%
+    %{
+    if GTparam.Verbose
+        fprintf('   + Exclude particles: ... \n')
+    end
+    
+    ep = ismember(P, {'ele', 'pos'}); 
+    R(ep, :) = [];
+    V(ep, :) = [];
+    T(ep) = [];
+    P(ep) = [];
+    
+    if GTparam.Verbose
+        fprintf(['      ' num2str(length(P)) ' particles after rejection \n'])
+    end
+    %}
+
+    %%
+    if GTparam.Verbose > 1
+        fprintf('      + Filling GTparam                    ...')
+    end
+
+    GTparticle.Nevents = numel(T);
+
+    if  numel(T) > 1 && ...
+        size(unique(R, 'row'), 1) == 1 && numel(unique(T)) == 1 && ...
+        size(unique(V, 'row'), 1) == 1 && numel(unique(P)) == 1
+        R = unique(R, 'row');
+        V = unique(V, 'row');
+        T = unique(T);
+        P = unique(P);
+    end
+
+    GTparticle.Ro   = R;
+    GTparticle.Vo   = V;
+        
+    GTparticle.Type = P;
+
+    Const = mConstants;
+    for i = 1:length(P)
+        [A, Z, ...                      % Atomic weight and Charge
+            M, ...                      % Mass in MeV
+            PDG, ...                    % Particle PDG in Geant4
+            ~, ~] = GetNucleiProp(P{i});
+        Q = Z*Const.e;                  % Charge in C
+
+        GTparticle.A(i)   = A;
+        GTparticle.Z(i)   = Z;
+        GTparticle.Q(i)   = Q;
+        GTparticle.M(i)   = M;
+        GTparticle.PDG(i) = PDG;
+    end
+    for i = 1:length(T)
+        if GTparam.Particle.RTs == 'R'
+            GTparticle.T(i) = ConvertR2T(T(i), M/1e3, A, Z)/kes;
+            GTparticle.Rig(i) = T(i)/kes;
+        else
+            GTparticle.T(i) = T(i)/kes;
+            GTparticle.Rig(i) = ConvertT2R(T(i), M/1e3, A, Z)/kes;
+        end
+    end
+
+    % / Pitch-angle Velosity (Redefine according to R vector) /
+    if GTparam.Region.Code == 1 && GTparam.Vo.Pitch ~= 1000 && ~isempty(GTparam.EarthBfield)
+        Vo = zeros(size(R,1), 3);
+        for i = 1:size(R,1)
+            Ro = R(i, :) * GTparam.Ro.Rsconv;
+            if ~isempty(GTparam.Ro.CRFinp) && ~strcmp(GTparam.Ro.CRFinp, 'geo')
+                GTparam.EarthBfield.GTB.DIP
+                switch lower(CRFin)
+                    case 'dipmag'
+                        [Ro(1), Ro(2), Ro(3)] = geo2dipmag(Ro(1), Ro(2), Ro(3), GTparam.EarthBfield.GTB.DIP.psi, -1);
+                    case 'mag'
+                        [Ro(1), Ro(2), Ro(3)] = geo2mag_eccentric(Ro(1), Ro(2), Ro(3), -1, GTparam.Dates.DTnum);
+                    case 'gsm'
+                        [Ro(1), Ro(2), Ro(3)] = geo2gsm(Ro(1), Ro(2), Ro(3), ...
+                                                GTparam.Dates.Year, GTparam.Dates.DoY, GTparam.Dates.Secs, -1);
+                end
+            end
+            [Hx, Hy, Hz] = GetEarthBfield(Ro(1), Ro(2), Ro(3), GTparam.EarthBfield);
+            vecH = [Hx Hy Hz];
+            vecH = vecH / norm(vecH);
+            pitch = GTparam.Vo.Pitch;
+            Vo(i, :) = [cosd(pitch) 0 sind(pitch); 
+                        0 1 0; 
+                        -sind(pitch) 0 cosd(pitch)] * vecH';
+        end
+        GTparticle.Vo = Vo;
+    end
+
+    if GTparam.Verbose > 1
+        fprintf('   done \n')
+    end
+end

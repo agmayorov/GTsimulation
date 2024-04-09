@@ -1,0 +1,6 @@
+*.asv
+tasks.txt
+questions.txt
+GTparam/
+GTparticle/
+.idea/

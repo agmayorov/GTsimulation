@@ -1,0 +1,3 @@
+function GTclear
+    evalin('caller', ...
+        'clear Ro Vo Particle Date Region EMFF Steps Medium InteractEM InteractNUC SaveMode BC Nevents Nfiles GTmag IOinfo Verbose UsePAML3');
