@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from MagneticFields.AbsBfield import AbsBfield
+from MagneticFields import AbsBfield
 
 
 class Dipole(AbsBfield):
@@ -10,49 +10,51 @@ class Dipole(AbsBfield):
         super().__init__()
         self.Region = "Magnetosphere"
         self.Model = "Dipole"
-        self.date = date
+        self.Date = date
         self.units = units
         self.psi = psi
+
+        coefs = np.load("MagneticFields/Magnetosphere/Data/HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
+        self.g10sm = np.poly1d(coefs["g10_fit"])
+        self.g11sm = np.poly1d(coefs["g11_fit"])
+        self.h11sm = np.poly1d(coefs["h11_fit"])
+
         if M is not None:
             self.M = M
-        elif date == 0:
+        elif self.Date == 0:
             self.M = 30100
-        elif isinstance(date, datetime.date):
+        elif isinstance(self.Date, datetime.datetime):
             self.__SetEarthDipMagMom()
 
-    def UpdateState(self, new_date: datetime.date):
-        self.date = new_date
+    def UpdateState(self, new_date: datetime.datetime):
+        self.Date = new_date
         self.__SetEarthDipMagMom()
 
     def __SetEarthDipMagMom(self):
         assert self.units in ["SI_nT", "SI", "CGS_G", "CGS", "SEC"]
-        assert 1900 <= self.date.year <= 2021
-        coefs = np.load("MagneticFields/Magnetosphere/HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
-        g10sm = np.poly1d(coefs["g10_fit"])
-        g11sm = np.poly1d(coefs["g11_fit"])
-        h11sm = np.poly1d(coefs["h11_fit"])
-        ND, N = Dipole.GetNDaysInMonth(self.date.year, self.date.month)
-        D = self.date.year + (self.date.day + np.sum(ND[:self.date.month - 1]) - 0.5) / np.sum(ND)
+        assert 1900 <= self.Date.year <= 2021
+        ND, N = Dipole.GetNDaysInMonth(self.Date.year, self.Date.month)
+        D = self.Date.year + (self.Date.day + np.sum(ND[:self.Date.month - 1]) - 0.5) / np.sum(ND)
         if self.units == "SI_nT":
-            Mx = g11sm(D)
-            My = h11sm(D)
-            Mz = g10sm(D)
+            Mx = self.g11sm(D)
+            My = self.h11sm(D)
+            Mz = self.g10sm(D)
         elif self.units == "SI":
-            Mx = (self.Re ** 3 / 1e-7) * g11sm(D) / 1e9
-            My = (self.Re ** 3 / 1e-7) * h11sm(D) / 1e9
-            Mz = (self.Re ** 3 / 1e-7) * g10sm(D) / 1e9
+            Mx = (self.Re ** 3 / 1e-7) * self.g11sm(D) / 1e9
+            My = (self.Re ** 3 / 1e-7) * self.h11sm(D) / 1e9
+            Mz = (self.Re ** 3 / 1e-7) * self.g10sm(D) / 1e9
         elif self.units == 'CGS_G':
-            Mx = g11sm(D) / 1e9 * 1e4
-            My = h11sm(D) / 1e9 * 1e4
-            Mz = g10sm(D) / 1e9 * 1e4
+            Mx = self.g11sm(D) / 1e9 * 1e4
+            My = self.h11sm(D) / 1e9 * 1e4
+            Mz = self.g10sm(D) / 1e9 * 1e4
         elif self.units == "CGS":
-            Mx = (self.Re * 1e2) ** 3 * g11sm(D) / 1e9 * 1e4
-            My = (self.Re * 1e2) ** 3 * h11sm(D) / 1e9 * 1e4
-            Mz = (self.Re * 1e2) ** 3 * g10sm(D) / 1e9 * 1e4
+            Mx = (self.Re * 1e2) ** 3 * self.g11sm(D) / 1e9 * 1e4
+            My = (self.Re * 1e2) ** 3 * self.h11sm(D) / 1e9 * 1e4
+            Mz = (self.Re * 1e2) ** 3 * self.g10sm(D) / 1e9 * 1e4
         else:
-            Mx = (self.Re * 1e2) * g11sm(D) / 1e9 * 1e4 * 300 / 1e9
-            My = (self.Re * 1e2) * h11sm(D) / 1e9 * 1e4 * 300 / 1e9
-            Mz = (self.Re * 1e2) * g10sm(D) / 1e9 * 1e4 * 300 / 1e9
+            Mx = (self.Re * 1e2) * self.g11sm(D) / 1e9 * 1e4 * 300 / 1e9
+            My = (self.Re * 1e2) * self.h11sm(D) / 1e9 * 1e4 * 300 / 1e9
+            Mz = (self.Re * 1e2) * self.g10sm(D) / 1e9 * 1e4 * 300 / 1e9
         self.M = np.sqrt(Mx ** 2 + My ** 2 + Mz ** 2)
 
     def GetBfield(self, x, y, z, **kwargs):
