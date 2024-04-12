@@ -1,13 +1,13 @@
 import datetime
 import numpy as np
 
-
+# TODO generalize for all gauss fields
 def loadigrfcoefs(date: datetime.datetime):
     year = date.year
     y = year + (date - datetime.datetime(year, 1, 1)).days / (365 + float(
         (not bool(year % 4) and bool(year % 100)) or not bool(year % 4)))
 
-    coeffs = np.load("MagneticFields/Magnetosphere/Data/igrfcoefs.npy", allow_pickle=True).item()
+    coeffs = np.load("MagneticFields/Magnetosphere/Data/igrf13coeffs.npy", allow_pickle=True).item()
     years = coeffs["years"]
     assert years[0] <= y <= years[-1]
 
@@ -55,7 +55,7 @@ def loadigrfcoefs(date: datetime.datetime):
         lastgh = np.zeros_like(nextgh)
         lastgh[:smalln] = gh_tot[lastepoch]
 
-    if coeffs['slope'][nextepoch]:
+    if coeffs.get("slope") is not None and coeffs.get("slope")[nextepoch]:
         gslope = nextg
         hslope = nexth
         ghslope = nextgh
