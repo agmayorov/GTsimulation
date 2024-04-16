@@ -1,7 +1,11 @@
+import datetime
 import os
 from enum import Enum
 
+import numpy as np
+
 from MagneticFields import AbsBfield, Regions
+from MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
 
 
 class GaussModels(Enum):
@@ -29,21 +33,126 @@ versions_dict = {GaussModels.IGRF: [13],
                  GaussModels.SIFM: [None]}
 
 
+# TODO: convert field files to npy format
 class Gauss(AbsBfield):
 
-    def __init__(self, model: GaussModels, tp: GaussTypes, ver=None):
+    def __init__(self, date: datetime.datetime, model: GaussModels, tp: GaussTypes, ver=None, coord: int = 0):
         super().__init__()
         self.Region = Regions.Magnetosphere
         self.Model = model
         self.type = tp
         self.version = ver
-        self.txt_file_loc = None
-        self.mat_file_loc = None
-        self.npy_file_loc = None
+        self.Date = date
+        self.coord = coord
+        self.txt_file_loc = ""
+        self.mat_file_loc = ""
+        self.npy_file_loc = ""
         self.SetFullModelName()
+        self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
     def GetBfield(self, x, y, z, **kwargs):
-        pass
+        altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+        phi = np.arctan2(y, x)
+        theta = np.arccos(z, altitude)
+
+        Rearth_km = 6371.2
+
+        costheta = np.cos(theta)
+        sintheta = np.sin(theta)
+
+        if self.coord == 0:
+            a = 6378.137
+            f = 1 / 298.257223563
+            b = a * (1 - f)
+
+            rho = np.hypot(a * sintheta, b * costheta)
+            r = np.sqrt(
+                altitude ** 2 + 2 * altitude * rho + (a ** 4 * sintheta ** 2 + b ** 4 * costheta ** 2) / (rho ** 2))
+            cd = (altitude + rho) / r
+            sd = (a ** 2 - b ** 2) / rho * costheta * sintheta / r
+            oldcos = costheta
+            costheta = costheta * cd - sintheta * sd
+            sintheta = sintheta * cd + oldcos * sd
+        else:
+            r = altitude
+            cd = 1
+            sd = 0
+
+        nmax = np.sqrt(len(self.gh) + 1) - 1
+
+        cosphi = np.cos(np.arange(1, nmax + 1) * phi)
+        sinphi = np.sin(np.arange(1, nmax + 1) * phi)
+
+        Pmax = (nmax + 1) * (nmax + 2) / 2
+
+        Br = 0
+        Bt = 0
+        Bp = 0
+
+        P = np.zeros(Pmax)
+        P[0] = 1
+        P[2] = sintheta
+
+        dP = np.zeros(Pmax)
+        dP[0] = 0
+        dP[2] = costheta
+
+        m = 1
+        n = 0
+        coefindex = 0
+
+        a_r = (Rearth_km / r) ** 2
+
+        for Pindex in range(1, Pmax + 1):
+            if n < m:
+                m = 0
+                n += 1
+                a_r *= (Rearth_km / r)
+
+            if m < n and Pindex != 2:
+                last1n = Pindex - n - 1
+                last2n = Pindex - 2 * n + 1
+                P[Pindex] = (2 * n - 1) / np.sqrt(n ** 2 - m ** 2) * P[last1n] - np.sqrt(
+                    ((n - 1) ** 2 - m ** 2) / (n ** 2 - m ** 2)) * P[last2n]
+                dP[Pindex] = (2 * n - 1) / np.sqrt(n ** 2 - m ** 2) * (
+                        costheta * dP[last1n] - sintheta * P[last1n]) - np.sqrt(
+                    ((n - 1) ** 2 - m ** 2) / (n ** 2 - m ** 2)) * dP[last2n]
+            elif Pindex == 2:
+                lastn = Pindex - n - 1
+                P[Pindex] = np.sqrt(1 - 1 / (2 * m)) * sintheta * P[lastn]
+                dP[Pindex] = np.sqrt(1 - 1 / (2 * m)) * (sintheta * dP[lastn] + costheta * P[lastn])
+
+            if m == 0:
+                coef = a_r * self.gh[coefindex]
+                Br += (n + 1) * coef * P[Pindex]
+                Bt -= coef * dP[Pindex]
+                coefindex += 1
+            else:
+                coef = a_r * (self.gh[coefindex] * cosphi[m - 1]) + self.gh[coefindex + 1] * sinphi[m - 1]
+                Br += (n + 1) * coef * P[Pindex]
+                Bt -= coef * dP[Pindex]
+
+                # TODO: generalize this function, to have vector coordinate inputs and vector magentic field outputs
+                if sintheta == 0:
+                    Bp -= costheta * a_r * (-self.gh[coefindex] * sinphi[m - 1] + self.gh[coefindex] * cosphi[m - 1]) * \
+                          dP[Pindex]
+                else:
+                    Bp -= 1 / sintheta * a_r * (
+                            -self.gh[coefindex] * sinphi[m - 1] + self.gh[coefindex] * cosphi[m - 1]) * P[Pindex]
+
+                coefindex += 2
+            m += 1
+
+        Bx = -Bt
+        By = Bp
+        Bz = -Br
+
+        if self.coord == 0:
+            Bx_old = Bx
+            Bx = Bx * cd + Bz * sd
+            Bz = Bz * cd - Bx_old * sd
+
+        return Bx, By, Bz
 
     def UpdateState(self, new_date):
         pass
@@ -106,5 +215,3 @@ class Gauss(AbsBfield):
         self.txt_file_loc = loc + os.sep + self.ModelName + os.sep + txt_file
         self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
         self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
-
-
