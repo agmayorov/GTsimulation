@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from MagneticFields import AbsBfield
+from MagneticFields import AbsBfield, Regions
 
 
 class Dipole(AbsBfield):
@@ -8,8 +8,8 @@ class Dipole(AbsBfield):
 
     def __init__(self, date=0, units="SI_nT", M=None, psi=0):
         super().__init__()
-        self.Region = "Magnetosphere"
-        self.Model = "Dipole"
+        self.Region = Regions.Magnetosphere
+        self.ModelName = "Dipole"
         self.Date = date
         self.units = units
         self.psi = psi

@@ -1,7 +1,7 @@
 import datetime
 import numpy as np
 
-from MagneticFields import AbsBfield
+from MagneticFields import AbsBfield, Regions
 from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
 
 
@@ -9,7 +9,7 @@ class Tsyganenko(AbsBfield):
     def __init__(self, date=0, ModCode=96):
         super().__init__()
         self.ModelName = "Tsyg"
-        self.Region = "M"
+        self.Region = Regions.Magnetosphere
         self.Date = date
         self.ModCode = ModCode
 
