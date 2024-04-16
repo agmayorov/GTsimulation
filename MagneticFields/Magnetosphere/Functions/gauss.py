@@ -1,19 +1,23 @@
+import os
 import datetime
 import numpy as np
 
-# TODO generalize for all gauss fields
-def loadigrfcoefs(date: datetime.datetime):
+
+def LoadGaussCoeffs(npyfile: str, date: datetime.datetime):
     year = date.year
     y = year + (date - datetime.datetime(year, 1, 1)).days / (365 + float(
         (not bool(year % 4) and bool(year % 100)) or not bool(year % 4)))
 
-    coeffs = np.load("MagneticFields/Magnetosphere/Data/igrf13coeffs.npy", allow_pickle=True).item()
+    coeffs = np.load(npyfile, allow_pickle=True).item()
     years = coeffs["years"]
-    assert years[0] <= y <= years[-1]
-
     g_tot = coeffs['g']
     h_tot = coeffs['h']
     gh_tot = coeffs['gh']
+
+    if len(years) == 1:
+        return g_tot, h_tot, gh_tot
+
+    assert years[0] <= y <= years[-1]
 
     idx = np.where(years - y < 0)[0]
     if idx.size == 0:
@@ -35,10 +39,10 @@ def loadigrfcoefs(date: datetime.datetime):
     if lastg.shape[0] > nextg.shape[0]:
         smalln = nextg.shape[0]
         nextg = np.zeros_like(lastg)
-        nextg[:smalln, :smalln+1] = g_tot[nextepoch]
+        nextg[:smalln, :smalln + 1] = g_tot[nextepoch]
 
         nexth = np.zeros_like(lasth)
-        nexth[:smalln, :smalln+1] = h_tot[nextepoch]
+        nexth[:smalln, :smalln + 1] = h_tot[nextepoch]
 
         smalln = len(nextgh)
         nextgh = np.zeros_like(lastgh)
@@ -46,10 +50,10 @@ def loadigrfcoefs(date: datetime.datetime):
     elif lastg.shape[0] < nextg.shape[0]:
         smalln = lastg.shape[0]
         lastg = np.zeros_like(nextg)
-        lastg[:smalln, :smalln+1] = g_tot[lastepoch]
+        lastg[:smalln, :smalln + 1] = g_tot[lastepoch]
 
         lasth = np.zeros_like(nexth)
-        lasth[:smalln, :smalln+1] = h_tot[lastepoch]
+        lasth[:smalln, :smalln + 1] = h_tot[lastepoch]
 
         smalln = len(lastgh)
         lastgh = np.zeros_like(nextgh)
@@ -60,9 +64,9 @@ def loadigrfcoefs(date: datetime.datetime):
         hslope = nexth
         ghslope = nextgh
     else:
-        gslope = (nextg - lastg)/np.diff(years[[lastepoch, nextepoch]])
-        hslope = (nexth - lasth)/np.diff(years[[lastepoch, nextepoch]])
-        ghslope = (nextgh - lastgh)/np.diff(years[[lastepoch, nextepoch]])
+        gslope = (nextg - lastg) / np.diff(years[[lastepoch, nextepoch]])
+        hslope = (nexth - lasth) / np.diff(years[[lastepoch, nextepoch]])
+        ghslope = (nextgh - lastgh) / np.diff(years[[lastepoch, nextepoch]])
 
     g = lastg + gslope * (y - years[lastepoch])
     h = lasth + hslope * (y - years[lastepoch])

@@ -1,7 +1,7 @@
 import datetime
 import numpy as np
 
-from MagneticFields.Magnetosphere.Functions import gauss_coefs
+from MagneticFields.Magnetosphere.Functions import gauss
 
 
 def DirectionEarthtoSun(Year, Day, Secs):
@@ -33,7 +33,7 @@ def DirectionEarthtoSun(Year, Day, Secs):
 
 
 def DisplacementForEccentricDipole(date: datetime.datetime):
-    g, h, _ = gauss_coefs.loadigrfcoefs(date)
+    g, h, _ = gauss.LoadGaussCoeffs("MagneticFields/Magnetosphere/IGRF13/igrf13coeffs.npy", date)
     B0 = np.linalg.norm([g[0, 0], g[0, 1], h[0, 1]])
     L0 = 2 * g[0, 0] * g[1, 0] + np.sqrt(3) * (g[0, 1] * g[1, 1] + h[0, 1] * h[1, 1])
     L1 = -g[0, 1] * g[1, 0] + np.sqrt(3) * (g[0, 0] * g[1, 1] + g[0, 1] * g[1, 2] + h[0, 1] * h[1, 2])
