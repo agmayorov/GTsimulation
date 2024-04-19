@@ -155,7 +155,8 @@ class Gauss(AbsBfield):
         return Bx, By, Bz
 
     def UpdateState(self, new_date):
-        pass
+        self.Date = new_date
+        self.g, self.h.self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
     def SetFullModelName(self):
         assert self.version in versions_dict[self.Model]

@@ -20,6 +20,9 @@ class Tsyganenko(AbsBfield):
 
         self.Year, self.DoY, self.Secs, self.DTnum = 1, 1, 0, 1
 
+        self.__SetPsiInd()
+
+    def __SetPsiInd(self):
         if self.Date == 0:
             self.ps = 0
             self.iopt = [1.1200, 2.0000, 1.6000, -0.2000]
@@ -67,7 +70,8 @@ class Tsyganenko(AbsBfield):
         return Bx, By, Bz
 
     def UpdateState(self, new_date):
-        pass
+        self.Date = new_date
+        self.__SetPsiInd()
 
     @staticmethod
     def FromMeters(x, y, z):
