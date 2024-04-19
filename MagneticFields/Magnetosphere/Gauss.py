@@ -53,7 +53,7 @@ class Gauss(AbsBfield):
     def CalcBfield(self, x, y, z, **kwargs):
         altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         phi = np.arctan2(y, x)
-        theta = np.arccos(z, altitude)
+        theta = np.arccos(z/altitude)
 
         Rearth_km = 6371.2
 
@@ -83,7 +83,7 @@ class Gauss(AbsBfield):
         cosphi = np.cos(np.arange(1, nmax + 1) * phi)
         sinphi = np.sin(np.arange(1, nmax + 1) * phi)
 
-        Pmax = (nmax + 1) * (nmax + 2) / 2
+        Pmax = int((nmax + 1) * (nmax + 2) / 2)
 
         Br = 0
         Bt = 0
@@ -103,7 +103,7 @@ class Gauss(AbsBfield):
 
         a_r = (Rearth_km / r) ** 2
 
-        for Pindex in range(1, Pmax + 1):
+        for Pindex in range(1, Pmax):
             if n < m:
                 m = 0
                 n += 1

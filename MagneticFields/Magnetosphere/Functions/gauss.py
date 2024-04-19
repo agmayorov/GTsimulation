@@ -72,4 +72,4 @@ def LoadGaussCoeffs(npyfile: str, date: datetime.datetime):
     h = lasth + hslope * (y - years[lastepoch])
     gh = lastgh + ghslope * (y - years[lastepoch])
 
-    return g, h, gh
+    return g, h, gh.flatten()
