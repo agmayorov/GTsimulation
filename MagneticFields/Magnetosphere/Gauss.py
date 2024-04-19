@@ -6,6 +6,7 @@ import numpy as np
 
 from MagneticFields import AbsBfield, Regions
 from MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
+from MagneticFields.magnetic_field import Units
 
 
 class GaussModels(Enum):
@@ -33,11 +34,10 @@ versions_dict = {GaussModels.IGRF: [13],
                  GaussModels.SIFM: [None]}
 
 
-# TODO: convert field files to npy format
 class Gauss(AbsBfield):
 
-    def __init__(self, date: datetime.datetime, model: GaussModels, tp: GaussTypes, ver=None, coord: int = 0):
-        super().__init__()
+    def __init__(self, date: datetime.datetime, model: GaussModels, tp: GaussTypes, ver=None, coord: int = 0, **kwargs):
+        super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.Model = model
         self.type = tp
@@ -50,7 +50,7 @@ class Gauss(AbsBfield):
         self.SetFullModelName()
         self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
-    def GetBfield(self, x, y, z, **kwargs):
+    def CalcBfield(self, x, y, z, **kwargs):
         altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         phi = np.arctan2(y, x)
         theta = np.arccos(z, altitude)
@@ -215,3 +215,7 @@ class Gauss(AbsBfield):
         self.txt_file_loc = loc + os.sep + self.ModelName + os.sep + txt_file
         self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
         self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
+
+    @staticmethod
+    def FromMeters(x, y, z):
+        return x/Units.km2m, y/Units.km2m, z/Units.km2m

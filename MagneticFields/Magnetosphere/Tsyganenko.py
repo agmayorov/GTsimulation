@@ -3,11 +3,12 @@ import numpy as np
 
 from MagneticFields import AbsBfield, Regions
 from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
+from MagneticFields.magnetic_field import Units
 
 
 class Tsyganenko(AbsBfield):
-    def __init__(self, date=0, ModCode=96):
-        super().__init__()
+    def __init__(self, date=0, ModCode=96, **kwargs):
+        super().__init__(**kwargs)
         self.ModelName = "Tsyg"
         self.Region = Regions.Magnetosphere
         self.Date = date
@@ -53,7 +54,7 @@ class Tsyganenko(AbsBfield):
 
         return ind
 
-    def GetBfield(self, x, y, z, **kwargs):
+    def CalcBfield(self, x, y, z, **kwargs):
         X, Y, Z = transformations.geo2gsm(x, y, z, self.Year, self.DoY, self.Secs, 1)
         Bx, By, Bz = 0, 0, 0
         if self.ModCode == 89:
@@ -67,3 +68,7 @@ class Tsyganenko(AbsBfield):
 
     def UpdateState(self, new_date):
         pass
+
+    @staticmethod
+    def FromMeters(x, y, z):
+        return x/Units.RE2m, y/Units.RE2m, z/Units.RE2m

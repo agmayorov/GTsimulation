@@ -1,13 +1,14 @@
 import datetime
 import numpy as np
 from MagneticFields import AbsBfield, Regions
+from MagneticFields.magnetic_field import Units
 
 
 class Dipole(AbsBfield):
     Re = 6371.137e3
 
-    def __init__(self, date=0, units="SI_nT", M=None, psi=0):
-        super().__init__()
+    def __init__(self, date=0, units="SI_nT", M=None, psi=0, **kwargs):
+        super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.ModelName = "Dipole"
         self.Date = date
@@ -57,7 +58,7 @@ class Dipole(AbsBfield):
             Mz = (self.Re * 1e2) * self.g10sm(D) / 1e9 * 1e4 * 300 / 1e9
         self.M = np.sqrt(Mx ** 2 + My ** 2 + Mz ** 2)
 
-    def GetBfield(self, x, y, z, **kwargs):
+    def CalcBfield(self, x, y, z, **kwargs):
         Q = self.M / (np.sqrt(x ** 2 + y ** 2 + z ** 2)) ** 5
 
         Bx = Q * ((y ** 2 + z ** 2 - 2 * x ** 2) * np.sin(self.psi) - 3 * (z * x) * np.cos(self.psi))
@@ -74,5 +75,9 @@ class Dipole(AbsBfield):
             ND[1] = 29
 
         return ND, ND[month - 1]
+
+    @staticmethod
+    def FromMeters(x, y, z):
+        return x/Units.RE2m, y/Units.RE2m, z/Units.RE2m
 
 
