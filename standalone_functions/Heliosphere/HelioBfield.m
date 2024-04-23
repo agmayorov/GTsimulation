@@ -267,15 +267,15 @@ classdef HelioBfield < BfieldAbs
 
             self.NParam.A_2D = randn(num, 1)./(130);
             self.NParam.alpha_2D = rand(num, 1).*2.*pi;
-            self.NParam.delta_2D = rand(num, 1)*.2.*pi;
+            self.NParam.delta_2D = rand(num, 1).*2.*pi;
 
             self.NParam.A_rad = randn(num, 1)./1.5;
             self.NParam.alpha_rad = rand(num, 1).*2.*pi;
-            self.NParam.delta_rad = rand(num, 1)*.2.*pi;
+            self.NParam.delta_rad = rand(num, 1).*2.*pi;
 
             self.NParam.A_az = randn(num, 1)./4.5;
             self.NParam.alpha_az = rand(num, 1).*2.*pi;
-            self.NParam.delta_az = rand(num, 1)*.2.*pi;
+            self.NParam.delta_az = rand(num, 1).*2.*pi;
         end
         
         function v = v_wind(~, theta)
