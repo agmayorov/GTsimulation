@@ -6,7 +6,7 @@ from MagneticFields import AbsBfield, Regions, Units
 class Dipole(AbsBfield):
     Re = 6371.137e3
 
-    def __init__(self, date=0, units="SI_nT", M=None, psi=0, **kwargs):
+    def __init__(self, date: int | datetime.datetime = 0, units="SI_nT", M=None, psi=0, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.ModelName = "Dipole"
@@ -77,6 +77,4 @@ class Dipole(AbsBfield):
 
     @staticmethod
     def FromMeters(x, y, z):
-        return x/Units.RE2m, y/Units.RE2m, z/Units.RE2m
-
-
+        return x / Units.RE2m, y / Units.RE2m, z / Units.RE2m
