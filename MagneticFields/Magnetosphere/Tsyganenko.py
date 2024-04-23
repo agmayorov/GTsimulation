@@ -1,9 +1,8 @@
 import datetime
 import numpy as np
 
-from MagneticFields import AbsBfield, Regions
+from MagneticFields import AbsBfield, Regions, Units
 from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
-from MagneticFields.magnetic_field import Units
 
 
 class Tsyganenko(AbsBfield):

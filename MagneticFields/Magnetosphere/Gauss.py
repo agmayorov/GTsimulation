@@ -4,9 +4,8 @@ from enum import Enum
 
 import numpy as np
 
-from MagneticFields import AbsBfield, Regions
+from MagneticFields import AbsBfield, Regions, Units
 from MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
-from MagneticFields.magnetic_field import Units
 
 
 class GaussModels(Enum):

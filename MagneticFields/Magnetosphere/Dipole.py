@@ -1,7 +1,6 @@
 import datetime
 import numpy as np
-from MagneticFields import AbsBfield, Regions
-from MagneticFields.magnetic_field import Units
+from MagneticFields import AbsBfield, Regions, Units
 
 
 class Dipole(AbsBfield):
