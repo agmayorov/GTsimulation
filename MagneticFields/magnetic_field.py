@@ -4,7 +4,10 @@ from abc import ABC, abstractmethod
 
 class Units:
     km2m = 1e3
+
     AU2m = 149.597870700e9
+    AU2km = 149.597870700e6
+
     pc2m = 3.08567758149e16
     kpc2m = 3.08567758149e19
 
