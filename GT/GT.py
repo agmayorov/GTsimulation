@@ -1,6 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+import tqdm
+
 from GT import Constants, Units
 
 
@@ -11,6 +13,7 @@ class GTSimulator(ABC):
         self.Medium = None
         self.Save = None
         self.Step = None
+        self.Num = None
         self.Particles = None
         self.Date = None
         self.UseRadLosses = False
@@ -19,19 +22,25 @@ class GTSimulator(ABC):
 
     def __call__(self):
         for self.index in range(len(self.Particles)):
-            E = self.Particles[self.index].E
-            M = self.Particles[self.index].M
-            T = self.Particles[self.index].T
+            TotTime, TotPathLen = 0, 0
+            for _ in tqdm.tqdm(range(self.Num)):
+                E = self.Particles[self.index].E
+                M = self.Particles[self.index].M
+                T = self.Particles[self.index].T
 
-            r = np.array(self.Particles[self.index].coordinates)
+                r = np.array(self.Particles[self.index].coordinates)
 
-            V_normalized = np.array(self.Particles[self.index].velocities)
-            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / (T + M)
-            Vm = V_norm * V_normalized
+                V_normalized = np.array(self.Particles[self.index].velocities)
+                V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / (T + M)
+                Vm = V_norm * V_normalized
+                PathLen = V_norm * self.Step
 
-            Q = self.Particles[self.index].Q
+                Q = self.Particles[self.index].Q
 
-            self.SimulationStep(M, T, Vm, Q, r)
+                self.SimulationStep(M, T, Vm, Q, r)
+
+                TotTime += self.Step
+                TotPathLen += PathLen
 
     def SimulationStep(self, M, T, Vm, Q, r):
         q = self.Step * Q / 2 / (M * Units.MeV2kg)
