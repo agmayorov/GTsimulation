@@ -537,7 +537,6 @@ def GetGCRflux(E_type, E, F, PartName=None):
     J_LIS = lambda T, A, M, J0, a, g1, g2, g3: (J0 * np.power(T, g1) *
                                                 np.power(((np.power(T, g2) + np.power(a, g2)) / (1 + np.power(a, g2))), g3) /
                                                 (1 - 1 / np.power((1 + A * T / M), 2)))
-    # TODO
     s = 0
     if hasattr(N, '__iter__'):
         J = np.zeros((len(N), len(E)))
