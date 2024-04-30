@@ -1,4 +1,5 @@
-from NucleiProp import NucleiProp
+from particle.NucleiProp import NucleiProp
+
 
 def GetNucleiProp(T):
     # The function returns the particle /nucleus properties.
@@ -30,6 +31,6 @@ def GetNucleiProp(T):
             Thd = NucleiProp[T]['Thd']
     else:
         A, Z, M, Ab, Thd = -1
-        Pdg = 0
+        PDG = 0
 
-    return A ,Z, M, PDG, Ab, Thd
+    return A, Z, M, PDG, Ab, Thd
