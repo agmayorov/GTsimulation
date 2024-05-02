@@ -1,4 +1,4 @@
-from particle.NucleiProp import NucleiProp
+from Particle.NucleiProp import NucleiProp
 
 
 def GetNucleiProp(T):

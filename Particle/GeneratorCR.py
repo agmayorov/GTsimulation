@@ -1,8 +1,7 @@
 import numpy as np
 
-from ConvertR2T import ConvertR2T
-from ConvertT2R import ConvertT2R
-from Flux import Flux
+from Particle.functions import ConvertT2R, ConvertR2T
+from Particle.Flux import Flux
 
 
 def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):
@@ -153,7 +152,7 @@ def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):
                           'Base': 'F', 'Index': SpectrumIndex}
         if Nevents > 1:
             Energy = GeneratorCR({'Radius': 1}, EnergyArgument, {'Type': ['pr', 'he4'],
-                                                                           'Abundance': [0.9, 0.1]}, Nevents, 0).E
+                                                                 'Abundance': [0.9, 0.1]}, Nevents, 0).E
         else:
             if np.random.rand() < 0.9:
                 Energy = GeneratorCR({'Radius': 1}, EnergyArgument, {'Type': ['pr']}, Nevents, 0).E
@@ -168,6 +167,7 @@ def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):
     flux = Flux(r, v, Energy, ParticleName)
     # return r, v, Energy, ParticleName
     return flux
+
 
 def GetSourceArguments(SourceArguments):
     if 'Mode' in SourceArguments:
@@ -535,14 +535,15 @@ def GetGCRflux(E_type, E, F, PartName=None):
         exit(-1)
 
     J_LIS = lambda T, A, M, J0, a, g1, g2, g3: (J0 * np.power(T, g1) *
-                                                np.power(((np.power(T, g2) + np.power(a, g2)) / (1 + np.power(a, g2))), g3) /
+                                                np.power(((np.power(T, g2) + np.power(a, g2)) / (1 + np.power(a, g2))),
+                                                         g3) /
                                                 (1 - 1 / np.power((1 + A * T / M), 2)))
     s = 0
     if hasattr(N, '__iter__'):
         J = np.zeros((len(N), len(E)))
         for i in N:
             J[s] = J_LIS(T[s] + Z[i] / A[i] * F, A[i], M[i], J0[i], a[i], g1, g2[i], g3[i]) * T[s] * (
-                        T[s] + 2 * 0.93827) / (T[s] + Z[i] / A[i] * F) / (T[s] + Z[i] / A[i] * F + 2 * 0.93827)
+                    T[s] + 2 * 0.93827) / (T[s] + Z[i] / A[i] * F) / (T[s] + Z[i] / A[i] * F + 2 * 0.93827)
             if E_type == 'R':
                 dRdT = A[i] / Z[i] / np.sqrt(1 - 1 / np.power((1 + A[i] * T[s] / M[i]), 2))
                 J[s] = J[s] / dRdT
@@ -550,11 +551,9 @@ def GetGCRflux(E_type, E, F, PartName=None):
     else:
         J = np.zeros(len(E))
         J = (J_LIS(T + Z[N] / A[N] * F, A[N], M[N], J0[N], a[N], g1, g2[N], g3[N]) * T *
-                (T + 2 * 0.93827) / (T + Z[N] / A[N] * F) / (T + Z[N] / A[N] * F + 2 * 0.93827))
+             (T + 2 * 0.93827) / (T + Z[N] / A[N] * F) / (T + Z[N] / A[N] * F + 2 * 0.93827))
         if E_type == 'R':
             dRdT = A[N] / Z[N] / np.sqrt(1 - 1 / np.power((1 + A[N] * T / M[N]), 2))
             J = J / dRdT
 
     return J
-
-
