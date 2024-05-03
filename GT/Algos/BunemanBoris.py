@@ -8,6 +8,8 @@ class BunemanBorisSimulator(GTSimulator):
         x, y, z = X
         if self.Bfield is not None:
             H = np.array(self.Bfield.GetBfield(x, y, z))
+            if len(H.shape) == 2:
+                H = H[:, 0]
         else:
             H = np.zeros(3)
 
@@ -30,18 +32,18 @@ class BunemanBorisSimulator(GTSimulator):
         UU = (np.dot(U, T)) ** 2 / Constants.c ** 2
         YY = np.sqrt(1 + np.linalg.norm(U) ** 2 / Constants.c ** 2)
 
-        S = YY**2 - TT**2
+        S = YY ** 2 - TT ** 2
 
         Ym = Yp
-        Yp = np.sqrt(0.5*(S + np.sqrt(S**2 + 4 * (TT**2 + UU))))
-        Ya = 0.5*(Ym + Yp)
+        Yp = np.sqrt(0.5 * (S + np.sqrt(S ** 2 + 4 * (TT ** 2 + UU))))
+        Ya = 0.5 * (Ym + Yp)
 
-        tt = np.tan(q*H_norm/Yp)
+        tt = np.tan(q * H_norm / Yp)
 
-        t = tt * H/H_norm
+        t = tt * H / H_norm
 
-        s = 1/(1 + tt*2)
+        s = 1 / (1 + tt * 2)
 
-        Vp = s/Yp * (U + t*np.dot(U, t) + np.cross(U, t))
+        Vp = s / Yp * (U + t * np.dot(U, t) + np.cross(U, t))
 
         return Vp, Yp, Ya
