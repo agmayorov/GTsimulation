@@ -84,11 +84,11 @@ class GTSimulator(ABC):
                 Trajectory.append(r)
 
                 V_normalized = np.array(self.Particles[self.index].velocities)
-                V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / (T + M)
+                V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
                 Vm = V_norm * V_normalized
                 PathLen = V_norm * self.Step
 
-                Q = self.Particles[self.index].Z
+                Q = self.Particles[self.index].Z * Constants.e
 
                 self.SimulationStep(M, T, Vm, Q, r)
 

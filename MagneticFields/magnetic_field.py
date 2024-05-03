@@ -28,6 +28,7 @@ class Regions(Enum):
 
 class AbsBfield(ABC):
     ToMeters = 1
+
     def __init__(self, use_tesla=False, use_meters=False):
         self.Region = None
         self.ModelName = None
@@ -48,7 +49,7 @@ class AbsBfield(ABC):
 
     @staticmethod
     def ToTesla(Bx, By, Bz):
-        return Bx/Units.T2nT, By/Units.T2nT, Bz/Units.T2nT
+        return Bx / Units.T2nT, By / Units.T2nT, Bz / Units.T2nT
 
     def GetBfield(self, x, y, z, **kwargs):
         if self.use_meters:
