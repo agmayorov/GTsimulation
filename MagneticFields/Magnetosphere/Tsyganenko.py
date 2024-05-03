@@ -6,6 +6,8 @@ from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
 
 
 class Tsyganenko(AbsBfield):
+    ToMeters = Units.RE2m
+
     def __init__(self, date: int | datetime.datetime = 0, ModCode=96, **kwargs):
         super().__init__(**kwargs)
         self.ModelName = "Tsyg"
@@ -72,6 +74,3 @@ class Tsyganenko(AbsBfield):
         self.Date = new_date
         self.__SetPsiInd()
 
-    @staticmethod
-    def FromMeters(x, y, z):
-        return x / Units.RE2m, y / Units.RE2m, z / Units.RE2m

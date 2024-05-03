@@ -54,3 +54,10 @@ class CRParticle(Particle):
             self.T = E - self.M
         else:
             raise Exception("Particle without or with negative energy")
+
+    def UpdateState(self, newV, newT, dt):
+        self.T = newT
+        self.E = self.T + self.M
+
+        self.coordinates += newV*dt
+        self.velocities = newV/np.linalg.norm(newV)

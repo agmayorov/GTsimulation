@@ -6,6 +6,7 @@ from MagneticFields.Heliosphere.Functions import transformations
 
 
 class Parker(AbsBfield):
+    ToMeters = Units.AU2m
     rs = 0.0232523
     omega = 2 * np.pi / 2160000
     years11 = 347133600
@@ -107,10 +108,6 @@ class Parker(AbsBfield):
     @classmethod
     def a(cls, theta):
         return cls.v_wind(theta) / cls.omega
-
-    @staticmethod
-    def FromMeters(x, y, z):
-        return x / Units.AU2m, y / Units.AU2m, z / Units.AU2m
 
     @staticmethod
     def HCS(theta, theta0, r):

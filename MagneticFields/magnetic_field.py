@@ -27,7 +27,7 @@ class Regions(Enum):
 
 
 class AbsBfield(ABC):
-
+    ToMeters = 1
     def __init__(self, use_tesla=False, use_meters=False):
         self.Region = None
         self.ModelName = None
@@ -42,9 +42,9 @@ class AbsBfield(ABC):
     def UpdateState(self, new_date):
         pass
 
-    @staticmethod
-    def FromMeters(x, y, z):
-        return x, y, z
+    @classmethod
+    def FromMeters(cls, x, y, z):
+        return x / cls.ToMeters, y / cls.ToMeters, z / cls.ToMeters
 
     @staticmethod
     def ToTesla(Bx, By, Bz):

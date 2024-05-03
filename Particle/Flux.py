@@ -15,11 +15,11 @@ class GeneratorModes(Enum):
 
 # TODO: add others functions of distribution of energy
 class Flux(Sequence, ABC):
-    def __init__(self, Names='pr', Mode: GeneratorModes = GeneratorModes.Inward, Radius=1, Center=np.zeros(3),
-                 Nevents: int = 1, *args, **kwargs):
-        self.Mode = Mode
+    def __init__(self, Names='pr', Mode: GeneratorModes | str = GeneratorModes.Inward, Radius=1, Center=np.zeros(3),
+                 Nevents: int = 1, ToMeters=1, *args, **kwargs):
+        self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes["Mode"]
         self.Nevents = Nevents
-        self.GenerateCoordinates(Radius, Center)
+        self.GenerateCoordinates(Radius*ToMeters, Center*ToMeters)
         self.GenerateEnergySpectrum(*args, **kwargs)
         self.GenerateParticles(Names)
 
@@ -67,7 +67,7 @@ class Flux(Sequence, ABC):
                 self.r = np.tile(Rc, (self.Nevents, 1))
                 theta = np.arccos(1 - 2 * np.random.rand(self.Nevents, 1))
                 phi = 2 * np.pi * np.random.rand(self.Nevents, 1)
-                v = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
+                self.v = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
 
     def __getitem__(self, item):
         return self.particles[item]

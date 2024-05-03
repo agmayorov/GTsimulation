@@ -34,13 +34,15 @@ versions_dict = {GaussModels.IGRF: [13],
 
 
 class Gauss(AbsBfield):
+    ToMeters = Units.km2m
 
-    def __init__(self, date: datetime.datetime, model: GaussModels, tp: GaussTypes, ver=None, coord: int = 0, **kwargs):
+    def __init__(self, date: datetime.datetime, model: GaussModels | str, model_type: GaussTypes | str, version=None,
+                 coord: int = 0, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
-        self.Model = model
-        self.type = tp
-        self.version = ver
+        self.Model = model if isinstance(model_type, GaussModels) else GaussModels[model]
+        self.type = model_type if isinstance(model_type, GaussTypes) else GaussTypes[model_type]
+        self.version = version
         self.Date = date
         self.coord = coord
         self.txt_file_loc = ""
@@ -52,7 +54,7 @@ class Gauss(AbsBfield):
     def CalcBfield(self, x, y, z, **kwargs):
         altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         phi = np.arctan2(y, x)
-        theta = np.arccos(z/altitude)
+        theta = np.arccos(z / altitude)
 
         Rearth_km = 6371.2
 
@@ -216,6 +218,3 @@ class Gauss(AbsBfield):
         self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
         self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
 
-    @staticmethod
-    def FromMeters(x, y, z):
-        return x/Units.km2m, y/Units.km2m, z/Units.km2m

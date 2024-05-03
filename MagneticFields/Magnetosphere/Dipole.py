@@ -5,6 +5,7 @@ from MagneticFields import AbsBfield, Regions, Units
 
 class Dipole(AbsBfield):
     Re = 6371.137e3
+    ToMeters = Units.RE2m
 
     def __init__(self, date: int | datetime.datetime = 0, units="SI_nT", M=None, psi=0, **kwargs):
         super().__init__(**kwargs)
@@ -75,6 +76,3 @@ class Dipole(AbsBfield):
 
         return ND, ND[month - 1]
 
-    @staticmethod
-    def FromMeters(x, y, z):
-        return x / Units.RE2m, y / Units.RE2m, z / Units.RE2m
