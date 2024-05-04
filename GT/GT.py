@@ -101,6 +101,7 @@ class GTSimulator(ABC):
                 ax = plt.figure().add_subplot(projection='3d')
                 ax.plot(0, 0, 0, '*')
                 ax.plot(Trajectory[0, 0], Trajectory[0, 1], Trajectory[0, 2], 'o')
+                ax.plot(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2], 'o')
                 ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])
                 plt.show()
 

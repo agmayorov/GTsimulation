@@ -42,7 +42,7 @@ class BunemanBorisSimulator(GTSimulator):
 
         t = tt * H / H_norm
 
-        s = 1 / (1 + tt * 2)
+        s = 1 / (1 + tt ** 2)
 
         Vp = s / Yp * (U + t * np.dot(U, t) + np.cross(U, t))
 
