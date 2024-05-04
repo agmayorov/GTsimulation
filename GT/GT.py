@@ -75,22 +75,28 @@ class GTSimulator(ABC):
         for self.index in range(len(self.Particles)):
             TotTime, TotPathLen = 0, 0
             Trajectory = []
+
+            Q = self.Particles[self.index].Z * Constants.e
+            M = self.Particles[self.index].M
+            E = self.Particles[self.index].E
+            T = self.Particles[self.index].T
+            r = np.array(self.Particles[self.index].coordinates)
+
+            V_normalized = np.array(self.Particles[self.index].velocities)
+            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
+            Vm = V_norm * V_normalized
+
+            q = self.Step * Q / 2 / (M * Units.MeV2kg)
+
             for _ in tqdm.tqdm(range(self.Num)):
-                E = self.Particles[self.index].E
-                M = self.Particles[self.index].M
-                T = self.Particles[self.index].T
+                Trajectory.append([r[0], r[1], r[2]])
 
-                r = np.array(self.Particles[self.index].coordinates)
-                Trajectory.append(r)
-
-                V_normalized = np.array(self.Particles[self.index].velocities)
-                V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
-                Vm = V_norm * V_normalized
                 PathLen = V_norm * self.Step
 
-                Q = self.Particles[self.index].Z * Constants.e
-
-                self.SimulationStep(M, T, Vm, Q, r)
+                Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r)
+                Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
+                # self.Particles[self.index].UpdateState(Vm, T, self.Step)
+                r += Vm * self.Step
 
                 TotTime += self.Step
                 TotPathLen += PathLen
@@ -105,11 +111,11 @@ class GTSimulator(ABC):
                 ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])
                 plt.show()
 
-    def SimulationStep(self, M, T, Vm, Q, r):
-        q = self.Step * Q / 2 / (M * Units.MeV2kg)
-        Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r)
-        Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
-        self.Particles[self.index].UpdateState(Vm, T, self.Step)
+    # def SimulationStep(self, M, T, Vm, Q, r):
+    #     q = self.Step * Q / 2 / (M * Units.MeV2kg)
+    #     Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r)
+    #     Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
+    #     self.Particles[self.index].UpdateState(Vm, T, self.Step)
 
     def RadLossStep(self, Vp, Vm, Yp, Ya, M, Q):
         if not self.UseRadLosses:
