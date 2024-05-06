@@ -1,5 +1,7 @@
 import datetime
 import numpy as np
+from numba import jit
+
 from MagneticFields import AbsBfield, Regions, Units
 
 
@@ -59,11 +61,18 @@ class Dipole(AbsBfield):
         self.M = np.sqrt(Mx ** 2 + My ** 2 + Mz ** 2)
 
     def CalcBfield(self, x, y, z, **kwargs):
-        Q = self.M / (np.sqrt(x ** 2 + y ** 2 + z ** 2)) ** 5
+        psi = self.psi
+        M = self.M
+        return self.__clacBfield(x, y, z, M, psi)
 
-        Bx = Q * ((y ** 2 + z ** 2 - 2 * x ** 2) * np.sin(self.psi) - 3 * (z * x) * np.cos(self.psi))
-        By = -3 * y * (Q * (x * np.sin(self.psi) + z * np.cos(self.psi)))
-        Bz = Q * ((x ** 2 + y ** 2 - 2 * z ** 2) * np.cos(self.psi) - 3 * (z * x) * np.sin(self.psi))
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def __clacBfield(x, y, z, M, psi):
+        Q = M / (np.sqrt(x ** 2 + y ** 2 + z ** 2)) ** 5
+
+        Bx = Q * ((y ** 2 + z ** 2 - 2 * x ** 2) * np.sin(psi) - 3 * (z * x) * np.cos(psi))
+        By = -3 * y * (Q * (x * np.sin(psi) + z * np.cos(psi)))
+        Bz = Q * ((x ** 2 + y ** 2 - 2 * z ** 2) * np.cos(psi) - 3 * (z * x) * np.sin(psi))
 
         return Bx, By, Bz
 
@@ -75,4 +84,3 @@ class Dipole(AbsBfield):
             ND[1] = 29
 
         return ND, ND[month - 1]
-
