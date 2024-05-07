@@ -20,7 +20,7 @@ def ConvertR2T(R, M, A, Z):
 
 
 def ConvertT2R(T, M, A, Z):
-    # Converts particles energy into  rigidity
+    # Converts particles energy into rigidity
     # INPUT:
     #       T - Kinetic energy in GeV
     #       M - Mass of particle in GV/c^2
@@ -34,3 +34,26 @@ def ConvertT2R(T, M, A, Z):
     R = (1 / Z) * (np.sqrt(np.power(A * T + M, 2) - np.power(M, 2)))
 
     return R
+
+def ConvertUnits(Energy, FromUnits, ToUnits, M, A, Z):
+    match FromUnits:
+        case 'T':
+            match ToUnits:
+                case 'R':
+                    EnergyConverted = ConvertT2R(Energy, M, A, Z)
+                case 'E':
+                    EnergyConverted = Energy * A
+        case 'R':
+            match ToUnits:
+                case 'T':
+                    EnergyConverted = ConvertR2T(Energy, M, A, Z)
+                case 'E':
+                    EnergyConverted = ConvertR2T(Energy, M, A, Z) * A
+        case 'E':
+            match ToUnits:
+                case 'T':
+                    EnergyConverted = Energy / A
+                case 'R':
+                    EnergyConverted = ConvertT2R(Energy / A, M, A, Z)
+
+    return EnergyConverted
