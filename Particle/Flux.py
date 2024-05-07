@@ -19,11 +19,20 @@ class Flux(Sequence, ABC):
                  Nevents: int = 1, ToMeters=1, *args, **kwargs):
         self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes["Mode"]
         self.Nevents = Nevents
-        self.GenerateCoordinates(Radius*ToMeters, Center*ToMeters)
-        self.GenerateParticles(Names)
-        self.GenerateEnergySpectrum(*args, **kwargs)
-
+        self.Center = Center
+        self.Radius = Radius
+        self.ToMeters = ToMeters
+        self.Names = Names
+        self.args = args
+        self.kwargs = kwargs
         self.particles = []
+        # self.Generate()
+
+    def Generate(self):
+        self.particles = []
+        self.GenerateCoordinates(self.Radius * self.ToMeters, self.Center * self.ToMeters)
+        self.GenerateParticles(self.Names)
+        self.GenerateEnergySpectrum(*self.args, **self.kwargs)
         for i in range(self.Nevents):
             self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
 

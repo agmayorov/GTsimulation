@@ -19,7 +19,7 @@ class BunemanBorisSimulator(GTSimulator):
         else:
             E = np.zeros(3)
         c = Constants.c
-        return self.__algo(E, H, M, T, V, q, c)
+        return *self.__algo(E, H, M, T, V, q, c), H, E
 
     @staticmethod
     @jit(fastmath=True, nopython=True)

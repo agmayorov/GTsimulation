@@ -1,10 +1,15 @@
+import math
+
 import matplotlib.pyplot as plt
 import tqdm
+from timeit import default_timer as timer
 import numpy as np
 import importlib
 
 from datetime import datetime
 from abc import ABC, abstractmethod
+
+from numba import jit
 
 from MagneticFields import Regions
 from GT import Constants, Units
@@ -12,7 +17,11 @@ from GT import Constants, Units
 
 class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
-                 RadLosses=False, Particles="Monolines", ForwardTrck=None, Save=None, Num: int = 1e6, Step=1):
+                 RadLosses=False, Particles="Monolines", ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
+                 Step=1, Nfiles=1, Output=None):
+        self.Step = Step
+        self.Num = int(Num)
+
         self.Date = Date
         self.UseRadLosses = RadLosses
 
@@ -28,10 +37,11 @@ class GTSimulator(ABC):
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
 
-        self.Save = Save
-
-        self.Step = Step
-        self.Num = int(Num)
+        self.Nfiles = Nfiles if Nfiles is not None or Nfiles != 0 else 1
+        self.Output = Output
+        self.Npts = 2
+        self.Save = {"Clock": False, "Path": False, "Bfield": False, "Efield": False, "Energy": False, "Angles": False}
+        self.__SetSave(Save)
 
         self.index = 0
 
@@ -71,10 +81,39 @@ class GTSimulator(ABC):
             else:
                 raise Exception("No such field")
 
+    def __SetSave(self, Save):
+        Nsave = Save if not isinstance(Save, list) else Save[0]
+        self.Npts = math.ceil(self.Num / Nsave)
+        self.Nsave = Nsave
+        if isinstance(Save, list):
+            for saves in Save[1].keys():
+                self.Save[saves] = Save[1][saves]
+
     def __call__(self):
+        Track = []
+        for i in range(self.Nfiles):
+            print(f"File No {i+1} of {self.Nfiles}")
+            RetArr = self.CallOneFile()
+
+            if self.Output is not None:
+                np.save(f"{self.Output}_{i}.npy", RetArr)
+            Track.append(RetArr)
+        return Track
+
+    def CallOneFile(self):
+        self.Particles.Generate()
+        RetArr = []
         for self.index in range(len(self.Particles)):
             TotTime, TotPathLen = 0, 0
-            Trajectory = []
+
+            Saves = np.zeros((self.Npts + 1, 16))
+
+            SaveE = self.Save["Efield"]
+            SaveB = self.Save["Bfield"]
+            SaveA = self.Save["Angles"]
+            SaveP = self.Save["Path"]
+            SaveC = self.Save["Clock"]
+            SaveT = self.Save["Energy"]
 
             Q = self.Particles[self.index].Z * Constants.e
             M = self.Particles[self.index].M
@@ -88,34 +127,83 @@ class GTSimulator(ABC):
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
 
-            for _ in tqdm.tqdm(range(self.Num)):
-                Trajectory.append([r[0], r[1], r[2]])
+            Step = self.Step
+            Num = self.Num
+            Nsave = self.Nsave
+            i_save = 0
+            st = timer()
+            for i in range(Num):
+                PathLen = V_norm * Step
 
-                PathLen = V_norm * self.Step
-
-                Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r)
+                Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
                 Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
-                # self.Particles[self.index].UpdateState(Vm, T, self.Step)
-                r += Vm * self.Step
+                V_norm, r_new = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+                if i % Nsave == 0 or i == Num - 1 or i_save == 0:
+                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                  SaveE,
+                                  SaveB,
+                                  SaveA,
+                                  SaveP,
+                                  SaveC,
+                                  SaveT)
+                    i_save += 1
+                r = r_new
 
-                TotTime += self.Step
-                TotPathLen += PathLen
+            print(f"Event No {self.index+1} of {len(self.Particles)} in {timer() - st} seconds")
+            Saves = Saves[:i_save]
+            Saves[:, :3] /= self.Bfield.ToMeters
 
-            Trajectory = np.array(Trajectory)
-            Trajectory /= self.Bfield.ToMeters
-            if self.Save is None:
-                ax = plt.figure().add_subplot(projection='3d')
-                ax.plot(0, 0, 0, '*')
-                ax.plot(Trajectory[0, 0], Trajectory[0, 1], Trajectory[0, 2], 'o')
-                ax.plot(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2], 'o')
-                ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])
-                plt.show()
+            ret = Saves[:, :6]
 
-    # def SimulationStep(self, M, T, Vm, Q, r):
-    #     q = self.Step * Q / 2 / (M * Units.MeV2kg)
-    #     Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r)
-    #     Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
-    #     self.Particles[self.index].UpdateState(Vm, T, self.Step)
+            if SaveE:
+                ret = np.hstack((ret, Saves[:, 6:9]))
+            if SaveB:
+                ret = np.hstack((ret, Saves[:, 9:12]))
+            if SaveA:
+                ret = np.hstack((ret, Saves[:, 12]))
+            if SaveP:
+                ret = np.hstack((ret, Saves[:, 13]))
+            if SaveC:
+                ret = np.hstack((ret, Saves[:, 14]))
+            if SaveE:
+                ret = np.hstack((ret, Saves[:, 15]))
+            RetArr.append(ret)
+        RetArr = np.array(RetArr)
+        return RetArr
+
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def Update(PathLen, Step, TotPathLen, TotTime, Vm, r):
+        V_norm = np.linalg.norm(Vm)
+        r_new = r + Vm * Step
+        TotTime += Step
+        TotPathLen += PathLen
+        return V_norm, r_new
+
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                 SaveE,
+                 SaveB,
+                 SaveA,
+                 SaveP,
+                 SaveC,
+                 SaveT
+                 ):
+        Saves[i_save, :3] = r
+        Saves[i_save, 3:6] = Vm / V_norm
+        if SaveE:
+            Saves[i_save, 6:9] = E
+        if SaveB:
+            Saves[i_save, 9:12] = B
+        if SaveA:
+            Saves[i_save, 12] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
+        if SaveP:
+            Saves[i_save, 13] = TotPathLen
+        if SaveC:
+            Saves[i_save, 14] = TotTime
+        if SaveT:
+            Saves[i_save, 15] = T
 
     def RadLossStep(self, Vp, Vm, Yp, Ya, M, Q):
         if not self.UseRadLosses:
@@ -144,3 +232,16 @@ class GTSimulator(ABC):
     @abstractmethod
     def AlgoStep(self, T, M, q, Vm, r):
         pass
+
+# if self.Save is None:
+#     ax = plt.figure().add_subplot(projection='3d')
+#     ax.plot(0, 0, 0, '*')
+#     print(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2])
+#     print(TotPathLen / 1000)
+#     ax.plot(Trajectory[0, 0], Trajectory[0, 1], Trajectory[0, 2], 'o')
+#     ax.plot(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2], 'o')
+#     ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])
+#     ax.set_xlim([-1, 1.5])
+#     ax.set_ylim([-1, 1])
+#     ax.set_zlim([-1, 1])
+#     plt.show()
