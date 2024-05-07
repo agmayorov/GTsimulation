@@ -1,4 +1,5 @@
 import numpy as np
+from numba import jit
 
 from GT import GTSimulator, Constants
 
@@ -6,7 +7,6 @@ from GT import GTSimulator, Constants
 class BunemanBorisSimulator(GTSimulator):
     def AlgoStep(self, T, M, q, V, X):
         x, y, z = X
-        Vx, Vy, Vz = V
         if self.Bfield is not None:
             H = np.array(self.Bfield.GetBfield(x, y, z))
             if len(H.shape) == 2:
@@ -18,31 +18,24 @@ class BunemanBorisSimulator(GTSimulator):
             E = np.array(self.Efield.GetEfield(x, y, z))
         else:
             E = np.zeros(3)
+        c = Constants.c
+        return self.__algo(E, H, M, T, V, q, c)
 
-        Hx, Hy, Hz = H
-        Ex, Ey, Ez = E
-
-        # st = timer()
-
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def __algo(E, H, M, T, V, q, c):
         H_norm = np.linalg.norm(H)
-
         Yp = T / M + 1
-        Uix = Yp * Vx
-        Uiy = Yp * Vy
-        Uiz = Yp * Vz
+        Ui = Yp * V
 
         TT = Yp * np.tan(q * H_norm / Yp)
 
-        Tx = TT * Hx / H_norm
-        Ty = TT * Hy / H_norm
-        Tz = TT * Hz / H_norm
+        T = TT * H / H_norm
 
-        Ux = Vy * Tz - Vz * Ty + 2 * q * Ex + Uix
-        Uy = Vz * Tx - Vx * Tz + 2 * q * Ey + Uiy
-        Uz = Vx * Ty - Vy * Tx + 2 * q * Ez + Uiz
+        U = np.cross(V, T) + 2 * q * E + Ui
 
-        UU = (Tx * Ux + Ty * Uy + Tz * Uz) ** 2 / Constants.c ** 2
-        YY = np.sqrt(1 + (Ux ** 2 + Uy ** 2 + Uz ** 2) / Constants.c ** 2)
+        UU = (np.dot(U, T)) ** 2 / c ** 2
+        YY = np.sqrt(1 + np.linalg.norm(U) ** 2 / c ** 2)
 
         S = YY ** 2 - TT ** 2
 
@@ -52,16 +45,11 @@ class BunemanBorisSimulator(GTSimulator):
 
         tt = np.tan(q * H_norm / Yp)
 
-        tx = tt * Hx / H_norm
-        ty = tt * Hy / H_norm
-        tz = tt * Hz / H_norm
+        t = tt * H / H_norm
 
         s = 1 / (1 + tt ** 2)
 
-        Vpx = s / Yp * (Ux+(Ux*tx+Uy*ty+Uz*tz)*tx+(Uy*tz-Uz*ty))
-        Vpy = s / Yp * (Uy+(Ux*tx+Uy*ty+Uz*tz)*ty+(Uz*tx-Ux*tz))
-        Vpz = s / Yp * (Uz+(Ux*tx+Uy*ty+Uz*tz)*tz+(Ux*ty-Uy*tx))
-
-        Vp = np.array([Vpx, Vpy, Vpz])
+        Vp = s / Yp * (U + t * np.dot(U, t) + np.cross(U, t))
 
         return Vp, Yp, Ya
+        # return Vp, Yp, Ya
