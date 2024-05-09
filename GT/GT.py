@@ -18,14 +18,31 @@ from GT import Constants, Units
 class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
-                 Step=1, Nfiles=1, Output=None):
+                 Step=1, Nfiles=1, Output=None, Verbose=False):
+        self.Verbose = Verbose
+        if self.Verbose:
+            print("Creating simulator object...")
+
         self.Step = Step
         self.Num = int(Num)
 
+        if self.Verbose:
+            print(f"\tTime step: {self.Step}")
+            print(f"\tNumber of steps: {self.Num}")
+
         self.Date = Date
+        if self.Verbose:
+            print(f"\tDate: {self.Date}")
+
         self.UseRadLosses = RadLosses
+        if self.Verbose:
+            print(f"\tRadiation Losses: {self.UseRadLosses}")
 
         self.Region = Region
+
+        if self.Verbose:
+            print(f"\tRegion: {self.Region.name}")
+
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
@@ -42,13 +59,26 @@ class GTSimulator(ABC):
         self.Npts = 2
         self.Save = {"Clock": False, "Path": False, "Bfield": False, "Efield": False, "Energy": False, "Angles": False}
         self.__SetSave(Save)
+        if self.Verbose:
+            print(f"\tNumber of files: {self.Nfiles}")
+            print(f"\tOutput file name: {self.Output}_file_num.npy")
 
         self.index = 0
+        if self.Verbose:
+            print("Simulator created!\n")
 
     def __SetMedium(self, medium):
-        pass
+        if self.Verbose:
+            print("\tMedium: ", end='')
+        if medium is None:
+            if self.Verbose:
+                print(None)
+        else:
+            pass
 
     def __SetFlux(self, flux, forward_trck):
+        if self.Verbose:
+            print("\tFlux:", end='')
         module_name = f"Particle.Generators"
         m = importlib.import_module(module_name)
         class_name = flux if not isinstance(flux, list) else flux[0]
@@ -60,15 +90,27 @@ class GTSimulator(ABC):
         else:
             raise Exception("No spectrum")
 
+        if self.Verbose:
+            print(str(self.Particles))
         if forward_trck is not None:
             self.ForwardTracing = forward_trck
             return
 
         self.ForwardTracing = self.Particles.Mode.value
+        if self.Verbose:
+            print(f"\tTracing: {'Inward' if self.ForwardTracing == 1 else 'Outward'}")
 
     def __SetEMFF(self, Bfield=None, Efield=None):
+        if self.Verbose:
+            print("\tElectric field: ", end='')
         if Efield is not None:
             pass
+        else:
+            if self.Verbose:
+                print(None)
+
+        if self.Verbose:
+            print("\tMagnetic field: ", end='')
         if Bfield is not None:
             module_name = f"MagneticFields.{self.Region.name}"
             m = importlib.import_module(module_name)
@@ -78,26 +120,44 @@ class GTSimulator(ABC):
             if hasattr(m, class_name):
                 B = getattr(m, class_name)
                 self.Bfield = B(**params)
+                if self.Verbose:
+                    print(str(self.Bfield))
             else:
                 raise Exception("No such field")
+        else:
+            if self.Verbose:
+                print(None)
 
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
         self.Npts = math.ceil(self.Num / Nsave)
         self.Nsave = Nsave
+        if self.Verbose:
+            print(f"\tSave every {self.Nsave} step of:")
+            print("\t\tCoordinates: True")
+            print("\t\tVelocities: True")
         if isinstance(Save, list):
             for saves in Save[1].keys():
                 self.Save[saves] = Save[1][saves]
+        if self.Verbose:
+            for saves in self.Save.keys():
+                print(f"\t\t{saves}: {self.Save[saves]}")
 
     def __call__(self):
         Track = []
+        if self.Verbose:
+            print("Launching simulation...")
         for i in range(self.Nfiles):
-            print(f"File No {i + 1} of {self.Nfiles}")
+            print(f"\tFile No {i + 1} of {self.Nfiles}")
             RetDict = self.CallOneFile()
 
             if self.Output is not None:
                 np.save(f"{self.Output}_{i}.npy", RetDict)
+                if self.Verbose:
+                    print("\tFile saved!")
             Track.append(RetDict)
+            if self.Verbose:
+                print("Simulation completed!")
         return Track
 
     def CallOneFile(self):
@@ -110,6 +170,8 @@ class GTSimulator(ABC):
         SaveC = self.Save["Clock"]
         SaveT = self.Save["Energy"]
         for self.index in range(len(self.Particles)):
+            if self.Verbose:
+                print("\t\tStarting event...")
             TotTime, TotPathLen = 0, 0
 
             Saves = np.zeros((self.Npts + 1, 16))
@@ -118,11 +180,19 @@ class GTSimulator(ABC):
             M = self.Particles[self.index].M
             E = self.Particles[self.index].E
             T = self.Particles[self.index].T
+
             r = np.array(self.Particles[self.index].coordinates)
 
             V_normalized = np.array(self.Particles[self.index].velocities)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
             Vm = V_norm * V_normalized
+
+            if self.Verbose:
+                print(f"\t\t\tParticle: {self.Particles[self.index].Name} (M = {M}, "
+                      f"Z = {self.Particles[self.index].Z})")
+                print(f"\t\t\tEnergy: {T} (beta = {V_norm / Constants.c})")
+                print(f"\t\t\tCoordinates: {r / self.Bfield.ToMeters}")
+                print(f"\t\t\tVelocity: {V_normalized}")
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
 
@@ -131,6 +201,8 @@ class GTSimulator(ABC):
             Nsave = self.Nsave
             i_save = 0
             st = timer()
+            if self.Verbose:
+                print(f"\t\t\tCalculating: ", end=' ')
             for i in range(Num):
                 PathLen = V_norm * Step
 
@@ -148,7 +220,14 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
-            print(f"Event No {self.index + 1} of {len(self.Particles)} in {timer() - st} seconds")
+                if self.Verbose and (i / self.Num * 100) % 10 == 0:
+                    print(f"{int(i / self.Num * 100)}%", end=' ')
+
+            if self.Verbose:
+                print("100%")
+            print(f"\t\tEvent No {self.index + 1} of {len(self.Particles)} in {timer() - st} seconds")
+            if self.Verbose:
+                print()
             Saves = Saves[:i_save]
             Saves[:, :3] /= self.Bfield.ToMeters
 

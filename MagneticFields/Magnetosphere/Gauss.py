@@ -218,3 +218,10 @@ class Gauss(AbsBfield):
         self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
         self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
 
+    def __str__(self):
+        s = f"""{self.Model.name}
+        Type: {self.type.name}
+        Version: {self.version}"""
+
+        return s
+

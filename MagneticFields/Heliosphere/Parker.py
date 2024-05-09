@@ -282,3 +282,18 @@ class Parker(AbsBfield):
 
         Bx, By, Bz = transformations.Sphere2Cart(Bx, By, Bz, theta, phi)
         return Bx * (r > self.rs), By * (r > self.rs), Bz * (r > self.rs)
+
+    def __str__(self):
+        s = f"""Parker
+        magnitude: {self.magnitude}
+        CIR: {self.use_cir}
+        Polarization: {self.polarization}
+        Noise: {self.use_noise}"""
+
+        if self.use_noise:
+            s += f"""
+            Min wave length: {self.log_kmin}
+            Max wave length: {self.log_kmax}
+            Number of waves: {self.noise_num}"""
+
+        return s

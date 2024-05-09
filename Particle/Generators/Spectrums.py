@@ -7,39 +7,60 @@ from Particle.GetNucleiProp import GetNucleiProp
 
 class Monolines(Flux):
     def __init__(self, T=1, *args, **kwargs):
-        super().__init__(*args, T=T, **kwargs)
+        self.T = T
+        super().__init__(*args, **kwargs)
 
-    def GenerateEnergySpectrum(self, T):
-        self.KinEnergy = np.ones(self.Nevents)*T
+    def GenerateEnergySpectrum(self):
+        self.KinEnergy = np.ones(self.Nevents) * self.T
+
+    def __str__(self):
+        s = f"""Monolines
+        Energy: {self.T}"""
+        s1 = super().__str__()
+
+        return s + s1
 
 
 class PowerSpectrum(Flux):
     def __init__(self, EnergyMin=1, EnergyMax=10, RangeUnits='T', Base='T', SpectrumIndex=1., *args, **kwargs):
-        super().__init__(*args, EnergyMin=EnergyMin, EnergyMax=EnergyMax, RangeUnits=RangeUnits, Base=Base,
-                         SpectrumIndex=SpectrumIndex, **kwargs)
+        self.EnergyMin = EnergyMin
+        self.EnergyMax = EnergyMax
+        self.SpectrumIndex = SpectrumIndex
+        self.RangeUnits = RangeUnits
+        self.Base = Base
+        super().__init__(*args, **kwargs)
 
-    def GenerateEnergySpectrum(self, EnergyMin, EnergyMax, RangeUnits, Base, SpectrumIndex):
+    def GenerateEnergySpectrum(self):
         self.KinEnergy = np.zeros(self.Nevents)
         for s in range(self.Nevents):
             A, Z, M, *_ = GetNucleiProp(self.ParticleNames[s])
             M = M / 1e3  # MeV/c2 -> GeVA, /c2
 
-            EnergyRange = np.array([EnergyMin, EnergyMax])
-            if RangeUnits != Base:
-                EnergyRangeS = ConvertUnits(EnergyRange, RangeUnits, Base, M, A, Z)
+            EnergyRange = np.array([self.EnergyMin, self.EnergyMax])
+            if self.RangeUnits != self.Base:
+                EnergyRangeS = ConvertUnits(EnergyRange, self.RangeUnits, self.Base, M, A, Z)
             else:
                 EnergyRangeS = EnergyRange
             ksi = np.random.rand()
-            if SpectrumIndex == -1:
+            if self.SpectrumIndex == -1:
                 self.KinEnergy[s] = EnergyRangeS[0] * np.power((EnergyRangeS[1] / EnergyRangeS[0]), ksi)
             else:
-                g = SpectrumIndex + 1
+                g = self.SpectrumIndex + 1
                 self.KinEnergy[s] = np.power(np.power(EnergyRangeS[0], g) +
-                                          ksi * (np.power(EnergyRangeS[1], g) -np.power(EnergyRangeS[0], g)),
-                                          (1 / g))
+                                             ksi * (np.power(EnergyRangeS[1], g) - np.power(EnergyRangeS[0], g)),
+                                             (1 / g))
 
-            if RangeUnits != Base:
-                self.KinEnergy[s] = ConvertUnits(self.KinEnergy[s], Base, RangeUnits, M, A, Z)
+            if self.RangeUnits != self.Base:
+                self.KinEnergy[s] = ConvertUnits(self.KinEnergy[s], self.Base, self.RangeUnits, M, A, Z)
+
+    def __str__(self):
+        s = f"""PowerSpectrum
+        Minimal Energy: {self.EnergyMin}
+        Maximal Energy: {self.EnergyMax}
+        Spectrum Index: {self.SpectrumIndex}"""
+        s1 = super().__str__()
+
+        return s + s1
 #
 # class ForceField(PowerSpectrum):
 #     def __init__(self, T=1, *args, **kwargs):

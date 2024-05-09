@@ -24,8 +24,6 @@ class Flux(Sequence, ABC):
         self.ToMeters = ToMeters
         self.Names = Names
         self.V0 = V0
-        self.args = args
-        self.kwargs = kwargs
         self.particles = []
         # self.Generate()
 
@@ -33,7 +31,7 @@ class Flux(Sequence, ABC):
         self.particles = []
         self.GenerateCoordinates(self.Radius * self.ToMeters, self.Center * self.ToMeters)
         self.GenerateParticles(self.Names)
-        self.GenerateEnergySpectrum(*self.args, **self.kwargs)
+        self.GenerateEnergySpectrum()
         for i in range(self.Nevents):
             self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
 
@@ -73,7 +71,7 @@ class Flux(Sequence, ABC):
                 if self.V0 is None:
                     self.v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.Nevents)], axis=1).T
                 else:
-                    self.v = np.tile(self.V0, (self.Nevents, 1))/np.linalg.norm(self.V0)
+                    self.v = np.tile(self.V0, (self.Nevents, 1)) / np.linalg.norm(self.V0)
 
             case GeneratorModes.Outward:
                 self.r = np.tile(Rc, (self.Nevents, 1))
@@ -82,10 +80,25 @@ class Flux(Sequence, ABC):
                 if self.V0 is None:
                     self.v = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
                 else:
-                    self.v = np.tile(self.V0, (self.Nevents, 1))/np.linalg.norm(self.V0)
+                    self.v = np.tile(self.V0, (self.Nevents, 1)) / np.linalg.norm(self.V0)
 
     def __getitem__(self, item):
         return self.particles[item]
 
     def __len__(self):
         return len(self.particles)
+
+    def __str__(self):
+        s = f"""
+        Number of particles: {self.Nevents}
+        Center: {self.Center}"""
+        if self.Mode == GeneratorModes.Inward:
+            s += f"""
+        Radius: {self.Radius}"""
+        if self.Names is not None:
+            s += f"""
+        Particles: {self.Names}"""
+        s += f"""
+        V: {self.V0 if self.V0 is not None else 'Isotropic'}"""
+
+        return s

@@ -10,7 +10,7 @@ class Tsyganenko(AbsBfield):
 
     def __init__(self, date: int | datetime.datetime = 0, ModCode=96, **kwargs):
         super().__init__(**kwargs)
-        self.ModelName = "Tsyg"
+        self.ModelName = "Tsyganenko"
         self.Region = Regions.Magnetosphere
         self.Date = date
         self.ModCode = ModCode
@@ -73,4 +73,11 @@ class Tsyganenko(AbsBfield):
     def UpdateState(self, new_date):
         self.Date = new_date
         self.__SetPsiInd()
+
+    def __str__(self):
+        s = f"""Tsyganenko
+        Mode: {self.ModCode}
+        pis: {self.ps}"""
+
+        return s
 
