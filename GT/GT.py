@@ -92,28 +92,27 @@ class GTSimulator(ABC):
     def __call__(self):
         Track = []
         for i in range(self.Nfiles):
-            print(f"File No {i+1} of {self.Nfiles}")
-            RetArr = self.CallOneFile()
+            print(f"File No {i + 1} of {self.Nfiles}")
+            RetDict = self.CallOneFile()
 
             if self.Output is not None:
-                np.save(f"{self.Output}_{i}.npy", RetArr)
-            Track.append(RetArr)
+                np.save(f"{self.Output}_{i}.npy", RetDict)
+            Track.append(RetDict)
         return Track
 
     def CallOneFile(self):
         self.Particles.Generate()
         RetArr = []
+        SaveE = self.Save["Efield"]
+        SaveB = self.Save["Bfield"]
+        SaveA = self.Save["Angles"]
+        SaveP = self.Save["Path"]
+        SaveC = self.Save["Clock"]
+        SaveT = self.Save["Energy"]
         for self.index in range(len(self.Particles)):
             TotTime, TotPathLen = 0, 0
 
             Saves = np.zeros((self.Npts + 1, 16))
-
-            SaveE = self.Save["Efield"]
-            SaveB = self.Save["Bfield"]
-            SaveA = self.Save["Angles"]
-            SaveP = self.Save["Path"]
-            SaveC = self.Save["Clock"]
-            SaveT = self.Save["Energy"]
 
             Q = self.Particles[self.index].Z * Constants.e
             M = self.Particles[self.index].M
@@ -149,7 +148,7 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
-            print(f"Event No {self.index+1} of {len(self.Particles)} in {timer() - st} seconds")
+            print(f"Event No {self.index + 1} of {len(self.Particles)} in {timer() - st} seconds")
             Saves = Saves[:i_save]
             Saves[:, :3] /= self.Bfield.ToMeters
 
@@ -160,16 +159,35 @@ class GTSimulator(ABC):
             if SaveB:
                 ret = np.hstack((ret, Saves[:, 9:12]))
             if SaveA:
-                ret = np.hstack((ret, Saves[:, 12]))
+                ret = np.hstack((ret, Saves[:, 12][:, np.newaxis]))
             if SaveP:
-                ret = np.hstack((ret, Saves[:, 13]))
+                ret = np.hstack((ret, Saves[:, 13][:, np.newaxis]))
             if SaveC:
-                ret = np.hstack((ret, Saves[:, 14]))
-            if SaveE:
-                ret = np.hstack((ret, Saves[:, 15]))
+                ret = np.hstack((ret, Saves[:, 14][:, np.newaxis]))
+            if SaveT:
+                ret = np.hstack((ret, Saves[:, 15][:, np.newaxis]))
             RetArr.append(ret)
         RetArr = np.array(RetArr)
-        return RetArr
+        RetDict = {"Coordinates": RetArr[:, :, :3], "Velocities": RetArr[:, :, 3:6]}
+        i = 6
+        if SaveE:
+            RetDict["Efield"] = RetArr[:, :, i:i + 3]
+            i += 3
+        if SaveB:
+            RetDict["Bfield"] = RetArr[:, :, i:i + 3]
+            i += 3
+        if SaveA:
+            RetDict["Angles"] = RetArr[:, :, i]
+            i += 1
+        if SaveP:
+            RetDict["Path"] = RetArr[:, :, i]
+            i += 1
+        if SaveC:
+            RetDict["Clock"] = RetArr[:, :, i]
+            i += 1
+        if SaveT:
+            RetDict["Energy"] = RetArr[:, :, i]
+        return RetDict
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
