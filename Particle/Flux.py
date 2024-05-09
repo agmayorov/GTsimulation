@@ -16,7 +16,7 @@ class GeneratorModes(Enum):
 # TODO: add others functions of distribution of energy
 class Flux(Sequence, ABC):
     def __init__(self, Names='pr', Mode: GeneratorModes | str = GeneratorModes.Inward, Radius=1, Center=np.zeros(3),
-                 Nevents: int = 1, ToMeters=1, V0 = None,  *args, **kwargs):
+                 Nevents: int = 1, ToMeters=1, V0=None, *args, **kwargs):
         self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes["Mode"]
         self.Nevents = Nevents
         self.Center = Center
@@ -64,7 +64,6 @@ class Flux(Sequence, ABC):
 
                 S = np.stack((newX.T, newY.T, newZ.T), axis=1)
 
-
                 ksi = np.random.rand(1, 1, self.Nevents)
                 sin_theta = np.sqrt(ksi)
                 cos_theta = np.sqrt(1 - ksi)
@@ -74,8 +73,7 @@ class Flux(Sequence, ABC):
                 if self.V0 is None:
                     self.v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.Nevents)], axis=1).T
                 else:
-                    self.v = self.V0
-
+                    self.v = np.tile(self.V0, (self.Nevents, 1))/np.linalg.norm(self.V0)
 
             case GeneratorModes.Outward:
                 self.r = np.tile(Rc, (self.Nevents, 1))
@@ -84,8 +82,7 @@ class Flux(Sequence, ABC):
                 if self.V0 is None:
                     self.v = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
                 else:
-                    self.v = self.V0
-
+                    self.v = np.tile(self.V0, (self.Nevents, 1))/np.linalg.norm(self.V0)
 
     def __getitem__(self, item):
         return self.particles[item]
