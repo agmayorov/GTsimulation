@@ -18,7 +18,7 @@ from GT import Constants, Units
 class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
-                 Step=1, Nfiles=1, Output=None, Verbose=False):
+                 Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None):
         self.Verbose = Verbose
         if self.Verbose:
             print("Creating simulator object...")
@@ -43,6 +43,7 @@ class GTSimulator(ABC):
         if self.Verbose:
             print(f"\tRegion: {self.Region.name}")
 
+        self.ToMeters = 1
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
@@ -54,7 +55,7 @@ class GTSimulator(ABC):
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
 
-        self.Nfiles = Nfiles if Nfiles is not None or Nfiles != 0 else 1
+        self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
         self.Output = Output
         self.Npts = 2
         self.Save = {"Clock": False, "Path": False, "Bfield": False, "Efield": False, "Energy": False, "Angles": False}
@@ -63,9 +64,26 @@ class GTSimulator(ABC):
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_file_num.npy")
 
+        self.__brck_index = {"Xmin": 0, "Ymin": 1, "Zmin": 2, "Rmin": 3, "Dist2Path": 4, "Xmax": 5, "Ymax": 6,
+                             "Zmax": 7, "Rmax": 8, "MaxPath": 9, "MaxTime": 10}
+        self.__index_brck = {0: "Xmin", 1: "Ymin", 2: "Zmin", 3:"Rmin", 4: "Dist2Path", 5: "Xmax", 6: "Ymax",
+                             7: "Zmax", 8: "Rmax", 9: "MaxPath", 10: "MaxTime"}
+        self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        self.__SetBrck(BreakCondition)
+
         self.index = 0
         if self.Verbose:
             print("Simulator created!\n")
+
+    def __SetBrck(self, Brck):
+        if Brck is not None:
+            for key in Brck.keys():
+                self.BrckArr[self.__brck_index[key]] = Brck[key]
+        if self.Verbose:
+            print("\tBreak Conditions: ")
+            for key in self.__brck_index.keys():
+                print(f"\t\t{key}: {self.BrckArr[self.__brck_index[key]]}")
+        self.BrckArr[:-1] *= self.ToMeters
 
     def __SetMedium(self, medium):
         if self.Verbose:
@@ -82,7 +100,7 @@ class GTSimulator(ABC):
         module_name = f"Particle.Generators"
         m = importlib.import_module(module_name)
         class_name = flux if not isinstance(flux, list) else flux[0]
-        ToMeters = 1 if self.Bfield is None else self.Bfield.ToMeters
+        ToMeters = self.ToMeters
         params = {"ToMeters": ToMeters, **({} if not isinstance(flux, list) else flux[1])}
         if hasattr(m, class_name):
             flux = getattr(m, class_name)
@@ -120,6 +138,7 @@ class GTSimulator(ABC):
             if hasattr(m, class_name):
                 B = getattr(m, class_name)
                 self.Bfield = B(**params)
+                self.ToMeters = self.Bfield.ToMeters
                 if self.Verbose:
                     print(str(self.Bfield))
             else:
@@ -175,6 +194,7 @@ class GTSimulator(ABC):
             TotTime, TotPathLen = 0, 0
 
             Saves = np.zeros((self.Npts + 1, 16))
+            BrckArr = self.BrckArr
 
             Q = self.Particles[self.index].Z * Constants.e
             M = self.Particles[self.index].M
@@ -191,7 +211,7 @@ class GTSimulator(ABC):
                 print(f"\t\t\tParticle: {self.Particles[self.index].Name} (M = {M}, "
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} (beta = {V_norm / Constants.c})")
-                print(f"\t\t\tCoordinates: {r / self.Bfield.ToMeters}")
+                print(f"\t\t\tCoordinates: {r / self.ToMeters}")
                 print(f"\t\t\tVelocity: {V_normalized}")
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
@@ -208,7 +228,7 @@ class GTSimulator(ABC):
 
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
                 Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
-                V_norm, r_new = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+                V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                   SaveE,
@@ -220,6 +240,13 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
+                if i % (self.Num // 100) == 0:
+                    brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
+                    if brck[0]:
+                        if self.Verbose:
+                            print(f"Break due to {self.__index_brck[brck[1]]}", end=' ')
+                        break
+
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:
                     print(f"{int(i / self.Num * 100)}%", end=' ')
 
@@ -229,7 +256,7 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print()
             Saves = Saves[:i_save]
-            Saves[:, :3] /= self.Bfield.ToMeters
+            Saves[:, :3] /= self.ToMeters
 
             ret = Saves[:, :6]
 
@@ -270,12 +297,24 @@ class GTSimulator(ABC):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
+    def CheckBreak(r, r0, TotPath, TotTime, Brck):
+        radi = np.linalg.norm(r)
+        dst2path = np.linalg.norm(r - r0) / TotPath
+        cond = np.concatenate((np.array([*np.abs(r), radi, dst2path]) < Brck[:5],
+                               np.array([*np.abs(r), radi, TotPath, TotTime]) > Brck[5:]))
+        if np.any(cond):
+            return True, np.where(cond)[0][0]
+
+        return False, -1
+
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
     def Update(PathLen, Step, TotPathLen, TotTime, Vm, r):
         V_norm = np.linalg.norm(Vm)
         r_new = r + Vm * Step
         TotTime += Step
         TotPathLen += PathLen
-        return V_norm, r_new
+        return V_norm, r_new, TotPathLen, TotTime
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
