@@ -156,8 +156,8 @@ class GTSimulator(ABC):
                 if self.Verbose:
                     print("\tFile saved!")
             Track.append(RetDict)
-            if self.Verbose:
-                print("Simulation completed!")
+        if self.Verbose:
+            print("Simulation completed!")
         return Track
 
     def CallOneFile(self):
