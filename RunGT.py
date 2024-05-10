@@ -16,7 +16,7 @@ Flux = ["Monolines", {"T": 30, "Center": np.array([1.5, 0, 0]), "Radius": 0, "Ne
 # Flux = "PowerSpectrum"
 # Flux = "Monolines"
 
-Nfiles = 1
+Nfiles = 2
 Output = None
 Save = 1
 # Save = [10, {"Clock": False, "Path": False, "Bfield": True, "Efield": True, "Energy": True, "Angles": False}]
@@ -28,10 +28,10 @@ BreakConditions = None
 #                    "Xmax": np.inf, "Ymax": np.inf, "Zmax": np.inf, "Rmax": np.inf, "MaxPath": np.inf,
 #                    "MaxTime": np.inf}
 
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e5), Step=1e-4,
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e3), Step=1e-4,
                                   Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose,
                                   BreakCondition=BreakConditions)
 
-tracks = simulator()
+tracks, wout = simulator()
 
 PlotTracks(tracks, simulator.Bfield.Units)

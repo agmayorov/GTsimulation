@@ -66,8 +66,8 @@ class GTSimulator(ABC):
 
         self.__brck_index = {"Xmin": 0, "Ymin": 1, "Zmin": 2, "Rmin": 3, "Dist2Path": 4, "Xmax": 5, "Ymax": 6,
                              "Zmax": 7, "Rmax": 8, "MaxPath": 9, "MaxTime": 10}
-        self.__index_brck = {0: "Xmin", 1: "Ymin", 2: "Zmin", 3:"Rmin", 4: "Dist2Path", 5: "Xmax", 6: "Ymax",
-                             7: "Zmax", 8: "Rmax", 9: "MaxPath", 10: "MaxTime"}
+        self.__index_brck = {-1: "Loop", 0: "Xmin", 1: "Ymin", 2: "Zmin", 3:"Rmin", 4: "Dist2Path", 5: "Xmax",
+                             6: "Ymax", 7: "Zmax", 8: "Rmax", 9: "MaxPath", 10: "MaxTime"}
         self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         self.__SetBrck(BreakCondition)
 
@@ -164,24 +164,27 @@ class GTSimulator(ABC):
 
     def __call__(self):
         Track = []
+        Wout = []
         if self.Verbose:
             print("Launching simulation...")
         for i in range(self.Nfiles):
             print(f"\tFile No {i + 1} of {self.Nfiles}")
-            RetDict = self.CallOneFile()
+            RetDict, wout = self.CallOneFile()
 
             if self.Output is not None:
                 np.save(f"{self.Output}_{i}.npy", RetDict)
                 if self.Verbose:
                     print("\tFile saved!")
             Track.append(RetDict)
+            Wout.append(wout)
         if self.Verbose:
             print("Simulation completed!")
-        return Track
+        return Track, Wout
 
     def CallOneFile(self):
         self.Particles.Generate()
         RetArr = []
+        brk_arr = []
         SaveE = self.Save["Efield"]
         SaveB = self.Save["Bfield"]
         SaveA = self.Save["Angles"]
@@ -215,7 +218,7 @@ class GTSimulator(ABC):
                 print(f"\t\t\tVelocity: {V_normalized}")
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
-
+            brk = self.__index_brck[-1]
             Step = self.Step
             Num = self.Num
             Nsave = self.Nsave
@@ -242,9 +245,10 @@ class GTSimulator(ABC):
 
                 if i % (self.Num // 100) == 0:
                     brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
+                    brk = self.__index_brck[brck[1]]
                     if brck[0]:
                         if self.Verbose:
-                            print(f"Break due to {self.__index_brck[brck[1]]}", end=' ')
+                            print(f"Break due to {brk}", end=' ')
                         break
 
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:
@@ -273,6 +277,7 @@ class GTSimulator(ABC):
             if SaveT:
                 ret = np.hstack((ret, Saves[:, 15][:, np.newaxis]))
             RetArr.append(ret)
+            brk_arr.append(brk)
         RetArr = np.array(RetArr)
         RetDict = {"Coordinates": RetArr[:, :, :3], "Velocities": RetArr[:, :, 3:6]}
         i = 6
@@ -293,7 +298,7 @@ class GTSimulator(ABC):
             i += 1
         if SaveT:
             RetDict["Energy"] = RetArr[:, :, i]
-        return RetDict
+        return RetDict, brk_arr
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
