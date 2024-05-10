@@ -32,6 +32,7 @@ class AbsBfield(ABC):
     def __init__(self, use_tesla=False, use_meters=False):
         self.Region = None
         self.ModelName = None
+        self.Units = None
         self.use_tesla = use_tesla
         self.use_meters = use_meters
 

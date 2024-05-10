@@ -13,6 +13,7 @@ class Dipole(AbsBfield):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.ModelName = "Dipole"
+        self.Units = "RE"
         self.Date = date
         self.units = units
         self.psi = psi

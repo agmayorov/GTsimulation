@@ -12,6 +12,7 @@ class Tsyganenko(AbsBfield):
         super().__init__(**kwargs)
         self.ModelName = "Tsyganenko"
         self.Region = Regions.Magnetosphere
+        self.Units = "RE"
         self.Date = date
         self.ModCode = ModCode
 

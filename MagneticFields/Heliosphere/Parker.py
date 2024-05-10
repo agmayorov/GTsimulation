@@ -17,6 +17,7 @@ class Parker(AbsBfield):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
+        self.Units = "AU"
         self.magnitude = magnitude
         self.use_cir = use_cir
         self.polarization = polarization

@@ -40,6 +40,7 @@ class Gauss(AbsBfield):
                  coord: int = 0, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
+        self.Units = "km"
         self.Model = model if isinstance(model_type, GaussModels) else GaussModels[model]
         self.type = model_type if isinstance(model_type, GaussTypes) else GaussTypes[model_type]
         self.version = version

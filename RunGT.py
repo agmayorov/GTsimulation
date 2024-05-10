@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import datetime
 
+from GT.functions import PlotTracks
 from MagneticFields import Regions
 from GT.Algos import BunemanBorisSimulator
 
@@ -22,13 +23,15 @@ Save = 1
 
 Verbose = True
 
-BreakConditions = {"Rmin": 10}
+BreakConditions = None
 # BreakConditions = {"Xmin": 0, "Ymin": 0, "Zmin": 0, "Rmin": 0, "Dist2Path": 0,
 #                    "Xmax": np.inf, "Ymax": np.inf, "Zmax": np.inf, "Rmax": np.inf, "MaxPath": np.inf,
 #                    "MaxTime": np.inf}
 
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e6), Step=1e-4,
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e5), Step=1e-4,
                                   Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose,
                                   BreakCondition=BreakConditions)
 
-gen = simulator()
+tracks = simulator()
+
+PlotTracks(tracks, simulator.Bfield.Units)
