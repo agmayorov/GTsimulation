@@ -8,7 +8,7 @@ class GTnrmlsise00(GTGeneralMedium):
 
     RE = 6371.137e3 # Earth radius in [m]
 
-    def __init__(self, x, y, z, date_time, f107a, f107, ap):
+    def __init__(self, date_time, f107a, f107, ap):
         super().__init__()
         self.region = "Atmosphere"
         self.model = "NRLMSISE-00"
@@ -16,7 +16,6 @@ class GTnrmlsise00(GTGeneralMedium):
         self.f107a = f107a
         self.f107 = f107
         self.ap = ap
-        self.calculate_model(x, y, z, date_time)
 
     def calculate_model(self, x, y, z, date_time, **kwargs):
         alt = (np.sqrt(x ** 2 + y ** 2 + z ** 2) - self.RE) * 1e-3 # altitude in [km]

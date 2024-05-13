@@ -88,11 +88,12 @@ class GTSimulator(ABC):
     def __SetMedium(self, medium):
         if self.Verbose:
             print("\tMedium: ", end='')
-        if medium is None:
+        if medium is not None:
+            m = importlib.import_module("Medium.Magnetosphere.GTnrmlsise00")
+            self.Medium = m.GTnrmlsise00(self.Date)
+        else:
             if self.Verbose:
                 print(None)
-        else:
-            pass
 
     def __SetFlux(self, flux, forward_trck):
         if self.Verbose:
@@ -242,6 +243,10 @@ class GTSimulator(ABC):
                                   SaveT)
                     i_save += 1
                 r = r_new
+
+                if self.Medium is not None:
+                    rho = self.Medium.GetDensity(r_new)
+                    a = 1
 
                 if i % (self.Num // 100) == 0:
                     brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
