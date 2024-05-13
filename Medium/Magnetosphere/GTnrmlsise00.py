@@ -1,4 +1,6 @@
 import numpy as np
+import datetime
+import pyproj
 import nrlmsise00
 
 from Medium import GTGeneralMedium
@@ -6,28 +8,29 @@ from Medium import GTGeneralMedium
 
 class GTnrmlsise00(GTGeneralMedium):
 
-    RE = 6371.137e3 # Earth radius in [m]
+    # RE = 6371.137e3 # Earth radius in [m]
 
-    def __init__(self, date_time, f107a, f107, ap):
+    def __init__(self, date: datetime.datetime, f107a=150, f107=150, ap=4):
         super().__init__()
-        self.region = "Atmosphere"
+        self.region = "Magnetosphere"
         self.model = "NRLMSISE-00"
         self.model_elements = ['He', 'O', 'N2', 'O2', 'Ar', 'H', 'N']
+        self.date = date
         self.f107a = f107a
         self.f107 = f107
         self.ap = ap
+        self.transformer = pyproj.Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
+                                                       {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
 
-    def calculate_model(self, x, y, z, date_time, **kwargs):
-        alt = (np.sqrt(x ** 2 + y ** 2 + z ** 2) - self.RE) * 1e-3 # altitude in [km]
-        lat = 60 # converting (x, y, z) coordinates to latitude in degrees north
-        lon = -30 # converting (x, y, z) coordinates to longitude in degrees east
-        model_output = nrlmsise00.msise_flat(date_time, alt, lat, lon, self.f107a, self.f107, self.ap)
-        self.x = x
-        self.y = y
-        self.z = z
-        self.date_time = date_time
+    def calculate_model(self, x, y, z, **kwargs):
+        lon, lat, alt = self.convert_xyz_to_lla(x, y, z)
+        print(lon, lat, alt)
+        model_output = nrlmsise00.msise_flat(self.date, alt, lat, lon, self.f107a, self.f107, self.ap)
         self.density = model_output[5]
         self.element_abundance = model_output[[0, 1, 2, 3, 4, 6, 7]] / np.sum(model_output[[0, 1, 2, 3, 4, 6, 7]])
+
+    def convert_xyz_to_lla(self, x, y, z):
+        return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
         return self.density

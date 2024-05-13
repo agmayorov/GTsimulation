@@ -1,37 +1,36 @@
 import numpy as np
+import datetime
+import pyproj
 import iri2016
 
-from medium.general_medium import GTGeneralMedium
+from Medium import GTGeneralMedium
 
 
 class GTiri2016(GTGeneralMedium):
 
-    RE = 6371.137e3 # Earth radius in [m]
-
-    def __init__(self, x, y, z, date_time, f107a, f107, ap):
+    def __init__(self, date: datetime.datetime):
         super().__init__()
-        self.region = "Atmosphere"
-        self.model = "NRLMSISE-00"
-        self.model_elements = ['He', 'O', 'N2', 'O2', 'Ar', 'H', 'N']
-        self.f107a = f107a
-        self.f107 = f107
-        self.ap = ap
-        self.calculate_model(x, y, z, date_time)
+        self.region = "Magnetosphere"
+        self.model = "IRI-2016"
+        self.date = date
+        self.transformer = pyproj.Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
+                                                       {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
 
-    def calculate_model(self, x, y, z, date_time, **kwargs):
-        alt = (np.sqrt(x ** 2 + y ** 2 + z ** 2) - self.RE) * 1e-3 # altitude in [km]
-        lat = 60 # converting (x, y, z) coordinates to latitude in degrees north
-        lon = -30 # converting (x, y, z) coordinates to longitude in degrees east
-        model_output = nrlmsise00.msise_flat(date_time, alt, lat, lon, self.f107a, self.f107, self.ap)
-        self.x = x
-        self.y = y
-        self.z = z
-        self.date_time = date_time
-        self.density = model_output[5]
-        self.element_abundance = model_output[[0, 1, 2, 3, 4, 6, 7]] / np.sum(model_output[[0, 1, 2, 3, 4, 6, 7]])
+    def calculate_model(self, x, y, z):
+        lon, lat, alt = self.convert_xyz_to_lla(x, y, z)
+        alt *= 1e-3 # m -> km
+        print(lon, lat, alt)
+        print('okda')
+        model_output = iri2016.IRI(self.date, [alt, alt, 1], lat, lon)
+        self.density = [2.656, 2.325, 0.167, 0.664, 5.333, 4.983] @ \
+                       model_output[['nO+', 'nN+', 'nH+', 'nHe+', 'nO2+', 'nNO+']].to_array().to_numpy() * 1e-23
+
+    def convert_xyz_to_lla(self, x, y, z):
+        return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
-        return self.density
+        return self.density[0]
 
     def get_element_abundance(self):
-        return self.element_abundance
+        pass
+        # return self.element_abundance
