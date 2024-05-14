@@ -1,5 +1,6 @@
 import datetime
 import numpy as np
+from numba import jit
 
 from MagneticFields import AbsBfield, Units, Regions
 from MagneticFields.Heliosphere.Functions import transformations
@@ -41,20 +42,27 @@ class Parker(AbsBfield):
         if kwargs.get("t") is not None:
             self.t = kwargs.get("t")
 
-        r, R, theta, phi = transformations.Cart2Sphere(x, y, z)
-
         A0 = self.magnitude * self.polarization
+        t = self.t
+        r, R, theta, phi = transformations.Cart2Sphere(x, y, z)
+        v_wind = self.v_wind(theta, self.km2AU)
+        omega = self.omega
+        rs = self.rs
+        years11 = self.years11
 
-        alpha = self.CalcTiltAngle()
-        dalpha = np.sign(self.CalcTiltAngle(self.t + 1) - self.CalcTiltAngle(self.t - 1))
-        alpha -= np.pi / self.years11 * (r - self.rs) / self.v_wind(theta) * dalpha
+        alpha = self.CalcTiltAngle(t)
+        dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
 
-        theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + self.omega * (r - self.rs) / self.v_wind(theta) -
-                                                               self.omega * self.t))
+        Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha)
 
-        HCS = self.HCS(theta, theta0, r) * (r >= self.rs)
-        Br = A0 / r ** 2 * HCS
-        Bphi = -A0 / r ** 2 * (((r - self.rs) * self.omega) / self.v_wind(theta)) * np.sin(theta) * HCS
+        # alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
+        #
+        # theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + omega * (r - rs) / v_wind -
+        #                                                        omega * t))
+        #
+        # HCS = self.HCS(theta, theta0, r) * (r >= rs)
+        # Br = A0 / r ** 2 * HCS
+        # Bphi = -A0 / r ** 2 * (((r - rs) * omega) / v_wind) * np.sin(theta) * HCS
 
         if self.use_cir:
             # TODO: add CIR
@@ -68,8 +76,27 @@ class Parker(AbsBfield):
         coeff2d = 1.4
         coeffslab = coeff2d / 2
 
-        Bx_slab, By_slab, Bz_slab = self.CalcSlab(x, y, z)
-        Bx_2d, By_2d, Bz_2d = self.Calc2D(x, y, z)
+        a = v_wind / omega
+        num = self.noise_num
+        log_kmin = self.log_kmin
+        log_kmax = self.log_kmax
+
+        A_rad = self.A_rad
+        alpha_rad = self.alpha_rad
+        delta_rad = self.delta_rad
+
+        A_azimuth = self.A_azimuth
+        alpha_azimuth = self.alpha_azimuth
+        delta_azimuth = self.delta_azimuth
+
+        A_2D = self.A_2D
+        alpha_2D = self.alpha_2D
+        delta_2D = self.delta_2D
+
+        Bx_slab, By_slab, Bz_slab = self.CalcSlab(r, theta, phi, a, num, log_kmin, log_kmax, A_rad, alpha_rad,
+                                                  delta_rad,
+                                                  A_azimuth, alpha_azimuth, delta_azimuth, rs)
+        Bx_2d, By_2d, Bz_2d = self.Calc2D(r, theta, phi, a, num, log_kmin, log_kmax, A_2D, alpha_2D, delta_2D, rs)
 
         Bx += self.magnitude * coeff2d * Bx_2d + self.magnitude * coeffslab * Bx_slab
         By += self.magnitude * coeff2d * By_2d + self.magnitude * coeffslab * By_slab
@@ -80,9 +107,25 @@ class Parker(AbsBfield):
     def UpdateState(self, new_date):
         self.__set_time(new_date)
 
-    def CalcTiltAngle(self, t=None):
-        if t is None:
-            t = self.t
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def _calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha):
+        alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
+
+        theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + omega * (r - rs) / v_wind -
+                                                               omega * t))
+        L = 0.0002
+        dt = r * (theta - theta0) / L
+        HCS = -np.tanh(dt)
+
+        Br = A0 / r ** 2 * HCS
+        Bphi = -A0 / r ** 2 * (((r - rs) * omega) / v_wind) * np.sin(theta) * HCS
+
+        return Br, Bphi
+
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def CalcTiltAngle(t):
         a0 = 0.7502
         a1 = 0.02332
         b1 = -0.01626
@@ -102,15 +145,17 @@ class Parker(AbsBfield):
 
         return alpha
 
-    @classmethod
-    def v_wind(cls, theta):
-        return (300 + 475 * (1 - np.sin(theta) ** 8)) * cls.km2AU
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def v_wind(theta, km2AU):
+        return (300 + 475 * (1 - np.sin(theta) ** 8)) * km2AU
 
     @classmethod
     def a(cls, theta):
         return cls.v_wind(theta) / cls.omega
 
     @staticmethod
+    @jit(fastmath=True, nopython=True)
     def HCS(theta, theta0, r):
         L = 0.0002
         dt = r * (theta - theta0) / L
@@ -137,39 +182,34 @@ class Parker(AbsBfield):
         self.alpha_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
         self.delta_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
-    def CalcSlab(self, x, y, z):
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def CalcSlab(r, theta, phi, a, num, log_kmin, log_kmax, A_rad, alpha_rad, delta_rad,
+                 A_azimuth, alpha_azimuth, delta_azimuth, rs):
         q = 5 / 3
         p = 0
         gamma = 3
 
-        r, R, theta, phi = transformations.Cart2Sphere(x, y, z)
-
-        cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / self.a(theta)) ** 2)
-        sinpsi = (r * np.sin(theta) / self.a(theta)) / np.sqrt(1 + (r * np.sin(theta) / self.a(theta)) ** 2)
-
-        num = self.noise_num
-        log_kmin = self.log_kmin
-        log_kmax = self.log_kmax
+        cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
+        sinpsi = (r * np.sin(theta) / a) / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
 
         k = np.logspace(log_kmin, log_kmax, num)[:, np.newaxis]
         dk = k * (10 ** ((log_kmax - log_kmin) / (num - 1)) - 1)
 
-        lam = 0.08 * (r / self.rs) ** 0.8 * self.rs
+        lam = 0.08 * (r / rs) ** 0.8 * rs
         numer = dk * k ** p
 
         # Radial spectrum
 
-        A_rad = self.A_rad
         B_rad = A_rad * r ** (-gamma / 2)
-        brk_rad = lam * k / np.sqrt(self.a(theta) * r)
+        brk_rad = lam * k / np.sqrt(a * r)
         denom_rad = (1 + brk_rad ** (p + q))
 
         spectrum_rad = np.sqrt(numer / denom_rad)
-        deltaB_rad = 2 * B_rad * spectrum_rad * cospsi * r * np.sqrt(r * self.a(theta))
+        deltaB_rad = 2 * B_rad * spectrum_rad * cospsi * r * np.sqrt(r * a)
 
         # Azimuthal spectrum
 
-        A_azimuth = self.A_azimuth
         B_azimuth = A_azimuth * r ** (-gamma / 2)
         brk_azimuth = lam * k / r
         denom_azimuth = (1 + brk_azimuth ** (p + q))
@@ -177,37 +217,33 @@ class Parker(AbsBfield):
 
         deltaB_azimuth = B_azimuth * spectrum_azimuth
         dpsectrum_azimuth = (0.08 * (p + q) * numer * brk_azimuth ** (p + q - 1) /
-                             (2 * spectrum_azimuth * (denom_azimuth ** 2)) * (0.8 * k / (r * (r / self.rs) ** 0.2)
+                             (2 * spectrum_azimuth * (denom_azimuth ** 2)) * (0.8 * k / (r * (r / rs) ** 0.2)
                                                                               - brk_azimuth / (0.08 * r)))
 
         # Radial polarization and phase
 
-        alpha_rad = self.alpha_rad
         n = np.trunc(np.sin(alpha_rad) * k)
         alpha_rad = np.real(np.arcsin(n / k) * (np.cos(alpha_rad) > 0) + (np.pi -
                                                                           np.arcsin(n / k)) * (np.cos(alpha_rad) < 0))
 
-        delta_rad = self.delta_rad
-        phase_rad = k * np.sqrt(r / self.a(theta)) + delta_rad
+        phase_rad = k * np.sqrt(r / a) + delta_rad
 
         # Azimuthal polarization and phase
 
-        alpha_azimuth = self.alpha_azimuth
         n = np.trunc(np.sin(alpha_azimuth) * k)
         alpha_azimuth = np.real(np.arcsin(n / k) * (np.cos(alpha_azimuth) > 0) +
                                 (np.pi - np.arcsin(n / k)) * (np.cos(alpha_azimuth) < 0))
 
-        delta_azimuth = self.delta_azimuth
         phase_azimuth = k * phi + delta_azimuth
 
         # Radial field
         Br_rad = 0
 
         Btheta_rad = (-deltaB_rad * np.cos(phase_rad) * 1 / np.sin(theta) * np.sin(alpha_rad) /
-                      (2 * r * np.sqrt(r / self.a(theta))))
+                      (2 * r * np.sqrt(r / a)))
 
         Bphi_rad = (deltaB_rad / r * np.cos(alpha_rad) * cospsi * np.cos(phase_rad) /
-                    (2 * r * np.sqrt(r / self.a(theta))))
+                    (2 * r * np.sqrt(r / a)))
 
         # Azimuthal field
 
@@ -227,27 +263,22 @@ class Parker(AbsBfield):
         Bphi = np.sum(Bphi_az + Bphi_rad, axis=0)
 
         Bx, By, Bz = transformations.Sphere2Cart(Br, Btheta, Bphi, theta, phi)
-        return Bx * (r > self.rs), By * (r > self.rs), Bz * (r > self.rs)
+        return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
-    def Calc2D(self, x, y, z):
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def Calc2D(r, theta, phi, a, num, log_kmin, log_kmax, A, alpha, delta, rs):
         q = 8 / 3
         p = 0
         gamma = 3
 
-        r, R, theta, phi = transformations.Cart2Sphere(x, y, z)
-
-        cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / self.a(theta)) ** 2)
-        sinpsi = (r * np.sin(theta) / self.a(theta)) / np.sqrt(1 + (r * np.sin(theta) / self.a(theta)) ** 2)
-
-        num = self.noise_num
-        log_kmin = self.log_kmin
-        log_kmax = self.log_kmax
+        cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
+        sinpsi = (r * np.sin(theta) / a) / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
 
         k = np.logspace(log_kmin, log_kmax, num)[:, np.newaxis]
         dk = k * (10 ** ((log_kmax - log_kmin) / (num - 1)) - 1)
 
-        A = self.A_2D
-        lam = 0.04 * (r / self.rs) ** 0.8 * self.rs
+        lam = 0.04 * (r / rs) ** 0.8 * rs
         B = A * r ** (-gamma / 2)
         brk = lam * k / r
         denom = (1 + brk ** (p + q))
@@ -257,19 +288,17 @@ class Parker(AbsBfield):
 
         dspectrum = (-(0.04 * np.sqrt(np.pi / 2) * (p + q) * numer * brk ** (p + q - 1)) /
                      (spectrum / np.sqrt(2 * np.pi) * denom ** 2) *
-                     (0.8 * k / (r * (r / self.rs) ** 0.2) - brk / (0.04 * r)))
+                     (0.8 * k / (r * (r / rs) ** 0.2) - brk / (0.04 * r)))
 
-        alpha = self.alpha_2D
         n = np.trunc(np.sin(alpha) * k)
         alpha = np.real(np.arcsin(n / k) * (np.cos(alpha) > 0) + (np.pi - np.arcsin(n / k)) * (np.cos(alpha) < 0))
 
-        delta = self.delta_2D
-        phase = k * (r / self.a(theta) + phi + theta * np.cos(alpha)) + delta
+        phase = k * (r / a + phi + theta * np.cos(alpha)) + delta
 
         Br = (-deltaB / r * sinpsi * (np.cos(alpha) * np.cos(phase) +
                                       (1 / np.tan(theta) * np.sin(phase)) / k))
 
-        Btheta = (deltaB * (sinpsi * np.cos(phase) / self.a(theta) -
+        Btheta = (deltaB * (sinpsi * np.cos(phase) / a -
                             gamma * sinpsi * np.sin(phase) / (2 * r * k) +
                             1 / np.sin(theta) * (cospsi * np.cos(phase) +
                                                  np.sin(theta) * sinpsi * np.sin(phase) / k)) +
@@ -282,7 +311,7 @@ class Parker(AbsBfield):
         Bz = np.sum(Bphi, axis=0)
 
         Bx, By, Bz = transformations.Sphere2Cart(Bx, By, Bz, theta, phi)
-        return Bx * (r > self.rs), By * (r > self.rs), Bz * (r > self.rs)
+        return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
     def __str__(self):
         s = f"""Parker
