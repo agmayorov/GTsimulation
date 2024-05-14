@@ -13,6 +13,7 @@ from numba import jit
 
 from MagneticFields import Regions
 from GT import Constants, Units
+from Particle import ConvertT2R
 
 
 class GTSimulator(ABC):
@@ -23,46 +24,58 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("Creating simulator object...")
 
+        self.Date = Date
+        if self.Verbose:
+            print(f"\tDate: {self.Date}")
+            print()
+
         self.Step = Step
         self.Num = int(Num)
 
         if self.Verbose:
             print(f"\tTime step: {self.Step}")
             print(f"\tNumber of steps: {self.Num}")
-
-        self.Date = Date
-        if self.Verbose:
-            print(f"\tDate: {self.Date}")
+            print()
 
         self.UseRadLosses = RadLosses
         if self.Verbose:
             print(f"\tRadiation Losses: {self.UseRadLosses}")
+            print()
 
         self.Region = Region
 
         if self.Verbose:
             print(f"\tRegion: {self.Region.name}")
+            print()
 
         self.ToMeters = 1
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
+        if self.Verbose:
+            print()
 
         self.Medium = None
         self.__SetMedium(Medium)
+        if self.Verbose:
+            print()
 
         self.Particles = None
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
+        if self.Verbose:
+            print()
 
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
         self.Output = Output
         self.Npts = 2
         self.Save = {"Clock": False, "Path": False, "Bfield": False, "Efield": False, "Energy": False, "Angles": False}
-        self.__SetSave(Save)
         if self.Verbose:
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_file_num.npy")
+        self.__SetSave(Save)
+        if self.Verbose:
+            print()
 
         self.__brck_index = {"Xmin": 0, "Ymin": 1, "Zmin": 2, "Rmin": 3, "Dist2Path": 4, "Xmax": 5, "Ymax": 6,
                              "Zmax": 7, "Rmax": 8, "MaxPath": 9, "MaxTime": 10}
@@ -214,11 +227,15 @@ class GTSimulator(ABC):
             Vm = V_norm * V_normalized
 
             if self.Verbose:
-                print(f"\t\t\tParticle: {self.Particles[self.index].Name} (M = {M}, "
+                print(f"\t\t\tParticle: {self.Particles[self.index].Name} (M = {M} [MeV], "
                       f"Z = {self.Particles[self.index].Z})")
-                print(f"\t\t\tEnergy: {T} (beta = {V_norm / Constants.c})")
-                print(f"\t\t\tCoordinates: {r / self.ToMeters}")
+                print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
+                      f"{ConvertT2R(T, M, self.Particles[self.index].A, self.Particles[self.index].Z)/1000} [GV]")
+                print(f"\t\t\tCoordinates: {r / self.ToMeters} [{self.Bfield.Units}]")
                 print(f"\t\t\tVelocity: {V_normalized}")
+                print(f"\t\t\tbeta: {V_norm / Constants.c}")
+                print(f"\t\t\tbeta*dt: {V_norm*self.Step/1000} [km] / "
+                      f"{V_norm*self.Step/self.ToMeters} [{self.Bfield.Units}]")
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
             brk = self.__index_brck[-1]
