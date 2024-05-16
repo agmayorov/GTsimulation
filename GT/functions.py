@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# TODO: Update how tracks are handled with new saving method, and add earth
 def PlotTracks(Track, Units):
     for track in Track:
         for event in track["Coordinates"]:

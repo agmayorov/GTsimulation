@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from numba import jit
 
 from MagneticFields import Regions
-from GT import Constants, Units
+from GT import Constants, Units, BreakCode
 from Particle import ConvertT2R
 
 
@@ -77,10 +77,8 @@ class GTSimulator(ABC):
         if self.Verbose:
             print()
 
-        self.__brck_index = {"Xmin": 0, "Ymin": 1, "Zmin": 2, "Rmin": 3, "Dist2Path": 4, "Xmax": 5, "Ymax": 6,
-                             "Zmax": 7, "Rmax": 8, "MaxPath": 9, "MaxTime": 10}
-        self.__index_brck = {-1: "Loop", 0: "Xmin", 1: "Ymin", 2: "Zmin", 3:"Rmin", 4: "Dist2Path", 5: "Xmax",
-                             6: "Ymax", 7: "Zmax", 8: "Rmax", 9: "MaxPath", 10: "MaxTime"}
+        self.__brck_index = BreakCode.copy()
+        self.__brck_index.pop("Loop")
         self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         self.__SetBrck(BreakCondition)
 
@@ -179,28 +177,26 @@ class GTSimulator(ABC):
                 print(f"\t\t{saves}: {self.Save[saves]}")
 
     def __call__(self):
-        Track = []
-        Wout = []
+        # Track = []
         if self.Verbose:
             print("Launching simulation...")
         for i in range(self.Nfiles):
             print(f"\tFile No {i + 1} of {self.Nfiles}")
-            RetDict, wout = self.CallOneFile()
+            RetArr = self.CallOneFile()
 
             if self.Output is not None:
-                np.save(f"{self.Output}_{i}.npy", RetDict)
+                np.save(f"{self.Output}_{i}.npy", RetArr)
                 if self.Verbose:
                     print("\tFile saved!")
-            Track.append(RetDict)
-            Wout.append(wout)
+            # Track.append(RetArr)
         if self.Verbose:
             print("Simulation completed!")
-        return Track, Wout
+        # return Track
 
     def CallOneFile(self):
         self.Particles.Generate()
         RetArr = []
-        brk_arr = []
+
         SaveE = self.Save["Efield"]
         SaveB = self.Save["Bfield"]
         SaveA = self.Save["Angles"]
@@ -211,34 +207,34 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print("\t\tStarting event...")
             TotTime, TotPathLen = 0, 0
-
+            particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 16))
             BrckArr = self.BrckArr
 
-            Q = self.Particles[self.index].Z * Constants.e
-            M = self.Particles[self.index].M
-            E = self.Particles[self.index].E
-            T = self.Particles[self.index].T
+            Q = particle.Z * Constants.e
+            M = particle.M
+            E = particle.E
+            T = particle.T
 
-            r = np.array(self.Particles[self.index].coordinates)
+            r = np.array(particle.coordinates)
 
-            V_normalized = np.array(self.Particles[self.index].velocities)
+            V_normalized = np.array(particle.velocities)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
             Vm = V_norm * V_normalized
 
             if self.Verbose:
-                print(f"\t\t\tParticle: {self.Particles[self.index].Name} (M = {M} [MeV], "
+                print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
-                      f"{ConvertT2R(T, M, self.Particles[self.index].A, self.Particles[self.index].Z)/1000} [GV]")
+                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000} [GV]")
                 print(f"\t\t\tCoordinates: {r / self.ToMeters} [{self.Bfield.Units}]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
-                print(f"\t\t\tbeta*dt: {V_norm*self.Step/1000} [km] / "
-                      f"{V_norm*self.Step/self.ToMeters} [{self.Bfield.Units}]")
+                print(f"\t\t\tbeta*dt: {V_norm * self.Step / 1000} [km] / "
+                      f"{V_norm * self.Step / self.ToMeters} [{self.Bfield.Units}]")
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg)
-            brk = self.__index_brck[-1]
+            brk = BreakCode["Loop"]
             Step = self.Step
             Num = self.Num
             Nsave = self.Nsave
@@ -268,7 +264,7 @@ class GTSimulator(ABC):
 
                 if i % (self.Num // 100) == 0:
                     brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
-                    brk = self.__index_brck[brck[1]]
+                    brk = brck[1]
                     if brck[0]:
                         if self.Verbose:
                             print(f"Break due to {brk}", end=' ')
@@ -285,43 +281,23 @@ class GTSimulator(ABC):
             Saves = Saves[:i_save]
             Saves[:, :3] /= self.ToMeters
 
-            ret = Saves[:, :6]
+            track = {"Coordinates": Saves[:, :3], "Velocities": Saves[:, 3:6]}
 
             if SaveE:
-                ret = np.hstack((ret, Saves[:, 6:9]))
+                track["Efield"] = Saves[:, 6:9]
             if SaveB:
-                ret = np.hstack((ret, Saves[:, 9:12]))
+                track["Bfield"] = Saves[:, 9:12]
             if SaveA:
-                ret = np.hstack((ret, Saves[:, 12][:, np.newaxis]))
+                track["Angles"] = Saves[:, 12]
             if SaveP:
-                ret = np.hstack((ret, Saves[:, 13][:, np.newaxis]))
+                track["Path"] = Saves[:, 13]
             if SaveC:
-                ret = np.hstack((ret, Saves[:, 14][:, np.newaxis]))
+                track["Clock"] = Saves[:, 14]
             if SaveT:
-                ret = np.hstack((ret, Saves[:, 15][:, np.newaxis]))
-            RetArr.append(ret)
-            brk_arr.append(brk)
-        RetArr = np.array(RetArr)
-        RetDict = {"Coordinates": RetArr[:, :, :3], "Velocities": RetArr[:, :, 3:6]}
-        i = 6
-        if SaveE:
-            RetDict["Efield"] = RetArr[:, :, i:i + 3]
-            i += 3
-        if SaveB:
-            RetDict["Bfield"] = RetArr[:, :, i:i + 3]
-            i += 3
-        if SaveA:
-            RetDict["Angles"] = RetArr[:, :, i]
-            i += 1
-        if SaveP:
-            RetDict["Path"] = RetArr[:, :, i]
-            i += 1
-        if SaveC:
-            RetDict["Clock"] = RetArr[:, :, i]
-            i += 1
-        if SaveT:
-            RetDict["Energy"] = RetArr[:, :, i]
-        return RetDict, brk_arr
+                track["Energy"] = Saves[:, 15]
+
+            RetArr.append({"Track": track, "WOut": brk, "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z}})
+        return RetArr
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
