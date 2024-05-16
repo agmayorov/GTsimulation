@@ -71,3 +71,21 @@ class PowerSpectrum(Flux):
 #         for s in range(self.Nevents):
 #             A, Z, M, *_ = GetNucleiProp(self.ParticleNames[s])
 #             M = M / 1e3  # MeV/c2 -> GeVA, /c2
+
+
+class Uniform(Flux):
+    def __init__(self, MinT=1, MaxT=10, *args, **kwargs):
+        self.MinT = MinT
+        self.MaxT = MaxT
+        super().__init__(*args, **kwargs)
+
+    def GenerateEnergySpectrum(self):
+        self.KinEnergy = np.random.rand(self.Nevents) * (self.MaxT - self.MinT) + self.MinT
+
+    def __str__(self):
+        s = f"""Uniform
+        Minimal Energy: {self.MinT}
+        Maximal Energy: {self.MaxT}"""
+        s1 = super().__str__()
+
+        return s + s1
