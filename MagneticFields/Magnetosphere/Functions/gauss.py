@@ -15,7 +15,7 @@ def LoadGaussCoeffs(npyfile: str, date: datetime.datetime):
     gh_tot = coeffs['gh']
 
     if len(years) == 1:
-        return g_tot, h_tot, gh_tot
+        return g_tot[0], h_tot[0], gh_tot[0].flatten()
 
     assert years[0] <= y <= years[-1]
 
