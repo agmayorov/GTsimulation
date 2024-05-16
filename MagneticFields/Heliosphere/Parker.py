@@ -110,10 +110,10 @@ class Parker(AbsBfield):
     @staticmethod
     @jit(fastmath=True, nopython=True)
     def _calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha):
-        alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
+        alpha_n = alpha - np.pi / years11 * (r - rs) / v_wind * dalpha
 
-        theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + omega * (r - rs) / v_wind -
-                                                               omega * t))
+        theta0 = np.pi / 2 - np.arctan(-np.tan(alpha_n) * np.sin(phi + omega * (r - rs) / v_wind -
+                                                                 omega * t))
         L = 0.0002
         dt = r * (theta - theta0) / L
         HCS = -np.tanh(dt)
