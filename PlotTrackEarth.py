@@ -38,7 +38,8 @@ ax.set_xlabel(f"X [RE]")
 ax.set_ylabel(f"Y [RE]")
 ax.set_zlabel(f"Z [RE]")
 
-ax.scatter(X, Y, Z, label="Trajectory", color='black', s=0.01)
+ax.plot(X, Y, Z, label="Trajectory", color='black', linewidth=1)
+ax.scatter(X[::15], Y[::15], Z[::15], color='black', s=0.01)
 ax.scatter(X[0], Y[0], Z[0], label='Starting point', color='red')
 ax.scatter(X[-1], Y[-1], Z[-1], label="End point", color='blue')
 
