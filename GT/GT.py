@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from numba import jit
 
 from MagneticFields import Regions
-from GT import Constants, Units, BreakCode
+from GT import Constants, Units, BreakCode, BreakIndex
 from Particle import ConvertT2R
 
 
@@ -79,6 +79,7 @@ class GTSimulator(ABC):
 
         self.__brck_index = BreakCode.copy()
         self.__brck_index.pop("Loop")
+        self.__index_brck = BreakIndex.copy()
         self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         self.__SetBrck(BreakCondition)
 
@@ -267,7 +268,7 @@ class GTSimulator(ABC):
                     brk = brck[1]
                     if brck[0]:
                         if self.Verbose:
-                            print(f"Break due to {brk}", end=' ')
+                            print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
                         break
 
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:
@@ -280,6 +281,7 @@ class GTSimulator(ABC):
                 print()
             Saves = Saves[:i_save]
             Saves[:, :3] /= self.ToMeters
+            Saves[:, 13] /= self.ToMeters
 
             track = {"Coordinates": Saves[:, :3], "Velocities": Saves[:, 3:6]}
 
