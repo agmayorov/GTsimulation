@@ -1,4 +1,5 @@
 import math
+import os
 
 import matplotlib.pyplot as plt
 import tqdm
@@ -186,6 +187,9 @@ class GTSimulator(ABC):
             RetArr = self.CallOneFile()
 
             if self.Output is not None:
+                file = self.Output.split(os.sep)
+                if len(file) != 1 and not os.path.isdir(file[0]):
+                    os.mkdir(file[0])
                 np.save(f"{self.Output}_{i}.npy", RetArr)
                 if self.Verbose:
                     print("\tFile saved!")
@@ -298,7 +302,7 @@ class GTSimulator(ABC):
             if SaveT:
                 track["Energy"] = Saves[:, 15]
 
-            RetArr.append({"Track": track, "WOut": brk, "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z}})
+            RetArr.append({"Track": track, "WOut": brk, "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T}})
         return RetArr
 
     @staticmethod

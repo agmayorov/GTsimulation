@@ -1,2 +1,1 @@
-from .Spectrums import Monolines
-from .Spectrums import PowerSpectrum
+from .Spectrums import Monolines, PowerSpectrum, Uniform

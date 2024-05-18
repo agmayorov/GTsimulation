@@ -13,7 +13,7 @@ class Parker(AbsBfield):
     years11 = 347133600
     km2AU = 1 / Units.AU2km
 
-    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_cir=False, polarization=-1, use_noise=False,
+    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_cir=False, polarity=-1, use_noise=False,
                  noise_num=1024, log_kmin=0, log_kmax=7, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
@@ -21,7 +21,7 @@ class Parker(AbsBfield):
         self.Units = "AU"
         self.magnitude = magnitude
         self.use_cir = use_cir
-        self.polarization = polarization
+        self.polarity = polarity
         self.__set_time(date)
         self.__set_noise(use_noise, noise_num, log_kmin, log_kmax)
 
@@ -42,7 +42,7 @@ class Parker(AbsBfield):
         if kwargs.get("t") is not None:
             self.t = kwargs.get("t")
 
-        A0 = self.magnitude * self.polarization
+        A0 = self.magnitude * self.polarity
         t = self.t
         r, R, theta, phi = transformations.Cart2Sphere(x, y, z)
         v_wind = self.v_wind(theta, self.km2AU)
@@ -317,7 +317,7 @@ class Parker(AbsBfield):
         s = f"""Parker
         magnitude: {self.magnitude}
         CIR: {self.use_cir}
-        Polarization: {self.polarization}
+        Polarity: {self.polarity}
         Noise: {self.use_noise}"""
 
         if self.use_noise:
