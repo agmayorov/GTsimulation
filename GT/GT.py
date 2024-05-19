@@ -165,7 +165,7 @@ class GTSimulator(ABC):
 
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
-        self.Npts = math.ceil(self.Num / Nsave)
+        self.Npts = math.ceil(self.Num / Nsave) if Nsave != 0 else 1
         self.Nsave = Nsave
         if self.Verbose:
             print(f"\tSave every {self.Nsave} step of:")
@@ -242,7 +242,7 @@ class GTSimulator(ABC):
             brk = BreakCode["Loop"]
             Step = self.Step
             Num = self.Num
-            Nsave = self.Nsave
+            Nsave = self.Nsave if self.Nsave != 0 else Num+1
             i_save = 0
             st = timer()
             if self.Verbose:
@@ -302,7 +302,8 @@ class GTSimulator(ABC):
             if SaveT:
                 track["Energy"] = Saves[:, 15]
 
-            RetArr.append({"Track": track, "WOut": brk, "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T}})
+            RetArr.append({"Track": track, "WOut": brk,
+                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T}})
         return RetArr
 
     @staticmethod
