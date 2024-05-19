@@ -12,7 +12,7 @@ Bfield = "Parker"
 # Bfield = ["Gauss", {'model': "IGRF", "model_type": "core", "version": 13, "coord": 0}]
 Date = datetime(2008, 1, 1)
 
-Flux = ["Uniform", {"MinT": 1e3*0.1, "MaxT": 1e-3*20, "Center": np.array([0, 0, 0]), "Radius": 30, "Nevents": 50}]
+Flux = ["Monolines", {"T": np.array([1, 100]), "Center": np.array([0, 0, 0]), "Radius": 30, "Nevents": 2}]
 # Flux = ["PowerSpectrum", {"EnergyMin": 0.1, "EnergyMax": 0.5, "RangeUnits": 'T', "Base": 'R', "SpectrumIndex":
 # -2.7, "Radius": 5, "Nevents": 5}]
 # Flux = "PowerSpectrum"

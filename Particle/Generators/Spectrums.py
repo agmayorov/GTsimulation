@@ -11,7 +11,10 @@ class Monolines(Flux):
         super().__init__(*args, **kwargs)
 
     def GenerateEnergySpectrum(self):
-        self.KinEnergy = np.ones(self.Nevents) * self.T
+        if isinstance(self.T, (int, float)):
+            self.KinEnergy = np.ones(self.Nevents) * self.T
+        elif isinstance(self.T, (list, np.ndarray)) and len(self.T) == self.Nevents:
+            self.KinEnergy = self.T
 
     def __str__(self):
         s = f"""Monolines
