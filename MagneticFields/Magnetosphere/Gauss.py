@@ -66,6 +66,7 @@ class Gauss(AbsBfield):
         altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         phi = np.arctan2(y, x)
         theta = np.arccos(z / altitude)
+        lat = np.pi/2 - theta
         Rearth_km = 6371.2
         costheta = np.cos(theta)
         sintheta = np.sin(theta)
@@ -149,6 +150,21 @@ class Gauss(AbsBfield):
             Bx_old = Bx
             Bx = Bx * cd + Bz * sd
             Bz = Bz * cd - Bx_old * sd
+
+        My = np.array([[-np.sin(lat), 0., np.cos(lat)],
+                       [0, 1., 0],
+                       [-np.cos(lat), 0., -np.sin(lat)]])
+
+        Mz = np.array([[np.cos(phi), np.sin(phi), 0.],
+                       [-np.sin(phi), np.cos(phi), 0.],
+                       [0., 0., 1.]])
+
+        B = np.array([Bx, By, Bz]) @ My @ Mz
+
+        Bx = B[0]
+        By = B[1]
+        Bz = B[2]
+
         return Bx, By, Bz
 
     def UpdateState(self, new_date):
