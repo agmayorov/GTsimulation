@@ -12,8 +12,7 @@ from abc import ABC, abstractmethod
 
 from numba import jit
 
-from MagneticFields import Regions
-from GT import Constants, Units, BreakCode, BreakIndex
+from GT import Constants, Units, Regions, BreakCode, BreakIndex
 from Particle import ConvertT2R
 
 

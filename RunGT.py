@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 
 from GT.functions import PlotTracks
-from MagneticFields import Regions
+from GT import Regions
 from GT.Algos import BunemanBorisSimulator
 
 Region = Regions.Magnetosphere

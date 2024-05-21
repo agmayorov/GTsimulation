@@ -2,7 +2,8 @@ import datetime
 import numpy as np
 from numba import jit
 
-from MagneticFields import AbsBfield, Units, Regions
+from GT import Units, Regions
+from MagneticFields import AbsBfield
 from MagneticFields.Heliosphere.Functions import transformations
 
 

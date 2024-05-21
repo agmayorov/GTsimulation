@@ -17,3 +17,25 @@ class Constants:
 class Units:
     MeV2kg = 1.7826619216224e-30  # MeV/c2 to kg conversion
     MeV2g = 1.7826619216224e-27  # MeV/c2 to  g conversion
+
+    km2m = 1e3
+
+    AU2m = 149.597870700e9
+    AU2km = 149.597870700e6
+
+    pc2m = 3.08567758149e16
+    kpc2m = 3.08567758149e19
+
+    fm2cm = 1e-13
+
+    RE2m = 6378137.1
+    RE2km = 6378.1371
+    RM2m = 1737400
+    RM2km = 1737.4
+
+    T2nT = 1e9
+
+
+class Regions(Enum):
+    Magnetosphere = 1
+    Heliosphere = 2

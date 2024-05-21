@@ -1,3 +1,3 @@
-from .magnetic_field import AbsBfield, Regions, Units
+from .magnetic_field import AbsBfield
 import MagneticFields.Magnetosphere
 import MagneticFields.Heliosphere

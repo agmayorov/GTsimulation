@@ -2,7 +2,8 @@ import datetime
 import numpy as np
 from numba import jit
 
-from MagneticFields import AbsBfield, Regions, Units
+from GT import Units, Regions
+from MagneticFields import AbsBfield
 
 
 class Dipole(AbsBfield):

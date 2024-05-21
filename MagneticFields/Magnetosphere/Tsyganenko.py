@@ -1,7 +1,8 @@
 import datetime
 import numpy as np
 
-from MagneticFields import AbsBfield, Regions, Units
+from GT import Units, Regions
+from MagneticFields import AbsBfield
 from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
 
 
