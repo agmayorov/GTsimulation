@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Constants:
     c = 2.99792458e8  # Speed of light in m/s
     e = 1.602176634e-19  # Elementary charge in C
