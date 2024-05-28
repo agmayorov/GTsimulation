@@ -266,13 +266,13 @@ class GTSimulator(ABC):
                 if self.Medium is not None:
                     pass
 
-                if i % (self.Num // 100) == 0:
-                    brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
-                    brk = brck[1]
-                    if brck[0]:
-                        if self.Verbose:
-                            print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
-                        break
+                # if i % (self.Num // 100) == 0:
+                brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
+                brk = brck[1]
+                if brck[0]:
+                    if self.Verbose:
+                        print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
+                    break
 
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:
                     print(f"{int(i / self.Num * 100)}%", end=' ')
