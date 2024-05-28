@@ -102,9 +102,9 @@ class GTSimulator(ABC):
             print("\tMedium: ", end='')
         if medium is not None:
             # FINISH THIS CODE
-            m1 = importlib.import_module("Medium.Magnetosphere.GTnrmlsise00")
+            m1 = importlib.import_module("Medium.Magnetosphere.GTnrlmsise00")
             m2 = importlib.import_module("Medium.Magnetosphere.GTiri2016")
-            self.Medium = [m1.GTnrmlsise00(self.Date), m2.GTiri2016(self.Date)]
+            self.Medium = [m1.GTnrlmsise00(self.Date), m2.GTiri2016(self.Date)]
         else:
             if self.Verbose:
                 print(None)

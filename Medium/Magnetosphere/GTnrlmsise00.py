@@ -6,9 +6,7 @@ import nrlmsise00
 from Medium import GTGeneralMedium
 
 
-class GTnrmlsise00(GTGeneralMedium):
-
-    # RE = 6371.137e3 # Earth radius in [m]
+class GTnrlmsise00(GTGeneralMedium):
 
     def __init__(self, date: datetime.datetime, f107a=150, f107=150, ap=4):
         super().__init__()
@@ -24,16 +22,16 @@ class GTnrmlsise00(GTGeneralMedium):
 
     def calculate_model(self, x, y, z, **kwargs):
         lon, lat, alt = self.convert_xyz_to_lla(x, y, z)
-        print(lon, lat, alt)
+        alt *= 1e-3 # m -> km
         model_output = nrlmsise00.msise_flat(self.date, alt, lat, lon, self.f107a, self.f107, self.ap)
-        self.density = model_output[5]
+        self.density = model_output[5] # g/сm3
         self.element_abundance = model_output[[0, 1, 2, 3, 4, 6, 7]] / np.sum(model_output[[0, 1, 2, 3, 4, 6, 7]])
 
     def convert_xyz_to_lla(self, x, y, z):
         return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
-        return self.density
+        return self.density # g/сm3
 
     def get_element_abundance(self):
         return self.element_abundance
