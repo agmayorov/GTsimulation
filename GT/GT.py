@@ -187,8 +187,9 @@ class GTSimulator(ABC):
 
             if self.Output is not None:
                 file = self.Output.split(os.sep)
-                if len(file) != 1 and not os.path.isdir(file[0]):
-                    os.mkdir(file[0])
+                folder = os.sep.join(file[:-1])
+                if len(file) != 1 and not os.path.isdir(folder):
+                    os.mkdir(folder)
                 np.save(f"{self.Output}_{i}.npy", RetArr)
                 if self.Verbose:
                     print("\tFile saved!")

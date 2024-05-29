@@ -48,7 +48,7 @@ class PowerSpectrum(Flux):
             if self.SpectrumIndex == -1:
                 self.KinEnergy[s] = EnergyRangeS[0] * np.power((EnergyRangeS[1] / EnergyRangeS[0]), ksi)
             else:
-                g = self.SpectrumIndex + 1
+                g = self.SpectrumIndex + 1.
                 self.KinEnergy[s] = np.power(np.power(EnergyRangeS[0], g) +
                                              ksi * (np.power(EnergyRangeS[1], g) - np.power(EnergyRangeS[0], g)),
                                              (1 / g))
