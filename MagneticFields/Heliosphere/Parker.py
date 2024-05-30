@@ -15,7 +15,7 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_cir=False, polarity=-1, use_noise=False,
-                 noise_num=1024, log_kmin=0, log_kmax=7, **kwargs):
+                 noise_num=256, log_kmin=0, log_kmax=4, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
@@ -75,12 +75,9 @@ class Parker(AbsBfield):
             return Bx, By, Bz
 
         coeff2d = 1.4
-        coeffslab = coeff2d / 2
+        # coeffslab = coeff2d / 2
 
         a = v_wind / omega
-        num = self.noise_num
-        log_kmin = self.log_kmin
-        log_kmax = self.log_kmax
 
         A_rad = self.A_rad
         alpha_rad = self.alpha_rad
@@ -94,14 +91,22 @@ class Parker(AbsBfield):
         alpha_2D = self.alpha_2D
         delta_2D = self.delta_2D
 
-        Bx_slab, By_slab, Bz_slab = self.CalcSlab(r, theta, phi, a, num, log_kmin, log_kmax, A_rad, alpha_rad,
-                                                  delta_rad,
-                                                  A_azimuth, alpha_azimuth, delta_azimuth, rs)
-        Bx_2d, By_2d, Bz_2d = self.Calc2D(r, theta, phi, a, num, log_kmin, log_kmax, A_2D, alpha_2D, delta_2D, rs)
+        k = self.k
+        dk = self.dk
 
-        Bx += self.magnitude * coeff2d * Bx_2d + self.magnitude * coeffslab * Bx_slab
-        By += self.magnitude * coeff2d * By_2d + self.magnitude * coeffslab * By_slab
-        Bz += self.magnitude * coeff2d * Bz_2d + self.magnitude * coeffslab * Bz_slab
+        Bx_n, By_n, Bz_n = self._calc_noise(r, theta, phi, a,
+                                            A_rad, alpha_rad, delta_rad,
+                                            A_azimuth, alpha_azimuth, delta_azimuth,
+                                            A_2D, alpha_2D, delta_2D,
+                                            rs, k, dk)
+
+        # Bx_2d, By_2d, Bz_2d = self.Calc2D(r, theta, phi, a,
+        #                                   A_2D, alpha_2D, delta_2D,
+        #                                   rs, k, dk)
+
+        Bx += self.magnitude * coeff2d * Bx_n
+        By += self.magnitude * coeff2d * By_n
+        Bz += self.magnitude * coeff2d * Bz_n
 
         return Bx, By, Bz
 
@@ -171,71 +176,93 @@ class Parker(AbsBfield):
         self.log_kmin = log_kmin
         self.log_kmax = log_kmax
 
+        self.k = np.logspace(log_kmin, log_kmax, self.noise_num)[:, np.newaxis]
+        self.dk = self.k * (10 ** ((log_kmax - log_kmin) / (self.noise_num - 1)) - 1)
+
         self.A_2D = np.random.randn(self.noise_num, 1) / 130
         self.alpha_2D = np.random.rand(self.noise_num, 1) * 2 * np.pi
+        n = np.trunc(np.sin(self.alpha_2D) * self.k)
+        self.alpha_2D = np.real(np.arcsin(n / self.k) * (np.cos(self.alpha_2D) > 0) +
+                                (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_2D) < 0))
         self.delta_2D = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
         self.A_rad = np.random.randn(self.noise_num, 1) / 1.5
         self.alpha_rad = np.random.rand(self.noise_num, 1) * 2 * np.pi
+        n = np.trunc(np.sin(self.alpha_rad) * self.k)
+        self.alpha_rad = np.real(np.arcsin(n / self.k) * (np.cos(self.alpha_rad) > 0) +
+                                 (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_rad) < 0))
         self.delta_rad = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
         self.A_azimuth = np.random.randn(self.noise_num, 1) / 4.5
         self.alpha_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
+
+        n = np.trunc(np.sin(self.alpha_azimuth) * self.k)
+        self.alpha_azimuth = np.real(np.arcsin(n / self.k) * (np.cos(self.alpha_azimuth) > 0) +
+                                     (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_azimuth) < 0))
         self.delta_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def CalcSlab(r, theta, phi, a, num, log_kmin, log_kmax, A_rad, alpha_rad, delta_rad,
-                 A_azimuth, alpha_azimuth, delta_azimuth, rs):
-        q = 5 / 3
+    def _calc_noise(r, theta, phi, a,
+                    A_rad, alpha_rad, delta_rad,
+                    A_azimuth, alpha_azimuth, delta_azimuth,
+                    A_2d, alpha_2d, delta_2d,
+                    rs, k, dk):
+        q_slab = 5 / 3
+        q_2d = 8 / 3
         p = 0
         gamma = 3
 
         cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
         sinpsi = (r * np.sin(theta) / a) / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
 
-        k = np.logspace(log_kmin, log_kmax, num)[:, np.newaxis]
-        dk = k * (10 ** ((log_kmax - log_kmin) / (num - 1)) - 1)
-
-        lam = 0.08 * (r / rs) ** 0.8 * rs
-        numer = dk * k ** p
+        lam_2d = 0.04 * (r / rs) ** 0.8 * rs
+        lam_slab = 2 * lam_2d
+        numer_slab = dk * k ** p
 
         # Radial spectrum
 
         B_rad = A_rad * r ** (-gamma / 2)
-        brk_rad = lam * k / np.sqrt(a * r)
-        denom_rad = (1 + brk_rad ** (p + q))
+        brk_rad = lam_slab * k / np.sqrt(a * r)
+        denom_rad = (1 + brk_rad ** (p + q_slab))
 
-        spectrum_rad = np.sqrt(numer / denom_rad)
+        spectrum_rad = np.sqrt(numer_slab / denom_rad)
         deltaB_rad = 2 * B_rad * spectrum_rad * cospsi * r * np.sqrt(r * a)
 
         # Azimuthal spectrum
 
         B_azimuth = A_azimuth * r ** (-gamma / 2)
-        brk_azimuth = lam * k / r
-        denom_azimuth = (1 + brk_azimuth ** (p + q))
-        spectrum_azimuth = np.sqrt(numer / denom_azimuth)
+        brk_azimuth = lam_slab * k / r
+        denom_azimuth = (1 + brk_azimuth ** (p + q_slab))
+        spectrum_azimuth = np.sqrt(numer_slab / denom_azimuth)
 
         deltaB_azimuth = B_azimuth * spectrum_azimuth
-        dpsectrum_azimuth = (0.08 * (p + q) * numer * brk_azimuth ** (p + q - 1) /
+        dpsectrum_azimuth = (0.08 * (p + q_slab) * numer_slab * brk_azimuth ** (p + q_slab - 1) /
                              (2 * spectrum_azimuth * (denom_azimuth ** 2)) * (0.8 * k / (r * (r / rs) ** 0.2)
                                                                               - brk_azimuth / (0.08 * r)))
 
+        # 2d spectrum
+
+        lam_2d = 0.04 * (r / rs) ** 0.8 * rs
+        B_2d = A_2d * r ** (-gamma / 2)
+        brk_2d = lam_2d * k / r
+        denom_2d = (1 + brk_2d ** (p + q_2d))
+        numer_2d = dk * k ** (p + 1)
+        spectrum_2d = np.sqrt(2 * np.pi * numer_2d) / np.sqrt(denom_2d)
+        deltaB_2d = B_2d * spectrum_2d
+
+        dspectrum_2d = (-(0.04 * np.sqrt(np.pi / 2) * (p + q_2d) * numer_2d * brk_2d ** (p + q_2d - 1)) /
+                        (spectrum_2d / np.sqrt(2 * np.pi) * denom_2d ** 2) *
+                        (0.8 * k / (r * (r / rs) ** 0.2) - brk_2d / (0.04 * r)))
+
         # Radial polarization and phase
-
-        n = np.trunc(np.sin(alpha_rad) * k)
-        alpha_rad = np.real(np.arcsin(n / k) * (np.cos(alpha_rad) > 0) + (np.pi -
-                                                                          np.arcsin(n / k)) * (np.cos(alpha_rad) < 0))
-
         phase_rad = k * np.sqrt(r / a) + delta_rad
 
         # Azimuthal polarization and phase
-
-        n = np.trunc(np.sin(alpha_azimuth) * k)
-        alpha_azimuth = np.real(np.arcsin(n / k) * (np.cos(alpha_azimuth) > 0) +
-                                (np.pi - np.arcsin(n / k)) * (np.cos(alpha_azimuth) < 0))
-
         phase_azimuth = k * phi + delta_azimuth
+
+        # 2d polarization and phase
+        phase_2d = k * (r / a + phi + theta * np.cos(alpha_2d)) + delta_2d
 
         # Radial field
         Br_rad = 0
@@ -258,61 +285,76 @@ class Parker(AbsBfield):
                    B_azimuth / r * dpsectrum_azimuth * np.cos(alpha_azimuth) *
                    np.sin(theta) * np.sin(phase_azimuth) * sinpsi) / k
 
+        # 2d field
+        Br_2d = (-deltaB_2d / r * sinpsi * (np.cos(alpha_2d) * np.cos(phase_2d) +
+                                            (1 / np.tan(theta) * np.sin(phase_2d)) / k))
+
+        Btheta_2d = (deltaB_2d * (sinpsi * np.cos(phase_2d) / a -
+                                  gamma * sinpsi * np.sin(phase_2d) / (2 * r * k) +
+                                  1 / np.sin(theta) * (cospsi * np.cos(phase_2d) +
+                                                       np.sin(theta) * sinpsi * np.sin(phase_2d) / k)) +
+                     B_2d * sinpsi * np.sin(phase_2d) * dspectrum_2d / k)
+
+        Bphi_2d = -deltaB_2d / r * np.cos(alpha_2d) * cospsi * np.cos(phase_2d)
+
         # Total field
-        Br = np.sum(Br_az + Br_rad, axis=0)
-        Btheta = np.sum(Btheta_az + Btheta_rad, axis=0)
-        Bphi = np.sum(Bphi_az + Bphi_rad, axis=0)
+        coeff_slab = 1 / 2
+
+        B = np.zeros((3, *Br_2d.shape))
+        B[0] = Br_2d + coeff_slab * (Br_az + Br_rad)
+        B[1] = Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad)
+        B[2] = Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad)
+        B_s = np.sum(B, axis=1)
+        Br, Btheta, Bphi = B_s[0], B_s[1], B_s[2]
+
+        # Br = np.sum(Br_2d + coeff_slab * (Br_az + Br_rad), axis=0)
+        # Btheta = np.sum(Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad), axis=0)
+        # Bphi = np.sum(Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad), axis=0)
 
         Bx, By, Bz = transformations.Sphere2Cart(Br, Btheta, Bphi, theta, phi)
         return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
-    @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def Calc2D(r, theta, phi, a, num, log_kmin, log_kmax, A, alpha, delta, rs):
-        q = 8 / 3
-        p = 0
-        gamma = 3
-
-        cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
-        sinpsi = (r * np.sin(theta) / a) / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
-
-        k = np.logspace(log_kmin, log_kmax, num)[:, np.newaxis]
-        dk = k * (10 ** ((log_kmax - log_kmin) / (num - 1)) - 1)
-
-        lam = 0.04 * (r / rs) ** 0.8 * rs
-        B = A * r ** (-gamma / 2)
-        brk = lam * k / r
-        denom = (1 + brk ** (p + q))
-        numer = dk * k ** (p + 1)
-        spectrum = np.sqrt(2 * np.pi * numer) / np.sqrt(denom)
-        deltaB = B * spectrum
-
-        dspectrum = (-(0.04 * np.sqrt(np.pi / 2) * (p + q) * numer * brk ** (p + q - 1)) /
-                     (spectrum / np.sqrt(2 * np.pi) * denom ** 2) *
-                     (0.8 * k / (r * (r / rs) ** 0.2) - brk / (0.04 * r)))
-
-        n = np.trunc(np.sin(alpha) * k)
-        alpha = np.real(np.arcsin(n / k) * (np.cos(alpha) > 0) + (np.pi - np.arcsin(n / k)) * (np.cos(alpha) < 0))
-
-        phase = k * (r / a + phi + theta * np.cos(alpha)) + delta
-
-        Br = (-deltaB / r * sinpsi * (np.cos(alpha) * np.cos(phase) +
-                                      (1 / np.tan(theta) * np.sin(phase)) / k))
-
-        Btheta = (deltaB * (sinpsi * np.cos(phase) / a -
-                            gamma * sinpsi * np.sin(phase) / (2 * r * k) +
-                            1 / np.sin(theta) * (cospsi * np.cos(phase) +
-                                                 np.sin(theta) * sinpsi * np.sin(phase) / k)) +
-                  B * sinpsi * np.sin(phase) * dspectrum / k)
-
-        Bphi = -deltaB / r * np.cos(alpha) * cospsi * np.cos(phase)
-
-        Bx = np.sum(Br, axis=0)
-        By = np.sum(Btheta, axis=0)
-        Bz = np.sum(Bphi, axis=0)
-
-        Bx, By, Bz = transformations.Sphere2Cart(Bx, By, Bz, theta, phi)
-        return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
+    # @staticmethod
+    # @jit(fastmath=True, nopython=True)
+    # def Calc2D(r, theta, phi, a, A_2d, alpha_2d, delta_2d, rs, k, dk):
+    #     q_2d = 8 / 3
+    #     p = 0
+    #     gamma = 3
+    #
+    #     cospsi = 1. / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
+    #     sinpsi = (r * np.sin(theta) / a) / np.sqrt(1 + (r * np.sin(theta) / a) ** 2)
+    #
+    #     lam_2d = 0.04 * (r / rs) ** 0.8 * rs
+    #     B_2d = A_2d * r ** (-gamma / 2)
+    #     brk_2d = lam_2d * k / r
+    #     denom_2d = (1 + brk_2d ** (p + q_2d))
+    #     numer_2d = dk * k ** (p + 1)
+    #     spectrum_2d = np.sqrt(2 * np.pi * numer_2d) / np.sqrt(denom_2d)
+    #     deltaB_2d = B_2d * spectrum_2d
+    #
+    #     dspectrum_2d = (-(0.04 * np.sqrt(np.pi / 2) * (p + q_2d) * numer_2d * brk_2d ** (p + q_2d - 1)) /
+    #                     (spectrum_2d / np.sqrt(2 * np.pi) * denom_2d ** 2) *
+    #                     (0.8 * k / (r * (r / rs) ** 0.2) - brk_2d / (0.04 * r)))
+    #
+    #     phase_2d = k * (r / a + phi + theta * np.cos(alpha_2d)) + delta_2d
+    #
+    #     Br_2d = (-deltaB_2d / r * sinpsi * (np.cos(alpha_2d) * np.cos(phase_2d) +
+    #                                         (1 / np.tan(theta) * np.sin(phase_2d)) / k))
+    #
+    #     Btheta_2d = (deltaB_2d * (sinpsi * np.cos(phase_2d) / a -
+    #                               gamma * sinpsi * np.sin(phase_2d) / (2 * r * k) +
+    #                               1 / np.sin(theta) * (cospsi * np.cos(phase_2d) +
+    #                                                    np.sin(theta) * sinpsi * np.sin(phase_2d) / k)) +
+    #                  B_2d * sinpsi * np.sin(phase_2d) * dspectrum_2d / k)
+    #
+    #     Bphi_2d = -deltaB_2d / r * np.cos(alpha_2d) * cospsi * np.cos(phase_2d)
+    #
+    #     Bx = np.sum(Br_2d, axis=0)
+    #     By = np.sum(Btheta_2d, axis=0)
+    #     Bz = np.sum(Bphi_2d, axis=0)
+    #
+    #     Bx, By, Bz = transformations.Sphere2Cart(Bx, By, Bz, theta, phi)
+    #     return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
     def __str__(self):
         s = f"""Parker
