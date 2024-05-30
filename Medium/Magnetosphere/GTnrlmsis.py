@@ -6,7 +6,7 @@ from pymsis import msis
 from Medium import GTGeneralMedium
 
 
-class GTnrmlsis(GTGeneralMedium):
+class GTnrlmsis(GTGeneralMedium):
 
     def __init__(self, date: datetime.datetime, f107a=150, f107=150, ap=4):
         super().__init__()
