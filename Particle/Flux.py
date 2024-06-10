@@ -17,7 +17,7 @@ class GeneratorModes(Enum):
 class Flux(Sequence, ABC):
     def __init__(self, Names='pr', Mode: GeneratorModes | str = GeneratorModes.Inward, Radius=1, Center=np.zeros(3),
                  Nevents: int = 1, ToMeters=1, V0=None, *args, **kwargs):
-        self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes["Mode"]
+        self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes[Mode]
         self.Nevents = Nevents
         self.Center = Center
         self.Radius = Radius
@@ -74,11 +74,16 @@ class Flux(Sequence, ABC):
                     self.v = np.tile(self.V0, (self.Nevents, 1)) / np.linalg.norm(self.V0)
 
             case GeneratorModes.Outward:
-                self.r = np.tile(Rc, (self.Nevents, 1))
+                # self.r = np.tile(Rc, (self.Nevents, 1))
+                theta = np.arccos(1 - 2 * np.random.rand(self.Nevents, 1))
+                phi = 2 * np.pi * np.random.rand(self.Nevents, 1)
+                r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
+                self.r = r * Ro + Rc
+
                 theta = np.arccos(1 - 2 * np.random.rand(self.Nevents, 1))
                 phi = 2 * np.pi * np.random.rand(self.Nevents, 1)
                 if self.V0 is None:
-                    self.v = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
+                    self.v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
                 else:
                     self.v = np.tile(self.V0, (self.Nevents, 1)) / np.linalg.norm(self.V0)
 
@@ -91,9 +96,7 @@ class Flux(Sequence, ABC):
     def __str__(self):
         s = f"""
         Number of particles: {self.Nevents}
-        Center: {self.Center}"""
-        if self.Mode == GeneratorModes.Inward:
-            s += f"""
+        Center: {self.Center}
         Radius: {self.Radius}"""
         if self.Names is not None:
             s += f"""

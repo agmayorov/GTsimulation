@@ -1,3 +1,4 @@
+import os
 import math
 import os
 
@@ -20,6 +21,11 @@ class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None):
+        self.ParamDict = {"Bfield": Bfield, "Efield": Efield, "Region": Region, "Medium": Medium, "Date": Date,
+                          "RadLosses": RadLosses, "Particles": Particles, "ForwardTrck": ForwardTrck, "Save": Save,
+                          "Num": Num, "Step": Step, "Nfiles": Nfiles, "Output": Output, "Verbose": Verbose,
+                          "BreakCondition": BreakCondition}
+
         self.Verbose = Verbose
         if self.Verbose:
             print("Creating simulator object...")
@@ -183,14 +189,21 @@ class GTSimulator(ABC):
             print("Launching simulation...")
         for i in range(self.Nfiles):
             print(f"\tFile No {i + 1} of {self.Nfiles}")
-            RetArr = self.CallOneFile()
-
             if self.Output is not None:
                 file = self.Output.split(os.sep)
                 folder = os.sep.join(file[:-1])
                 if len(file) != 1 and not os.path.isdir(folder):
                     os.mkdir(folder)
-                np.save(f"{self.Output}_{i}.npy", RetArr)
+                with open(f'{self.Output}_params.txt', 'w') as file:
+                    file.write(str(self.ParamDict))
+
+            RetArr = self.CallOneFile()
+
+            if self.Output is not None:
+                if self.Nfiles == 1:
+                    np.save(f"{self.Output}.npy", RetArr)
+                else:
+                    np.save(f"{self.Output}_{i}.npy", RetArr)
                 if self.Verbose:
                     print("\tFile saved!")
             # Track.append(RetArr)
@@ -242,7 +255,7 @@ class GTSimulator(ABC):
             brk = BreakCode["Loop"]
             Step = self.Step
             Num = self.Num
-            Nsave = self.Nsave if self.Nsave != 0 else Num+1
+            Nsave = self.Nsave if self.Nsave != 0 else Num + 1
             i_save = 0
             st = timer()
             if self.Verbose:
