@@ -13,8 +13,9 @@ class Monolines(Flux):
     def GenerateEnergySpectrum(self):
         if isinstance(self.T, (int, float)):
             self.KinEnergy = np.ones(self.Nevents) * self.T
-        elif isinstance(self.T, (list, np.ndarray)) and len(self.T) == self.Nevents:
-            self.KinEnergy = self.T
+        elif isinstance(self.T, (list, np.ndarray)):
+            self.KinEnergy = np.concatenate(
+                (np.tile(self.T, self.Nevents // len(self.T)), self.T[:self.Nevents % len(self.T)]))
 
     def __str__(self):
         s = f"""Monolines
@@ -64,6 +65,8 @@ class PowerSpectrum(Flux):
         s1 = super().__str__()
 
         return s + s1
+
+
 #
 # class ForceField(PowerSpectrum):
 #     def __init__(self, T=1, *args, **kwargs):

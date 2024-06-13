@@ -16,8 +16,8 @@ class Parker(AbsBfield):
     years11 = 347133600
     km2AU = 1 / Units.AU2km
 
-    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_cir=False, polarity=-1, use_noise=False,
-                 noise_num=256, log_kmin=0, log_kmax=4, **kwargs):
+    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_cir=False, polarity=-1,
+                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=4, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
@@ -25,6 +25,7 @@ class Parker(AbsBfield):
         self.magnitude = magnitude
         self.use_cir = use_cir
         self.polarity = polarity
+        self.use_reg = use_reg
         self.__set_time(date)
         self.__set_noise(use_noise, noise_num, log_kmin, log_kmax)
 
@@ -51,27 +52,33 @@ class Parker(AbsBfield):
         v_wind = self.v_wind(theta, self.km2AU)
         omega = self.omega
         rs = self.rs
-        years11 = self.years11
 
-        alpha = self.CalcTiltAngle(t)
-        dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
+        Bx = np.zeros_like(r)
+        By = np.zeros_like(r)
+        Bz = np.zeros_like(r)
 
-        Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha)
+        if self.use_reg:
+            years11 = self.years11
 
-        # alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
-        #
-        # theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + omega * (r - rs) / v_wind -
-        #                                                        omega * t))
-        #
-        # HCS = self.HCS(theta, theta0, r) * (r >= rs)
-        # Br = A0 / r ** 2 * HCS
-        # Bphi = -A0 / r ** 2 * (((r - rs) * omega) / v_wind) * np.sin(theta) * HCS
+            alpha = self.CalcTiltAngle(t)
+            dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
+
+            Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha)
+
+            # alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
+            #
+            # theta0 = np.pi / 2 - np.arctan(-np.tan(alpha) * np.sin(phi + omega * (r - rs) / v_wind -
+            #                                                        omega * t))
+            #
+            # HCS = self.HCS(theta, theta0, r) * (r >= rs)
+            # Br = A0 / r ** 2 * HCS
+            # Bphi = -A0 / r ** 2 * (((r - rs) * omega) / v_wind) * np.sin(theta) * HCS
+
+            Bx, By, Bz = transformations.Sphere2Cart(Br, 0, Bphi, theta, phi)
 
         if self.use_cir:
             # TODO: add CIR
             pass
-
-        Bx, By, Bz = transformations.Sphere2Cart(Br, 0, Bphi, theta, phi)
 
         if not self.use_noise:
             return Bx, By, Bz
@@ -325,7 +332,8 @@ class Parker(AbsBfield):
 
     def __str__(self):
         s = f"""Parker
-        magnitude: {self.magnitude}
+        Regular: {self.use_reg}
+        Magnitude: {self.magnitude}
         CIR: {self.use_cir}
         Polarity: {self.polarity}
         Noise: {self.use_noise}"""
