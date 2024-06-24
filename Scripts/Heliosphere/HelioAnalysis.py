@@ -80,7 +80,12 @@ def plot_spectrums():
     def func(T, a, b):
         return b*T**a
 
-    popt_s, pcov_s = curve_fit(func, cen_s, val_s)
+    def mod(T, b, phi):
+        m = 0.938
+        E = m + T
+        return func(T+phi, -2.7, b) * (E**2 - m**2)/((E+phi)**2 - m**2)
+
+    popt_s, pcov_s = curve_fit(mod, cen_s, val_s)
     print(popt_s)
     print(np.diag(pcov_s))
 
@@ -91,7 +96,7 @@ def plot_spectrums():
 
     x = np.logspace(np.log10(0.1), np.log10(20), 50)
     plt.plot(x, func(x, *popt_s), label="Fit of initial", color="black", linewidth=2)
-    plt.plot(x, func(x, *popt_m), label="Fit of modulated", color="red", linewidth=2)
+    plt.plot(x, mod(x, *popt_m), label="Fit of modulated", color="red", linewidth=2)
 
 
     plt.legend()
