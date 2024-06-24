@@ -80,9 +80,9 @@ class Flux(Sequence, ABC):
                 r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
                 self.r = r * Ro + Rc
 
-                theta = np.arccos(1 - 2 * np.random.rand(self.Nevents, 1))
-                phi = 2 * np.pi * np.random.rand(self.Nevents, 1)
                 if self.V0 is None:
+                    theta = np.arccos(1 - 2 * np.random.rand(self.Nevents, 1))
+                    phi = 2 * np.pi * np.random.rand(self.Nevents, 1)
                     self.v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
                 else:
                     self.v = np.tile(self.V0, (self.Nevents, 1)) / np.linalg.norm(self.V0)

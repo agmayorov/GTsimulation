@@ -11,18 +11,21 @@ from GT.Algos import BunemanBorisSimulator
 parser = argparse.ArgumentParser()
 parser.add_argument("--folder")
 parser.add_argument("--seed", type=int)
+parser.add_argument("--R", type=float, default=1.0)
 
 args = parser.parse_args()
 folder = args.folder
 seed = args.seed
+R = args.R
 
 np.random.seed(seed)
 
 
 Region = Regions.Heliosphere
 # Bfield = "Dipole"
-# Bfield = ["Gauss", {'model': "IGRF", "model_type": "core", "version": 13, "coord": 1}]
-Bfield = ["Parker", {"use_noise": True, "noise_num": 512}]
+# Bfield = ["Gauss", {'model': "CHAOS", "model_type": "core", "version": 7.13}]
+# Bfield = "Parker"
+Bfield = ["Parker", {"use_noise": False, "noise_num": 1024, "log_kmax": 6, "use_reg": True, "coeff2d": 0.5}]
 Date = datetime(2008, 1, 1)
 
 Flux = ["Uniform",
@@ -48,6 +51,7 @@ BreakConditions = {"Rmin": 20, "Rmax": 70}
 # BreakConditions = None
 simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e8),
                                   Step=0.1,
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e6), Step=1e-2,
                                   Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose,
                                   BreakCondition=BreakConditions)
 simulator()

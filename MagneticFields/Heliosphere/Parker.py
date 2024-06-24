@@ -17,7 +17,7 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_cir=False, polarity=-1,
-                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=4, **kwargs):
+                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=4, coeff2d=1.4, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
@@ -26,6 +26,7 @@ class Parker(AbsBfield):
         self.use_cir = use_cir
         self.polarity = polarity
         self.use_reg = use_reg
+        self.coeff2d = coeff2d
         self.__set_time(date)
         self.__set_noise(use_noise, noise_num, log_kmin, log_kmax)
 
@@ -83,7 +84,7 @@ class Parker(AbsBfield):
         if not self.use_noise:
             return Bx, By, Bz
 
-        coeff2d = 1.4
+        # coeff2d = 1.4
         # coeffslab = coeff2d / 2
 
         a = v_wind / omega
@@ -109,9 +110,9 @@ class Parker(AbsBfield):
                                             A_2D, alpha_2D, delta_2D,
                                             rs, k, dk)
 
-        Bx += self.magnitude * coeff2d * Bx_n
-        By += self.magnitude * coeff2d * By_n
-        Bz += self.magnitude * coeff2d * Bz_n
+        Bx += self.magnitude * self.coeff2d * Bx_n
+        By += self.magnitude * self.coeff2d * By_n
+        Bz += self.magnitude * self.coeff2d * Bz_n
 
         return Bx, By, Bz
 
