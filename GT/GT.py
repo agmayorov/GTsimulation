@@ -284,6 +284,15 @@ class GTSimulator(ABC):
                 brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
                 brk = brck[1]
                 if brck[0]:
+                    if brk != -1:
+                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                      SaveE,
+                                      SaveB,
+                                      SaveA,
+                                      SaveP,
+                                      SaveC,
+                                      SaveT)
+                        i_save += 1
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
                     break
