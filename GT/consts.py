@@ -42,3 +42,4 @@ class Units:
 class Regions(Enum):
     Magnetosphere = 1
     Heliosphere = 2
+    Galaxy = 3
