@@ -20,11 +20,12 @@ from Particle import ConvertT2R
 class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
-                 Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None):
+                 Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
+                 BCcenter=np.array([0, 0, 0])):
         self.ParamDict = {"Bfield": Bfield, "Efield": Efield, "Region": Region, "Medium": Medium, "Date": Date,
                           "RadLosses": RadLosses, "Particles": Particles, "ForwardTrck": ForwardTrck, "Save": Save,
                           "Num": Num, "Step": Step, "Nfiles": Nfiles, "Output": Output, "Verbose": Verbose,
-                          "BreakCondition": BreakCondition}
+                          "BreakCondition": BreakCondition, "BCcenter": BCcenter}
 
         self.Verbose = Verbose
         if self.Verbose:
@@ -87,13 +88,13 @@ class GTSimulator(ABC):
         self.__brck_index.pop("Loop")
         self.__index_brck = BreakIndex.copy()
         self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
-        self.__SetBrck(BreakCondition)
+        self.__SetBrck(BreakCondition, BCcenter)
 
         self.index = 0
         if self.Verbose:
             print("Simulator created!\n")
 
-    def __SetBrck(self, Brck):
+    def __SetBrck(self, Brck, center):
         if Brck is not None:
             for key in Brck.keys():
                 self.BrckArr[self.__brck_index[key]] = Brck[key]
@@ -101,7 +102,9 @@ class GTSimulator(ABC):
             print("\tBreak Conditions: ")
             for key in self.__brck_index.keys():
                 print(f"\t\t{key}: {self.BrckArr[self.__brck_index[key]]}")
+            print(f"\tBC center: {center}")
         self.BrckArr[:-1] *= self.ToMeters
+        self.BCcenter = center*self.ToMeters
 
     def __SetMedium(self, medium):
         if self.Verbose:
@@ -228,6 +231,7 @@ class GTSimulator(ABC):
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 16))
             BrckArr = self.BrckArr
+            BCcenter = self.BCcenter
 
             Q = particle.Z * Constants.e
             M = particle.M
@@ -281,7 +285,7 @@ class GTSimulator(ABC):
                     pass
 
                 # if i % (self.Num // 100) == 0:
-                brck = self.CheckBreak(r, Saves[0, :3], TotPathLen, TotTime, BrckArr)
+                brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, BrckArr)
                 brk = brck[1]
                 if brck[0]:
                     if brk != -1:
@@ -330,8 +334,8 @@ class GTSimulator(ABC):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def CheckBreak(r, r0, TotPath, TotTime, Brck):
-        radi = np.linalg.norm(r)
+    def CheckBreak(r, r0, center, TotPath, TotTime, Brck):
+        radi = np.linalg.norm(r-center)
         dst2path = np.linalg.norm(r - r0) / TotPath
         cond = np.concatenate((np.array([*np.abs(r), radi, dst2path]) < Brck[:5],
                                np.array([*np.abs(r), radi, TotPath, TotTime]) > Brck[5:]))

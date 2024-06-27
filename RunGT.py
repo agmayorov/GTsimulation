@@ -47,11 +47,12 @@ Verbose = True
 # BreakConditions = {"Xmin": 0, "Ymin": 0, "Zmin": 0, "Rmin": 0, "Dist2Path": 0,
 #                    "Xmax": np.inf, "Ymax": np.inf, "Zmax": np.inf, "Rmax": np.inf, "MaxPath": np.inf,
 #                    "MaxTime": np.inf}
-# BreakConditions = {"Rmax": 40}
-BreakConditions = None
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e6), Step=1e-2,
+BreakConditions = {"Rmax": 28.5}
+BCcenter = np.array([-8.5, 0, 0])
+# BreakConditions = None
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Particles=Flux, Num=int(1e8), Step=10000000,
                                   Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose,
-                                  BreakCondition=BreakConditions)
+                                  BreakCondition=BreakConditions, BCcenter=BCcenter)
 simulator()
 
 # tracks, wout = simulator()
