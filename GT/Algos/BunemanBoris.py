@@ -26,6 +26,8 @@ class BunemanBorisSimulator(GTSimulator):
     def __algo(E, H, M, T, V, q, c):
         H_norm = np.linalg.norm(H)
         Yp = T / M + 1
+        if H_norm == 0:
+            return V, Yp, Yp
         Ui = Yp * V
 
         TT = Yp * np.tan(q * H_norm / Yp)
