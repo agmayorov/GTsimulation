@@ -19,15 +19,15 @@ c = 3e10
 
 dt = 0.01
 radis = []
-Nmax = 500 / 0.01
+Nmax = 2000/ 0.01
 Nmin = 10
 mx = 0
-Ns = np.linspace(Nmin, Nmax, 100, dtype=int)
+Ns = np.linspace(Nmin, Nmax, 50, dtype=int)
 
-paths = ["../../tests/DiffusionPR0"]
+# paths = ["../../tests/DiffusionPR0"]
 # paths.extend([f"../../tests/Diffusion{i}" for i in range(1, 6)])
 # Radius = [1, 2, 3, 5, 8, 10]
-# paths = ["../../tests/DDiffusionPRReg0"]
+paths = ["../../tests/DDiffusionPRReg0"]
 Radius = [1]
 
 D_perp_arr = []
@@ -46,9 +46,10 @@ for path in tqdm(paths):
         tau = dt * N
         delta_r_perp = []
         delta_r_parallel = []
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
 
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
         for file in files:
             if not file.endswith(".npy"):
                 continue
@@ -61,12 +62,12 @@ for path in tqdm(paths):
 
                 R = event["Track"]["Coordinates"]
                 X, Y, Z = R[:, 0], R[:, 1], R[:, 2]
-
                 #
-                # ax.set_xlabel(f"X [AU]")
-                # ax.set_ylabel(f"Y [AU]")
-                # ax.set_zlabel(f"Z [AU]")
-                # plt.plot(X[:int(Nmax)], Y[:int(Nmax)], Z[:int(Nmax)])
+                ax.set_xlabel(f"X [AU]")
+                ax.set_ylabel(f"Y [AU]")
+                ax.set_zlabel(f"Z [AU]")
+                # plt.plot(X, Y, Z)
+                plt.plot(X[:int(Nmax)], Y[:int(Nmax)], Z[:int(Nmax)])
                 # lons = np.linspace(-180, 180, 30) * np.pi / 180
                 # lats = np.linspace(-90, 90, 30)[::-1] * np.pi / 180
                 #
@@ -75,8 +76,11 @@ for path in tqdm(paths):
                 # z = np.outer(np.ones(np.size(lons)), np.sin(lats)).T
 
                 # ax.scatter(x, y, z, color='#00ffff', s=1)
-
-
+                # plt.axis("equal")
+                # ax.scatter(X[0], X[0], 0, s=50, color="black")
+                # ax.arrow3D(X[0], X[0], 0,
+                #            0.2 * Bx / B, 0.2 * By / B, 0.2 * Bz / B,
+                #            mutation_scale=10)
 
                 dr = np.sqrt((X[N] - X[0]) ** 2 + (Y[N] - Y[0]) ** 2 + (Y[N] - Y[0]) ** 2)
                 Bx, By, Bz = parker.CalcBfield(X[0], Y[0], Z[0])
@@ -85,20 +89,25 @@ for path in tqdm(paths):
                 delta_r_perp.append(dr * np.sqrt(1 - cos ** 2))
                 delta_r_parallel.append(dr * cos)
             mx = max(mx, np.max(delta_r_perp))
-        # plt.axis("equal")
-        # ax.scatter(1/np.sqrt(2), 1/np.sqrt(2), 0, s=50, color="black")
-        # ax.arrow3D(1/np.sqrt(2), 1/np.sqrt(2), 0,
-        #            0.2*Bx/B,  0.2*By/B,  0.2*Bz/B,
-        #            mutation_scale=10)
-        # plt.show()
 
-        def func(r, D, C):
-            return C * r ** 2 * np.exp(-r ** 2 / (4 * D * tau))
+        plt.axis("equal")
+        ax.scatter(1/np.sqrt(2), 1/np.sqrt(2), 0, s=50, color="black")
+        ax.arrow3D(1/np.sqrt(2), 1/np.sqrt(2), 0,
+                   0.1*Bx/B,  0.1*By/B,  0.1*Bz/B,
+                   mutation_scale=10)
+        plt.show()
+
+
+        def func_perp(r, D, C):
+            return C * r * np.exp(-r ** 2 / (4 * D * tau))
+
+        def func_parallel(r, D, C):
+            return C * np.exp(-r ** 2 / (4 * D * tau))
 
 
         delta_r_perp = np.array(delta_r_perp)
         delta_r_parallel = np.array(delta_r_parallel)
-        values, bins = np.histogram(delta_r_perp, bins=25)
+        values, bins = np.histogram(delta_r_perp, bins=15)
         area = np.sum(np.diff(bins) * values)
         values = values / area
         centers = 0.5 * (bins[1:] + bins[:-1])
@@ -108,13 +117,22 @@ for path in tqdm(paths):
         # Di = np.pi**2/16*(np.mean(delta_r))**2/tau
 
         try:
-            popt, pcov = curve_fit(func, centers, values, p0=[5e-7, (5e-7 * tau) ** (-3 / 2)],
-                                   bounds=([1e-13, (tau) ** (-3 / 2)], [1, (1e-13 * tau) ** (-3 / 2)]))
+            popt, pcov = curve_fit(func_perp, centers, values, p0=[5e-7, (5e-7 * tau) ** (-3 / 2)],
+                                   bounds=([1e16/au2cm ** 2, (tau) ** (-3 / 2)], [1e23/au2cm ** 2, (1e-13 * tau) ** (-3 / 2)]))
             Di = popt[0]
             C = popt[1]
             D_perp.append(Di * au2cm ** 2)
 
-            values, bins = np.histogram(delta_r_parallel, bins=25)
+            # r = np.linspace(0, np.max(delta_r_perp), 50)
+            # plt.hist(delta_r_perp, 15, edgecolor="black", density=True)
+            # # plt.bar(centers, values, width=np.diff(bins), edgecolor="black")
+            # # plt.plot(r, func_perp(r, *popt))
+            # plt.title(f"$|\\vec{{r}}_{{\perp}}(t={tau} sec) - \\vec{{r}}(t=0)|$; $D={Di*au2cm**2}\\frac{{cm^2}}{{sec}}$")
+            # plt.xlabel("$\Delta r \quad [au]$")
+            # plt.show()
+
+
+            values, bins = np.histogram(delta_r_parallel, bins=15)
             area = np.sum(np.diff(bins) * values)
             values = values / area
             centers = 0.5 * (bins[1:] + bins[:-1])
@@ -123,22 +141,25 @@ for path in tqdm(paths):
             # Di = mode**2 / (8*tau)
             # Di = np.pi**2/16*(np.mean(delta_r))**2/tau
 
-            popt, pcov = curve_fit(func, centers, values, p0=[5e-7, (5e-7 * tau) ** (-3 / 2)],
+            popt, pcov = curve_fit(func_parallel, centers, values, p0=[5e-7, (5e-7 * tau) ** (-3 / 2)],
                                    bounds=([1e-13, (tau) ** (-3 / 2)], [1, (1e-13 * tau) ** (-3 / 2)]))
             Di = popt[0]
             C = popt[1]
             D_parallel.append(Di * au2cm ** 2)
+
+            r = np.linspace(0, np.max(delta_r_parallel), 50)
+            plt.hist(delta_r_parallel, 15, edgecolor="black", density=True)
+            # plt.bar(centers, values, width=np.diff(bins), edgecolor="black")
+            # plt.plot(r, func_parallel(r, *popt))
+            plt.title(f"$|\\vec{{r}}_{{||}}(t={tau} sec) - \\vec{{r}}(t=0)|$; $D={Di*au2cm**2}\\frac{{cm^2}}{{sec}}$")
+            plt.xlabel("$\Delta r \quad [au]$")
+            plt.show()
+
         except:
             D_perp.append(0)
             D_parallel.append(0)
 
-        # r = np.linspace(0, np.max(delta_r_perp), 50)
-        # plt.hist(delta_r_perp, 25, edgecolor="black", density=True)
-        # # plt.bar(centers, values, width=np.diff(bins), edgecolor="black")
-        # plt.plot(r, func(r, *popt))
-        # plt.title(f"$|\\vec{{r}}(t={tau} sec) - \\vec{{r}}(t=0)|$; $D={Di*au2cm**2}\\frac{{cm^2}}{{sec}}$")
-        # plt.xlabel("$\Delta r \quad [au]$")
-        # plt.show()
+
 
     D_parallel_arr.append(D_parallel)
     D_perp_arr.append(D_perp)
