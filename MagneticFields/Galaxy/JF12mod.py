@@ -10,11 +10,12 @@ from MagneticFields import AbsBfield
 class JF12mod(AbsBfield):
     ToMeters = Units.kpc2m
 
-    def __init__(self, **kwargs):
+    def __init__(self, use_noise=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Galaxy
         self.ModelName = "JF12mod"
         self.Units = "kpc"
+        self.use_noise = use_noise
 
         # Regular field #
 
@@ -90,7 +91,8 @@ class JF12mod(AbsBfield):
                                    self.beta_str,
                                    self.b_int_turb, self.b_disk_turb, self.z_disk_turb,
                                    self.b_halo_turb, self.r_halo_turb, self.z_halo_turb,
-                                   self.f_a, self.f_i)
+                                   self.f_a, self.f_i,
+                                   self.use_noise)
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
@@ -108,7 +110,8 @@ class JF12mod(AbsBfield):
                        beta_str,
                        b_int_turb, b_disk_turb, z_disk_turb,
                        b_halo_turb, r_halo_turb, z_halo_turb,
-                       f_a, f_i):
+                       f_a, f_i,
+                       use_noise):
         R = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         r = np.sqrt(x ** 2 + y ** 2)
         phi = np.arctan2(y, x)
@@ -193,36 +196,37 @@ class JF12mod(AbsBfield):
         By_iso = 0
         Bz_iso = 0
 
-        if r < 20 and np.abs(z) < 20:
-            ix = np.where(x % x_grid[-1] >= x_grid[:-1])[0][-1]
-            iy = np.where(y % y_grid[-1] >= y_grid[:-1])[0][-1]
-            iz = np.where(z % z_grid[-1] >= z_grid[:-1])[0][-1]
-            Gx_p = Gx[ix, iy, iz]
-            Gy_p = Gy[ix, iy, iz]
-            Gz_p = Gz[ix, iy, iz]
+        if use_noise:
+            if r < 20 and np.abs(z) < 20:
+                ix = np.where(x % x_grid[-1] >= x_grid[:-1])[0][-1]
+                iy = np.where(y % y_grid[-1] >= y_grid[:-1])[0][-1]
+                iz = np.where(z % z_grid[-1] >= z_grid[:-1])[0][-1]
+                Gx_p = Gx[ix, iy, iz]
+                Gy_p = Gy[ix, iy, iz]
+                Gz_p = Gz[ix, iy, iz]
 
-            # Anisotropic random field
-            B_aniso_rms = np.sqrt(1.5 * beta_str) * Babs * (Bx * Gx_p + By * Gy_p + Bz * Gz_p)
-            Bx_aniso = B_aniso_rms * Bx
-            By_aniso = B_aniso_rms * By
-            Bz_aniso = B_aniso_rms * Bz
+                # Anisotropic random field
+                B_aniso_rms = np.sqrt(1.5 * beta_str) * Babs * (Bx * Gx_p + By * Gy_p + Bz * Gz_p)
+                Bx_aniso = B_aniso_rms * Bx
+                By_aniso = B_aniso_rms * By
+                Bz_aniso = B_aniso_rms * Bz
 
-            # Isotropic random field
-            if r < 5:
-                B_iso_disk = b_int_turb
-            else:
-                B_iso_disk = b_disk_turb[disk_idx]
-                B_iso_disk = B_iso_disk * (5 / r)
-            B_iso_disk *= np.exp(-0.5 * (z/z_disk_turb)**2)
+                # Isotropic random field
+                if r < 5:
+                    B_iso_disk = b_int_turb
+                else:
+                    B_iso_disk = b_disk_turb[disk_idx]
+                    B_iso_disk = B_iso_disk * (5 / r)
+                B_iso_disk *= np.exp(-0.5 * (z/z_disk_turb)**2)
 
-            # Halo
-            B_iso_halo = b_halo_turb * np.exp(-r/r_halo_turb) * np.exp(-0.5 * (z/z_halo_turb)**2)
+                # Halo
+                B_iso_halo = b_halo_turb * np.exp(-r/r_halo_turb) * np.exp(-0.5 * (z/z_halo_turb)**2)
 
-            # General
-            B_iso_rms = np.sqrt(B_iso_halo**2  + B_iso_disk**2)
-            Bx_iso = B_iso_rms * Gx_p
-            By_iso = B_iso_rms * Gy_p
-            Bz_iso = B_iso_rms * Gz_p
+                # General
+                B_iso_rms = np.sqrt(B_iso_halo**2  + B_iso_disk**2)
+                Bx_iso = B_iso_rms * Gx_p
+                By_iso = B_iso_rms * Gy_p
+                Bz_iso = B_iso_rms * Gz_p
 
         return 0.1 * (Bx + f_a*Bx_aniso + f_i * Bx_iso), 0.1 * (By + f_a*By_aniso + f_i * By_iso), 0.1 * (Bz + f_a*Bz_aniso + f_i * Bz_iso)
 
@@ -230,6 +234,7 @@ class JF12mod(AbsBfield):
         pass
 
     def __str__(self):
-        s = f"""JF12mod"""
+        s = f"""JF12mod
+        Noise: {self.use_noise}"""
 
         return s
