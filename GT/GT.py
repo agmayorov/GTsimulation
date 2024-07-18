@@ -1,6 +1,5 @@
 import os
 import math
-import os
 
 import matplotlib.pyplot as plt
 import tqdm
@@ -13,7 +12,7 @@ from abc import ABC, abstractmethod
 
 from numba import jit
 
-from GT import Constants, Units, Regions, BreakCode, BreakIndex
+from GT import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, BreakMetric, SaveMetric
 from Particle import ConvertT2R
 
 
@@ -76,7 +75,7 @@ class GTSimulator(ABC):
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
         self.Output = Output
         self.Npts = 2
-        self.Save = {"Clock": False, "Path": False, "Bfield": False, "Efield": False, "Energy": False, "Angles": False}
+        self.Save = SaveDef.copy()
         if self.Verbose:
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_file_num.npy")
@@ -87,7 +86,7 @@ class GTSimulator(ABC):
         self.__brck_index = BreakCode.copy()
         self.__brck_index.pop("Loop")
         self.__index_brck = BreakIndex.copy()
-        self.BrckArr = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        self.__brck_arr = BreakDef.copy()
         self.__SetBrck(BreakCondition, BCcenter)
 
         self.index = 0
@@ -97,13 +96,13 @@ class GTSimulator(ABC):
     def __SetBrck(self, Brck, center):
         if Brck is not None:
             for key in Brck.keys():
-                self.BrckArr[self.__brck_index[key]] = Brck[key]
+                self.__brck_arr[self.__brck_index[key]] = Brck[key]
         if self.Verbose:
             print("\tBreak Conditions: ")
             for key in self.__brck_index.keys():
-                print(f"\t\t{key}: {self.BrckArr[self.__brck_index[key]]}")
+                print(f"\t\t{key}: {self.__brck_arr[self.__brck_index[key]]}")
             print(f"\tBC center: {center}")
-        self.BrckArr[:-1] *= self.ToMeters
+        self.__brck_arr[BreakMetric] *= self.ToMeters
         self.BCcenter = center*self.ToMeters
 
     def __SetMedium(self, medium):
@@ -222,15 +221,17 @@ class GTSimulator(ABC):
         SaveB = self.Save["Bfield"]
         SaveA = self.Save["Angles"]
         SaveP = self.Save["Path"]
+        SaveD = self.Save["Density"]
         SaveC = self.Save["Clock"]
         SaveT = self.Save["Energy"]
+
         for self.index in range(len(self.Particles)):
             if self.Verbose:
                 print("\t\tStarting event...")
             TotTime, TotPathLen = 0, 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 16))
-            BrckArr = self.BrckArr
+            BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
 
             Q = particle.Z * Constants.e
@@ -271,11 +272,12 @@ class GTSimulator(ABC):
                 Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCode,
                                   SaveE,
                                   SaveB,
                                   SaveA,
                                   SaveP,
+                                  SaveD,
                                   SaveC,
                                   SaveT)
                     i_save += 1
@@ -289,11 +291,12 @@ class GTSimulator(ABC):
                 brk = brck[1]
                 if brck[0]:
                     if brk != -1:
-                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCode,
                                       SaveE,
                                       SaveB,
                                       SaveA,
                                       SaveP,
+                                      SaveD,
                                       SaveC,
                                       SaveT)
                         i_save += 1
@@ -310,23 +313,24 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print()
             Saves = Saves[:i_save]
-            Saves[:, :3] /= self.ToMeters
-            Saves[:, 13] /= self.ToMeters
+            Saves[:, SaveMetric] /= self.ToMeters
 
-            track = {"Coordinates": Saves[:, :3], "Velocities": Saves[:, 3:6]}
+            track = {"Coordinates": Saves[:, SaveCode["Coordinates"]], "Velocities": Saves[:, SaveCode["Velocities"]]}
 
             if SaveE:
-                track["Efield"] = Saves[:, 6:9]
+                track["Efield"] = Saves[:, SaveCode["Efield"]]
             if SaveB:
-                track["Bfield"] = Saves[:, 9:12]
+                track["Bfield"] = Saves[:, SaveCode["Bfield"]]
             if SaveA:
-                track["Angles"] = Saves[:, 12]
+                track["Angles"] = Saves[:, SaveCode["Angles"]]
             if SaveP:
-                track["Path"] = Saves[:, 13]
+                track["Path"] = Saves[:, SaveCode["Path"]]
             if SaveC:
-                track["Clock"] = Saves[:, 14]
+                track["Clock"] = Saves[:, SaveCode["Clock"]]
             if SaveT:
-                track["Energy"] = Saves[:, 15]
+                track["Energy"] = Saves[:, SaveCode["Energy"]]
+            if SaveD:
+                track["Density"] = Saves[:, SaveCode["Density"]]
 
             RetArr.append({"Track": track, "WOut": brk,
                            "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T}})
@@ -355,28 +359,31 @@ class GTSimulator(ABC):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCodes,
                  SaveE,
                  SaveB,
                  SaveA,
                  SaveP,
+                 SaveD,
                  SaveC,
                  SaveT
                  ):
-        Saves[i_save, :3] = r
-        Saves[i_save, 3:6] = Vm / V_norm
+        Saves[i_save, SaveCodes["Coordinates"]] = r
+        Saves[i_save, SaveCodes["Velocities"]] = Vm / V_norm
         if SaveE:
-            Saves[i_save, 6:9] = E
+            Saves[i_save, SaveCodes["Efield"]] = E
         if SaveB:
-            Saves[i_save, 9:12] = B
+            Saves[i_save, SaveCodes["Bfield"]] = B
         if SaveA:
-            Saves[i_save, 12] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
+            Saves[i_save, SaveCodes["Angles"]] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
         if SaveP:
-            Saves[i_save, 13] = TotPathLen
+            Saves[i_save, SaveCodes["Path"]] = TotPathLen
+        if SaveD:
+            Saves[i_save, SaveCodes["Density"]] = None
         if SaveC:
-            Saves[i_save, 14] = TotTime
+            Saves[i_save, SaveCodes["Clock"]] = TotTime
         if SaveT:
-            Saves[i_save, 15] = T
+            Saves[i_save, SaveCodes["Energy"]] = T
 
     def RadLossStep(self, Vp, Vm, Yp, Ya, M, Q):
         if not self.UseRadLosses:
