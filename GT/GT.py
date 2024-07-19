@@ -272,7 +272,10 @@ class GTSimulator(ABC):
                 Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCode,
+                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                  SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
+                                  SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
+                                  SaveCode["Clock"], SaveCode["Energy"],
                                   SaveE,
                                   SaveB,
                                   SaveA,
@@ -291,7 +294,10 @@ class GTSimulator(ABC):
                 brk = brck[1]
                 if brck[0]:
                     if brk != -1:
-                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCode,
+                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                      SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
+                                      SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
+                                      SaveCode["Clock"], SaveCode["Energy"],
                                       SaveE,
                                       SaveB,
                                       SaveA,
@@ -359,7 +365,8 @@ class GTSimulator(ABC):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves, SaveCodes,
+    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                 CordCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, EnCode,
                  SaveE,
                  SaveB,
                  SaveA,
@@ -368,22 +375,22 @@ class GTSimulator(ABC):
                  SaveC,
                  SaveT
                  ):
-        Saves[i_save, SaveCodes["Coordinates"]] = r
-        Saves[i_save, SaveCodes["Velocities"]] = Vm / V_norm
+        Saves[i_save, CordCode] = r
+        Saves[i_save, VCode] = Vm / V_norm
         if SaveE:
-            Saves[i_save, SaveCodes["Efield"]] = E
+            Saves[i_save, ECode] = E
         if SaveB:
-            Saves[i_save, SaveCodes["Bfield"]] = B
+            Saves[i_save, BCode] = B
         if SaveA:
-            Saves[i_save, SaveCodes["Angles"]] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
+            Saves[i_save, ACode] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
         if SaveP:
-            Saves[i_save, SaveCodes["Path"]] = TotPathLen
-        if SaveD:
-            Saves[i_save, SaveCodes["Density"]] = None
+            Saves[i_save, PCode] = TotPathLen
+        # if SaveD:
+        #     Saves[i_save, DCode] = None
         if SaveC:
-            Saves[i_save, SaveCodes["Clock"]] = TotTime
+            Saves[i_save, CCode] = TotTime
         if SaveT:
-            Saves[i_save, SaveCodes["Energy"]] = T
+            Saves[i_save, EnCode] = T
 
     def RadLossStep(self, Vp, Vm, Yp, Ya, M, Q):
         if not self.UseRadLosses:
