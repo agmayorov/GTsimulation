@@ -230,7 +230,7 @@ class GTSimulator(ABC):
                 print("\t\tStarting event...")
             TotTime, TotPathLen = 0, 0
             particle = self.Particles[self.index]
-            Saves = np.zeros((self.Npts + 1, 16))
+            Saves = np.zeros((self.Npts + 1, 17))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
 
