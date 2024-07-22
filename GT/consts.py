@@ -43,3 +43,18 @@ class Regions(Enum):
     Magnetosphere = 1
     Heliosphere = 2
     Galaxy = 3
+
+
+class Origins(Enum):
+    Galactic = 1
+    Albedo = 2
+    QuasiTrapped = 3
+    Presipitated = 4
+    Trapped = 5
+    Unknown = 6
+
+
+class Location(Enum):
+    Earth = 1
+    Interplanetary = 2
+    NearEarth = 3
