@@ -392,7 +392,7 @@ class GTSimulator(ABC):
         R = RetArr_i["Track"]["Coordinates"] * Units.RE2m
         H = RetArr_i["Track"]["Bfield"]
         M = RetArr_i["Particle"]["M"] * Units.MeV2kg
-        T = RetArr_i["Particle"]["T0"]
+        T0 = RetArr_i["Particle"]["T0"]
         Z = RetArr_i["Particle"]["Ze"]
 
         Vn = np.linalg.norm(V, axis=1)
@@ -541,7 +541,7 @@ class GTSimulator(ABC):
                 L_shell = (k0 / RE ** 3 / Bm * (1 + np.exp(Y))) ** (1 / 3)
 
                 # Magnetic field line of Guiding Centre
-                gamma = (T + M) / M
+                gamma = (T0 + M) / M
                 omega = np.abs(Z) * Constants.e * Hn[0] / (gamma * M * Units.MeV2kg)
 
                 # Larmor Radius
@@ -843,8 +843,7 @@ class GTSimulator(ABC):
                  SaveT
                  ):
         Saves[i_save, CordCode] = r
-        # Saves[i_save, VCode] = Vm / V_norm
-        Saves[i_save, VCode] = Vm
+        Saves[i_save, VCode] = Vm / V_norm
         if SaveE:
             Saves[i_save, ECode] = E
         if SaveB:
