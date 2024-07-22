@@ -5,7 +5,7 @@ from Particle.NucleiProp import NucleiProp
 
 class Particle:
 
-    def __init__(self, Name='pr', Z=None, M=None, PDG=None):
+    def __init__(self, Name=None, Z=None, M=None, PDG=None):
         # Self properties
         if Name is not None:
             if Name in NucleiProp.keys():
