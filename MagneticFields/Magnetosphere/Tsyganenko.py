@@ -32,7 +32,7 @@ class Tsyganenko(AbsBfield):
             self.Date = datetime.datetime(1, 1, 1)
         elif isinstance(self.Date, datetime.datetime):
             self.Year = self.Date.year
-            self.Doy = self.Date.timetuple().tm_yday
+            self.DoY = self.Date.timetuple().tm_yday
             self.Secs = self.Date.second
             self.DTnum = self.Date.toordinal()  # + 366
 
@@ -41,11 +41,11 @@ class Tsyganenko(AbsBfield):
 
     def GetPsi(self):
         [x, y, z] = transformations.geo2mag_eccentric(0, 0, 1, 0, datetime.datetime.fromordinal(self.DTnum))
-        [x, y, z] = transformations.gei2geo(x, y, z, self.Year, self.Doy, self.Secs, 0)
-        [x, y, z] = transformations.gei2gsm(x, y, z, self.Year, self.Doy, self.Secs, 1)
+        [x, y, z] = transformations.gei2geo(x, y, z, self.Year, self.DoY, self.Secs, 0)
+        [x, y, z] = transformations.gei2gsm(x, y, z, self.Year, self.DoY, self.Secs, 1)
         psi = np.arccos(z / np.linalg.norm([x, y, z]))
 
-        return psi
+        return psi[0]
 
     def GetTsyganenkoInd(self):
 

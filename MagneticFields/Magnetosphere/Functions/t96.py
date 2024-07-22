@@ -4,8 +4,9 @@ Copied from https://github.com/tsssss/geopack/blob/master/geopack/t96.py
 
 import numpy as np
 from scipy import special
+from numba import jit
 
-
+@jit(fastmath=True, nopython=True)
 def t96(parmod, ps, x, y, z):
     """
     Release date of this version: June 22, 1996.
@@ -83,7 +84,7 @@ def t96(parmod, ps, x, y, z):
     asq = am ** 2
     xmxm = am + x - x0
     if xmxm < 0: xmxm = 0  # the boundary is a cylinder tailward of x=x0-am
-    axx0 = xmxm ** 2
+    axx0 = xmxm ** 2.
     aro = asq + rho2
     sigma = np.sqrt((aro + axx0 + np.sqrt((aro + axx0) ** 2 - 4. * asq * axx0)) / (2. * asq))
 
@@ -127,7 +128,7 @@ def t96(parmod, ps, x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def dipshld(ps, x, y, z):
     """
     Calculates gsm components of the external magnetic field due to shielding of the earth's dipole only
@@ -150,7 +151,7 @@ def dipshld(ps, x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def cylharm(a, x, y, z):
     """
     This code yields the shielding field for the perpendicular dipole.
@@ -198,6 +199,7 @@ def cylharm(a, x, y, z):
 
     return bx, by, bz
 
+@jit(fastmath=True, nopython=True)
 
 def cylhar1(a, x, y, z):
     """
@@ -243,7 +245,7 @@ def cylhar1(a, x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def tailrc96(sps, x, y, z):
     """
     Computes the components of the field of the model ring current and three tail modes with unit amplitudes
@@ -253,7 +255,7 @@ def tailrc96(sps, x, y, z):
     """
 
     # common /warp/ cpss,spss,dpsrr,rps,warp,d,xs,zs,dxsx,dxsy,dxsz,dzsx,dzsy,dzsz,dzetas,ddzetadx,ddzetady,ddzetadz,zsww
-    global cpss, spss, dpsrr, rps, warp, d, xs, zs, dxsx, dxsy, dxsz, dzsx, dzsy, dzsz, dzetas, ddzetadx, ddzetady, ddzetadz, zsww
+    # global cpss, spss, dpsrr, rps, warp, d, xs, zs, dxsx, dxsy, dxsz, dzsx, dzsy, dzsz, dzetas, ddzetadx, ddzetady, ddzetadz, zsww
 
     arc = np.array([
         -3.087699646, 3.516259114, 18.81380577, -13.95772338, -5.497076303, 0.1712890838,
@@ -292,8 +294,7 @@ def tailrc96(sps, x, y, z):
     c12 = np.sqrt((1 - rh) ** 2 + dr2)
     c1 = c11 - c12
     spsc1 = sps / c1
-    rps = 0.5 * (
-                c11 + c12) * sps  # this is the shift of the sheet with respect to gsm eq.plane for the 3rd (asymptotic) tail mode
+    rps = 0.5 * (c11 + c12) * sps  # this is the shift of the sheet with respect to gsm eq.plane for the 3rd (asymptotic) tail mode
 
     r = np.sqrt(x * x + y * y + z * z)
     sq1 = np.sqrt((r + rh) ** 2 + dr2)
@@ -328,26 +329,26 @@ def tailrc96(sps, x, y, z):
     ddzetadz = zs * dzsz / dzetas
 
     wx, wy, wz = shlcar3x3(arc, x, y, z, sps)
-    hx, hy, hz = ringcurr96(x, y, z)
+    hx, hy, hz = ringcurr96(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzsx, dzsz, zsww)
     bxrc = wx + hx
     byrc = wy + hy
     bzrc = wz + hz
 
     wx, wy, wz = shlcar3x3(atail2, x, y, z, sps)
-    hx, hy, hz = taildisk(x, y, z)
+    hx, hy, hz = taildisk(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzetas, ddzetadx, ddzetady, ddzetadz, zsww)
     bxt2 = wx + hx
     byt2 = wy + hy
     bzt2 = wz + hz
 
     wx, wy, wz = shlcar3x3(atail3, x, y, z, sps)
-    hx, hz = tail87(x, z)
+    hx, hz = tail87(x, z, rps, warp, d)
     bxt3 = wx + hx
     byt3 = wy
     bzt3 = wz + hz
 
     return bxrc, byrc, bzrc, bxt2, byt2, bzt2, bxt3, byt3, bzt3
 
-
+@jit(fastmath=True, nopython=True)
 def shlcar3x3(a, x, y, z, sps):
     """
     This code returns the shielding field represented by  2x3x3=18 "cartesian" harmonics
@@ -417,8 +418,8 @@ def shlcar3x3(a, x, y, z, sps):
 
     return hx, hy, hz
 
-
-def ringcurr96(x, y, z):
+@jit(fastmath=True, nopython=True)
+def ringcurr96(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzsx, dzsz, zsww):
     """
     This subroutine computes the components of the ring current field, similar to
     that described by Tsyganenko and Peredo (1994). The difference is that now
@@ -434,7 +435,7 @@ def ringcurr96(x, y, z):
 
     # common /warp/ cpss,spss,dpsrr, xnext(3),xs,zswarped,dxsx,dxsy, dxsz,dzsx,dzsywarped,dzsz,other(4),zs
     # zs here is without y-z warp
-    global cpss, spss, dpsrr, xnext, xs, zswarped, dxsx, dxsy, dxsz, dzsx, dzsywarped, dzsz, other, zsww
+    # global cpss, spss, dpsrr, xnext, xs, zswarped, dxsx, dxsy, dxsz, dzsx, dzsywarped, dzsz, other, zsww
     d0, deltadx, xd, xldx = [2., 0., 0., 4.]  # the rc is now completely symmetric (deltadx=0)
 
     # the original values of f[i] were multiplied by beta[i] (to reduce the number of
@@ -505,8 +506,8 @@ def ringcurr96(x, y, z):
 
     return bx, by, bz
 
-
-def taildisk(x, y, z):
+@jit(fastmath=True, nopython=True)
+def taildisk(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzetas, ddzetadx, ddzetady, ddzetadz, zsww):
     """
     This subroutine computes the components of the ring current field, similar to
     that described by Tsyganenko and Peredo (1994). The difference is that now
@@ -519,7 +520,7 @@ def taildisk(x, y, z):
     """
 
     # common /warp/ cpss,spss,dpsrr,xnext(3),xs,zs,dxsx,dxsy,dxsz,other(3),dzetas,ddzetadx,ddzetady,ddzetadz,zsww
-    global cpss, spss, dpsrr, xnext, xs, zs, dxsx, dxsy, dxsz, other, dzetas, ddzetadx, ddzetady, ddzetadz, zsww
+    # global cpss, spss, dpsrr, xnext, xs, zs, dxsx, dxsy, dxsz, other, dzetas, ddzetadx, ddzetady, ddzetadz, zsww
     xshift = 4.5
     # here original F(I) are multiplied by BETA(I), to economize calculations
     f = np.array([-745796.7338, 1176470.141, -444610.529, -57508.01028])
@@ -577,8 +578,8 @@ def taildisk(x, y, z):
 
     return bx, by, bz
 
-
-def tail87(x, z):
+@jit(fastmath=True, nopython=True)
+def tail87(x, z, rps, warp, d):
     """
     Long version of the 1987 tail magnetic field model (N.A.Tsyganenko, Planet. Space Sci., v.35, p.1347, 1987)
     """
@@ -589,7 +590,7 @@ def tail87(x, z):
     #     from the parameters rh and dr of the T96-type module, and
     # warp. The bending of the sheet flanks in the z-direction, directed
     #      opposite to rps, and increasing with dipole tilt and |y|
-    global first, rps, warp, d, other
+    # global first, rps, warp, d, other
     dd = 3.
     # These are new values of x1, x2, b0, b1, b2, corresponding to tscale=1, instead of tscale=0.6
     hpi, rt, xn, x1, x2, b0, b1, b2, xn21, xnr, adln = [1.5707963, 40., -10.,
@@ -670,7 +671,7 @@ def tail87(x, z):
 
     return bx, bz
 
-
+@jit(fastmath=True, nopython=True)
 def birk1tot_02(ps, x, y, z):
     """
     This is the second version of the analytical model of the region I field based on a separate
@@ -685,7 +686,7 @@ def birk1tot_02(ps, x, y, z):
     # common /loopdip1/ tilt,xcentre(2),radius(2), dipx,dipy
     # common /coord21/ xx2(14),yy2(14),zz2(14)
     # common /dx1/ dx,scalein,scaleout
-    global xx1, yy1, rh, dr, tilt, xcentre, radius, dipx, dipy, xx2, yy2, zz2, dx, scalein, scaleout
+    # global xx1, yy1, rh, dr, tilt, xcentre, radius, dipx, dipy, xx2, yy2, zz2, dx, scalein, scaleout
 
     c1 = np.array([
         -0.911582e-03, -0.376654e-02, -0.727423e-02, -0.270084e-02, -0.123899E-02,
@@ -708,7 +709,7 @@ def birk1tot_02(ps, x, y, z):
         -.661373E-02, .249201E-02, .343978E-01, -.193145E-05, .493963E-05,
         -.535748E-04, .191833E-04, -.100496E-03, -.210103E-03, -.232195E-02,
         .315335E-02, -.134320E-01, -.263222E-01])
-    tilt, xcentre, radius, dipx, dipy = [1.00891, [2.28397, -5.60831], [1.86106, 7.83281], 1.12541, 0.945719]
+    tilt, xcentre, radius, dipx, dipy = (1.00891, [2.28397, -5.60831], [1.86106, 7.83281], 1.12541, 0.945719)
     dx, scalein, scaleout = [-0.16, 0.08, 0.4]
     xx1 = np.array([-11., -7, -7, -3, -3, 1, 1, 1, 5, 5, 9, 9])
     yy1 = np.array([2., 0, 4, 2, 6, 0, 4, 8, 2, 6, 0, 4])
@@ -772,14 +773,14 @@ def birk1tot_02(ps, x, y, z):
     # in the high-lat. region use the subroutine dipoct
     if loc == 1:
         xi = [x, y, z, ps]
-        d1 = diploop1(xi)
+        d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
         for i in range(26):
             bx = bx + c1[i] * d1[0, i]
             by = by + c1[i] * d1[1, i]
             bz = bz + c1[i] * d1[2, i]
     elif loc == 2:
         xi = [x, y, z, ps]
-        d2 = condip1(xi)
+        d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
         for i in range(79):
             bx = bx + c2[i] * d2[0, i]
             by = by + c2[i] * d2[1, i]
@@ -800,7 +801,7 @@ def birk1tot_02(ps, x, y, z):
         x1 = xas1 * cpsas + zas1 * spsas
         z1 = -xas1 * spsas + zas1 * cpsas
         xi = [x1, y1, z1, ps]
-        d1 = diploop1(xi)
+        d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
         # bx1,by1,bz1 are field components in the northern boundary point
         bx1, by1, bz1 = [0.] * 3
         for i in range(26):
@@ -815,7 +816,7 @@ def birk1tot_02(ps, x, y, z):
         x2 = xas2 * cpsas + zas2 * spsas
         z2 = -xas2 * spsas + zas2 * cpsas
         xi = [x2, y2, z2, ps]
-        d2 = condip1(xi)
+        d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
         # bx2,by2,bz2 are field components in the southern boundary point
         bx2, by2, bz2 = [0.] * 3
         for i in range(79):
@@ -846,7 +847,7 @@ def birk1tot_02(ps, x, y, z):
         x1 = xas1 * cpsas + zas1 * spsas
         z1 = -xas1 * spsas + zas1 * cpsas
         xi = [x1, y1, z1, ps]
-        d2 = condip1(xi)
+        d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
         # bx1,by1,bz1 are field components in the northern boundary point
         bx1, by1, bz1 = [0.] * 3
         for i in range(79):
@@ -861,7 +862,7 @@ def birk1tot_02(ps, x, y, z):
         x2 = xas2 * cpsas + zas2 * spsas
         z2 = -xas2 * spsas + zas2 * cpsas
         xi = [x2, y2, z2, ps]
-        d1 = diploop1(xi)
+        d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
         # bx2,by2,bz2 are field components in the southern boundary point
         bx2, by2, bz2 = [0.] * 3
         for i in range(26):
@@ -888,8 +889,8 @@ def birk1tot_02(ps, x, y, z):
 
     return bx, by, bz
 
-
-def diploop1(xi):
+@jit(fastmath=True, nopython=True)
+def diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr):
     """
     Calculates dependent model variables and their derivatives for given independent variables
     and model parameters. Specifies model functions with free parameters which must be determined
@@ -907,7 +908,7 @@ def diploop1(xi):
     # common /coord11/ xx1(12),yy1(12)
     # common /loopdip1/ tilt,xcentre(2),radius(2),  dipx,dipy
     # common /rhdr/rh,dr
-    global xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr
+    # global xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr
 
     x, y, z, ps = xi
     sps = np.sin(ps)
@@ -983,7 +984,7 @@ def diploop1(xi):
 
     return d
 
-
+@jit(fastmath=True, nopython=True)
 def dipxyz(x, y, z):
     """
     Returns the field components produced by three dipoles, each having M=Me
@@ -1014,7 +1015,7 @@ def dipxyz(x, y, z):
 
     return bxx, byx, bzx, bxy, byy, bzy, bxz, byz, bzz
 
-
+@jit(fastmath=True, nopython=True)
 def crosslp(x, y, z, xc, rl, al):
     """
     Returns field components of a pair of loops with a common center and diameter,
@@ -1043,7 +1044,7 @@ def crosslp(x, y, z, xc, rl, al):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def circle(x, y, z, rl):
     """
     Returns components of the field from a circular current loop of radius rl.
@@ -1081,8 +1082,8 @@ def circle(x, y, z, rl):
 
     return bx, by, bz
 
-
-def condip1(xi):
+@jit(fastmath=True, nopython=True)
+def condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout):
     """
     Calculates dependent model variables and their derivatives for given independent variables
     and model parameters. Specifies model functions with free parameters which must be determined
@@ -1098,7 +1099,7 @@ def condip1(xi):
 
     # common /dx1/ dx,scalein,scaleout
     # common /coord21/ xx(14),yy(14),zz(14)
-    global xx2, yy2, zz2, dx, scalein, scaleout
+    # global xx2, yy2, zz2, dx, scalein, scaleout
 
     x, y, z, ps = xi
     sps = np.sin(ps)
@@ -1222,7 +1223,7 @@ def condip1(xi):
 
     return d
 
-
+@jit(fastmath=True, nopython=True)
 def birk1shld(ps, x, y, z):
     """
     The 64 linear parameters are amplitudes of the "box" harmonics. The 16 nonlinear parametersare the scales Pi,
@@ -1307,7 +1308,7 @@ def birk1shld(ps, x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def birk2tot_02(ps, x, y, z):
     """
 
@@ -1324,7 +1325,7 @@ def birk2tot_02(ps, x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def birk2shl(x, y, z, ps):
     """
     The model parameters are provided to this module via common-block /A/.
@@ -1403,7 +1404,7 @@ def birk2shl(x, y, z, ps):
                     l += 1
     return hx, hy, hz
 
-
+@jit(fastmath=True, nopython=True)
 def r2_birk(x, y, z, ps):
     """
     Returns the model field for the region II birkeland current/partial rc (without shielding field)
@@ -1425,34 +1426,34 @@ def r2_birk(x, y, z, ps):
     xks = xksi(xsm, y, zsm)
     if xks < -(delarg + delarg1):
         # all components are multiplied by the factor -0.02, so that bz=-1 nt at x=-5.3 re, y=z=0
-        bxsm, by, bzsm = np.dot(r2outer(xsm, y, zsm), -0.02)
+        bxsm, by, bzsm = np.array(r2outer(xsm, y, zsm)) * (-0.02)
     elif (xks < -delarg + delarg1):
         f2 = -0.02 * tksi(xks, -delarg, delarg1)
         f1 = -0.02 - f2
-        bxsm1, by1, bzsm1 = np.dot(r2outer(xsm, y, zsm), f1)
-        bxsm2, by2, bzsm2 = np.dot(r2sheet(xsm, y, zsm), f2)
+        bxsm1, by1, bzsm1 = np.array(r2outer(xsm, y, zsm)) * f1
+        bxsm2, by2, bzsm2 = np.array(r2sheet(xsm, y, zsm)) * f2
         bxsm = bxsm1 + bxsm2
         by = by1 + by2
         bzsm = bzsm1 + bzsm2
     elif (xks < delarg - delarg1):
-        bxsm, by, bzsm = np.dot(r2sheet(xsm, y, zsm), -0.02)
+        bxsm, by, bzsm = np.array(r2sheet(xsm, y, zsm)) * (-0.02)
     elif (xks < delarg + delarg1):
         f1 = -0.02 * tksi(xks, delarg, delarg1)
         f2 = -0.02 - f1
-        bxsm1, by1, bzsm1 = np.dot(r2inner(xsm, y, zsm), f1)
-        bxsm2, by2, bzsm2 = np.dot(r2sheet(xsm, y, zsm), f2)
+        bxsm1, by1, bzsm1 = np.array(r2inner(xsm, y, zsm)) * f1
+        bxsm2, by2, bzsm2 = np.array(r2sheet(xsm, y, zsm)) * f2
         bxsm = bxsm1 + bxsm2
         by = by1 + by2
         bzsm = bzsm1 + bzsm2
     else:
-        bxsm, by, bzsm = np.dot(r2inner(xsm, y, zsm), -0.02)
+        bxsm, by, bzsm = np.array(r2inner(xsm, y, zsm)) * (-0.02)
 
     bx = bxsm * cps + bzsm * sps
     bz = bzsm * cps - bxsm * sps
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def xksi(x, y, z):
     """
     :param x,y,z:
@@ -1503,7 +1504,7 @@ def xksi(x, y, z):
 
     return xksi
 
-
+@jit(fastmath=True, nopython=True)
 def tksi(xksi, xks0, dxksi):
     tdz3 = 2. * dxksi ** 3
     if xksi - xks0 < -dxksi:
@@ -1521,7 +1522,7 @@ def tksi(xksi, xks0, dxksi):
 
     return tksii
 
-
+@jit(fastmath=True, nopython=True)
 def fexp(s, a):
     # TODO the function is not continuous in a???
     if a < 0:
@@ -1529,7 +1530,7 @@ def fexp(s, a):
     else:
         return s * np.exp(a * (s * s - 1))
 
-
+@jit(fastmath=True, nopython=True)
 def fexp1(s, a):
     # TODO the function is not continuous in a???
     if a <= 0:
@@ -1537,7 +1538,7 @@ def fexp1(s, a):
     else:
         return np.exp(a * (s * s - 1))
 
-
+@jit(fastmath=True, nopython=True)
 def r2outer(x, y, z):
     """
 
@@ -1567,7 +1568,7 @@ def r2outer(x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def loops4(x, y, z, xc, yc, zc, r, theta, phi):
     """
     Returns field components from a system of 4 current loops, positioned symmetrically
@@ -1642,7 +1643,7 @@ def loops4(x, y, z, xc, yc, zc, r, theta, phi):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def r2sheet(x, y, z):
     """
 
@@ -1775,7 +1776,7 @@ def r2sheet(x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def r2inner(x, y, z):
     pl1, pl2, pl3, pl4, pl5, pl6, pl7, pl8 = [154.185, -2.12446, .601735e-01, -.153954e-02, .355077e-04, 29.9996,
                                               262.886, 99.9132]
@@ -1795,7 +1796,7 @@ def r2inner(x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def bconic(x, y, z, nmax):
     """
     # Conical harmonics
@@ -1845,7 +1846,7 @@ def bconic(x, y, z, nmax):
 
     return cbx, cby, cbz
 
-
+@jit(fastmath=True, nopython=True)
 def dipdistr(x, y, z, mode):
     """
     Returns field components from a linear distribution of dipolar sources on the z-axis.
@@ -1875,7 +1876,7 @@ def dipdistr(x, y, z, mode):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def intercon(x, y, z):
     """
     Calculates the potential interconnection field inside the magnetosphere, corresponding to
@@ -1929,7 +1930,7 @@ def intercon(x, y, z):
 
     return bx, by, bz
 
-
+@jit(fastmath=True, nopython=True)
 def dipole(ps, x, y, z):
     """
     same as t89

@@ -1,9 +1,11 @@
 import datetime
 import numpy as np
+from numba import jit
 
 from MagneticFields.Magnetosphere.Functions import gauss
 
 
+@jit(fastmath=True, nopython=True)
 def DirectionEarthtoSun(Year, Day, Secs):
     RAD = 57.2958
     GST = 0
@@ -27,7 +29,7 @@ def DirectionEarthtoSun(Year, Day, Secs):
     Ex = np.cos(SRASN * np.pi / 180.) * np.cos(SDEC * np.pi / 180.)
     Ey = np.sin(SRASN * np.pi / 180.) * np.cos(SDEC * np.pi / 180.)
     Ez = np.sin(SDEC * np.pi / 180.)
-    Vector = [Ex, Ey, Ez]
+    Vector = np.array([Ex, Ey, Ez])
 
     return Vector, GST, SLONG
 
@@ -153,11 +155,12 @@ def geo2mag(x, y, z, j):
     return X, Y, Z
 
 
+# @jit(fastmath=True, nopython=True)
 def geo2gsm(x, y, z, Year, DoY, Secs, d):
     S, GST, _ = DirectionEarthtoSun(Year, DoY, Secs)
-    D = np.dot([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
+    D = np.dot(np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
                 [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                [0, 0, 1]], np.array([0.068589929661063, -0.186019809236783, 0.980148994857721]))
+                [0, 0, 1]], dtype=np.float64), np.array([0.068589929661063, -0.186019809236783, 0.980148994857721]))
     a = np.cross(D, S)
     Y = a / np.sqrt(np.sum(a ** 2))
     Z = np.cross(S, Y)
@@ -178,8 +181,8 @@ def geo2gsm(x, y, z, Year, DoY, Secs, d):
 
     vec = vec.T
 
-    X = vec[:, 0][:, np.newaxis]
-    Y = vec[:, 1][:, np.newaxis]
-    Z = vec[:, 2][:, np.newaxis]
+    X = vec[0, 0]
+    Y = vec[0, 1]
+    Z = vec[0, 2]
 
     return X, Y, Z
