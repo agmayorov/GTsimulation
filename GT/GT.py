@@ -22,6 +22,7 @@ class GTSimulator(ABC):
                  RadLosses=False, Particles="Monolines", TrackParams=False, IsFirstRun=True, ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0])):
+
         self.ParamDict = {"Bfield": Bfield, "Efield": Efield, "Region": Region, "Medium": Medium, "Date": Date,
                           "RadLosses": RadLosses, "Particles": Particles, "ForwardTrck": ForwardTrck, "Save": Save,
                           "Num": Num, "Step": Step, "Nfiles": Nfiles, "Output": Output, "Verbose": Verbose,
@@ -114,17 +115,24 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("\tMedium: ", end='')
         if medium is not None:
-            # FINISH THIS CODE
-            m1 = importlib.import_module("Medium.Magnetosphere.GTnrlmsise00")
-            m2 = importlib.import_module("Medium.Magnetosphere.GTiri2016")
-            self.Medium = [m1.GTnrlmsise00(self.Date), m2.GTiri2016(self.Date)]
+            module_name = f"Medium.{self.Region.name}"
+            m = importlib.import_module(module_name)
+            class_name = medium if not isinstance(medium, list) else medium[0]
+            params = {"date": self.Date, **({} if not isinstance(medium, list) else medium[1])}
+            if hasattr(m, class_name):
+                class_medium = getattr(m, class_name)
+                self.Medium = class_medium(**params)
+                if self.Verbose:
+                    print(str(self.Medium))
+            else:
+                raise Exception("No such medium")
         else:
             if self.Verbose:
                 print(None)
 
     def __SetFlux(self, flux, forward_trck):
         if self.Verbose:
-            print("\tFlux:", end='')
+            print("\tFlux: ", end='')
         module_name = f"Particle.Generators"
         m = importlib.import_module(module_name)
         class_name = flux if not isinstance(flux, list) else flux[0]
@@ -161,7 +169,7 @@ class GTSimulator(ABC):
             module_name = f"MagneticFields.{self.Region.name}"
             m = importlib.import_module(module_name)
             class_name = Bfield if not isinstance(Bfield, list) else Bfield[0]
-            params = {'date': self.Date, "use_tesla": True, "use_meters": True,
+            params = {"date": self.Date, "use_tesla": True, "use_meters": True,
                       **({} if not isinstance(Bfield, list) else Bfield[1])}
             if hasattr(m, class_name):
                 B = getattr(m, class_name)
@@ -236,7 +244,7 @@ class GTSimulator(ABC):
         for self.index in range(len(self.Particles)):
             if self.Verbose:
                 print("\t\tStarting event...")
-            TotTime, TotPathLen = 0, 0
+            TotTime, TotPathLen, TotPathDen = 0, 0, 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 17))
             BrckArr = self.__brck_arr
@@ -278,9 +286,17 @@ class GTSimulator(ABC):
 
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
                 Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
+
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+
+                if self.Medium is not None:
+                    self.Medium.calculate_model(r_new[0], r_new[1], r_new[2])
+                    Den = self.Medium.get_density() # kg/m3
+                    PathDen = (Den * 1e-3) * (PathLen * 1e2) # g/cm2
+                    TotPathDen += PathDen # g/cm2
+
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                    self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                   SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
                                   SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
                                   SaveCode["Clock"], SaveCode["Energy"],
@@ -294,15 +310,12 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
-                if self.Medium is not None:
-                    pass
-
                 # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, BrckArr)
                 brk = brck[1]
                 if brck[0]:
                     if brk != -1:
-                        self.SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                        self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
                                       SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
                                       SaveCode["Clock"], SaveCode["Energy"],
@@ -832,7 +845,7 @@ class GTSimulator(ABC):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def SaveStep(r_new, V_norm, TotPathLen, TotTime, Vm, i_save, r, T, E, B, Saves,
+    def SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                  CordCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, EnCode,
                  SaveE,
                  SaveB,
@@ -852,8 +865,8 @@ class GTSimulator(ABC):
             Saves[i_save, ACode] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
         if SaveP:
             Saves[i_save, PCode] = TotPathLen
-        # if SaveD:
-        #     Saves[i_save, DCode] = None
+        if SaveD:
+            Saves[i_save, DCode] = TotPathDen
         if SaveC:
             Saves[i_save, CCode] = TotTime
         if SaveT:
