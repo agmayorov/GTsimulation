@@ -50,7 +50,7 @@ class Tsyganenko(AbsBfield):
     def GetTsyganenkoInd(self):
 
         ia = np.where((self.T96_date[:, 0] == self.Date.year) * (self.T96_date[:, 1] == self.Date.month) *
-                      (self.T96_date[:, 3] == self.Date.day) * (self.T96_date[:, 4] == self.Date.hour))[0][0]
+                      (self.T96_date[:, 2] == self.Date.day) * (self.T96_date[:, 3] == self.Date.hour))[0][0]
 
         ind = None
         if self.ModCode == 89:
