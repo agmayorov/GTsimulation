@@ -1,7 +1,7 @@
 from enum import Enum
 from abc import ABC, abstractmethod
 
-from GT import Units, Regions
+from Global import Units, Regions
 
 
 class AbsBfield(ABC):

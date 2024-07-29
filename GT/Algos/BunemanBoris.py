@@ -1,7 +1,8 @@
 import numpy as np
 from numba import jit
 
-from GT import GTSimulator, Constants
+from GT import GTSimulator
+from Global import Constants
 
 
 class BunemanBorisSimulator(GTSimulator):

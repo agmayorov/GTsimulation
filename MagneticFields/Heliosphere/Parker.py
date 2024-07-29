@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 from numba import jit, prange
 
-from GT import Units, Regions
+from Global import Units, Regions
 from MagneticFields import AbsBfield
 from MagneticFields.Heliosphere.Functions import transformations
 

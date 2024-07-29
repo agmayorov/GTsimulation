@@ -13,7 +13,8 @@ from abc import ABC, abstractmethod
 from numba import jit
 
 from MagneticFields.Magnetosphere.Functions import transformations
-from GT import Constants, Units, Regions, Origins, Location, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, BreakMetric, SaveMetric
+from Global import Constants, Units, Regions, Origins, Location, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
+    BreakMetric, SaveMetric
 from Particle import ConvertT2R
 
 

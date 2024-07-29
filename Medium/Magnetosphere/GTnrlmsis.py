@@ -3,7 +3,7 @@ import datetime
 import pyproj
 from pymsis import msis
 
-from GT import Regions
+from Global import Regions
 from Medium import GTGeneralMedium
 
 

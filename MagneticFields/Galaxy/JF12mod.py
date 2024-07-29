@@ -3,7 +3,7 @@ import scipy.io
 import numpy as np
 from numba import jit
 
-from GT import Units, Regions
+from Global import Units, Regions
 from MagneticFields import AbsBfield
 
 
