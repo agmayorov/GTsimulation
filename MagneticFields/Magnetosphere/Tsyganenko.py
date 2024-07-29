@@ -33,7 +33,7 @@ class Tsyganenko(AbsBfield):
         elif isinstance(self.Date, datetime.datetime):
             self.Year = self.Date.year
             self.DoY = self.Date.timetuple().tm_yday
-            self.Secs = self.Date.second
+            self.Secs = self.Date.second + 60 * self.Date.minute + 3600 * self.Date.hour
             self.DTnum = self.Date.toordinal()  # + 366
 
             self.ps = self.GetPsi()

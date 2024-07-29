@@ -85,7 +85,7 @@ class Gauss(AbsBfield):
             costheta = costheta * cd - sintheta * sd
             sintheta = sintheta * cd + oldcos * sd
         else:
-            r = altitude
+            r = altitude + Rearth_km
             cd = 1
             sd = 0
         nmax = np.sqrt(len(gh) + 1) - 1
@@ -160,11 +160,11 @@ class Gauss(AbsBfield):
                        [-np.sin(phi), np.cos(phi), 0.],
                        [0., 0., 1.]])
 
-        B = np.array([Bx, By, Bz]) @ My @ Mz
-
-        Bx = B[0]
-        By = B[1]
-        Bz = B[2]
+        # B = np.array([Bx, By, Bz]) @ My @ Mz
+        #
+        # Bx = B[0]
+        # By = B[1]
+        # Bz = B[2]
 
         return Bx, By, Bz
 
