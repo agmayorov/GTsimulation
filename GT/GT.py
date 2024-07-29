@@ -23,10 +23,13 @@ class GTSimulator(ABC):
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0])):
 
-        self.ParamDict = {"Bfield": Bfield, "Efield": Efield, "Region": Region, "Medium": Medium, "Date": Date,
-                          "RadLosses": RadLosses, "Particles": Particles, "ForwardTrck": ForwardTrck, "Save": Save,
-                          "Num": Num, "Step": Step, "Nfiles": Nfiles, "Output": Output, "Verbose": Verbose,
-                          "BreakCondition": BreakCondition, "BCcenter": BCcenter}
+        self.__names = self.__init__.__code__.co_varnames[1:]
+        self.__vals = []
+        for self.__v in self.__names:
+            self.__vals.append(eval(self.__v))
+        self.ParamDict = dict(zip(self.__names, self.__vals))
+
+        del self.__names, self.__vals
 
         self.Verbose = Verbose
         if self.Verbose:
