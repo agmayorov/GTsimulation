@@ -35,7 +35,7 @@ class GTnrlmsis(GTGeneralMedium):
         return self.model_output[0] # kg/m3
 
     def get_element_abundance(self):
-        return self.model_output[1:-1] / np.nansum(model_output[1:-1])
+        return self.model_output[1:-1] / np.nansum(self.model_output[1:-1])
 
     def __str__(self):
         return f'NRLMSIS-{self.version}'
