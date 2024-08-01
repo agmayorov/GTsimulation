@@ -3,3 +3,4 @@ tasks.txt
 test*
 .idea/
 index.html
+__pycache__/
