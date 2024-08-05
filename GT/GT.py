@@ -6,23 +6,24 @@ import tqdm
 from timeit import default_timer as timer
 import numpy as np
 import importlib
+import datetime
 
-from datetime import datetime
 from abc import ABC, abstractmethod
 
 from numba import jit
 
+from GeantInteraction import G4Decay
 from MagneticFields.Magnetosphere.Functions import transformations
 from Global import Constants, Units, Regions, Origins, Location, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
-    BreakMetric, SaveMetric
+    BreakMetric, SaveMetric, vecRotMat
 from Particle import ConvertT2R
 
 
 class GTSimulator(ABC):
-    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime(2008, 1, 1),
+    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", TrackParams=False, IsFirstRun=True, ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
-                 BCcenter=np.array([0, 0, 0])):
+                 BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
 
         self.__names = self.__init__.__code__.co_varnames[1:]
         self.__vals = []
@@ -76,6 +77,13 @@ class GTSimulator(ABC):
         if self.Verbose:
             print()
 
+        self.UseDecay = False
+        self.InteractNUC = None
+        self.__gen = 1
+        self.__SetNuclearInteractions(UseDecay, InteractNUC)
+        if self.Verbose:
+            print()
+
         self.Particles = None
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
@@ -102,6 +110,13 @@ class GTSimulator(ABC):
         self.index = 0
         if self.Verbose:
             print("Simulator created!\n")
+
+    def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
+        self.UseDecay = UseDecay
+        self.InteractNUC = UseInteractNUC
+        if self.Verbose:
+            print(f"\tDecay: {self.UseDecay}")
+            print(f"\tNuclear Interactions: {self.InteractNUC}")
 
     def __SetBrck(self, Brck, center):
         if Brck is not None:
@@ -245,6 +260,9 @@ class GTSimulator(ABC):
         SaveC = self.Save["Clock"]
         SaveT = self.Save["Energy"]
 
+        Gen = self.__gen
+        GenMax = self.InteractNUC["GenMax"]
+
         for self.index in range(len(self.Particles)):
             if self.Verbose:
                 print("\t\tStarting event...")
@@ -253,6 +271,15 @@ class GTSimulator(ABC):
             Saves = np.zeros((self.Npts + 1, 17))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
+            tau = self.UseDecay * particle.tau
+            rnd_dec = 0
+            IsPrimDecay = 0
+            prod_tracks = []
+            if tau:
+                rnd_dec = np.random.rand()
+                if self.Verbose:
+                    print(f"\t\t\tUse Decay: {self.UseDecay}")
+                    print(f"\t\t\tDecay rnd: {rnd_dec}")
 
             Q = particle.Z * Constants.e
             M = particle.M
@@ -269,14 +296,14 @@ class GTSimulator(ABC):
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
-                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000} [GV]")
+                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z !=0 else np.inf} [GV]")
                 print(f"\t\t\tCoordinates: {r / self.ToMeters} [{self.Bfield.Units}]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
                 print(f"\t\t\tbeta*dt: {V_norm * self.Step / 1000} [km] / "
                       f"{V_norm * self.Step / self.ToMeters} [{self.Bfield.Units}]")
 
-            q = self.Step * Q / 2 / (M * Units.MeV2kg)
+            q = self.Step * Q / 2 / (M * Units.MeV2kg) if M != 0 else 0
             brk = BreakCode["Loop"]
             Step = self.Step
             Num = self.Num
@@ -299,6 +326,13 @@ class GTSimulator(ABC):
                     PathDen = (Den * 1e-3) * (PathLen * 1e2) # g/cm2
                     TotPathDen += PathDen # g/cm2
 
+                #  Decay
+                if tau:
+                    lifetime = tau * (T/M + 1)
+                    if rnd_dec > np.exp(-TotTime/lifetime):
+                        self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
+                        IsPrimDecay = True
+
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                   SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
@@ -317,7 +351,7 @@ class GTSimulator(ABC):
                 # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, BrckArr)
                 brk = brck[1]
-                if brck[0]:
+                if brck[0] or IsPrimDecay:
                     if brk != -1:
                         self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
@@ -331,6 +365,8 @@ class GTSimulator(ABC):
                                       SaveC,
                                       SaveT)
                         i_save += 1
+                    if IsPrimDecay:
+                        brk = self.__brck_index["Decay"]
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
                     break
@@ -364,7 +400,8 @@ class GTSimulator(ABC):
                 track["Density"] = Saves[:, SaveCode["Density"]]
 
             RetArr.append({"Track": track, "WOut": brk,
-                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T}})
+                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T, "Gen": Gen},
+                           "Child": prod_tracks})
 
             # Particles in magnetosphere (Part 1)
             if self.TrackParams:
@@ -374,6 +411,29 @@ class GTSimulator(ABC):
             # if self.ParticleOrigin and self.IsFirstRun:
             #     self.__FindParticleOrigin(RetArr[self.index])
         return RetArr
+
+    def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r):
+        if Gen < GenMax:
+            product = G4Decay(particle.PDG, T / 1e3)
+            rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
+            for p in range(len(product) - 1, -1, -1):
+                prod = product[p]
+                v_prod = rotationMatrix @ np.array(prod['v'])
+                r_prod = r / self.ToMeters
+                T_prod = prod['E'] * 1e3
+                name_prod = prod["ParticleName"]
+
+                params = self.ParamDict.copy()
+                params["Particles"] = ["Monolines", {"Names": name_prod,
+                                                     "T": T_prod,
+                                                     "Center": r_prod,
+                                                     "Radius": 0,
+                                                     "V0": v_prod,
+                                                     "Nevents": 1}]
+                params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
+                new_proc = self.__class__(**params)
+                new_proc.__gen = Gen + 1
+                prod_tracks.append(new_proc.CallOneFile())
 
     def __FieldLine(self, Rinp, sgn):
         bline = np.array([[0, 0, 0]])

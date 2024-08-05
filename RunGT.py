@@ -20,26 +20,29 @@ R = args.R
 np.random.seed(seed+189)
 
 
-Region = Regions.Galaxy
-# Bfield = "Dipole"
+# Region = Regions.Galaxy
+Region = Regions.Magnetosphere
+Bfield = "Dipole"
 # Bfield = ["Gauss", {'model': "CHAOS", "model_type": "core", "version": 7.13}]
 # Bfield = "Parker"
 # Bfield = ["Parker", {"use_noise": False, "noise_num": 1024, "log_kmax": 6, "use_reg": True, "coeff2d": 0.5}]
-Bfield = "JF12mod"
+# Bfield = "JF12mod"
 Date = datetime(2008, 1, 1)
 
-# Medium = None
-Medium = 'GTnrlmsis'
+Medium = None
+# Medium = 'GTnrlmsis'
 
 
 # Flux = ["Uniform",
 #         {"MinT": 0.1*1e3, "MaxT": 20*1e3, "Center": np.array([0, 0, 0]), "Radius": 30, "Nevents": 100}]
-Flux = ["Monolines", {"T": 1000000000000 * np.linspace(0.1, 5, 10),  "Center": np.array([-8.5, 0, 0]), "Radius": 0, "V0": np.array([0, 0, 1]),
-                      "Nevents": 1}]
+# Flux = ["Monolines", {"T": 1000000000000 * np.linspace(0.1, 5, 10),  "Center": np.array([-8.5, 0, 0]), "Radius": 0, "V0": np.array([0, 0, 1]),
+#                       "Nevents": 1}]
 # Flux = ["PowerSpectrum", {"EnergyMin": 0.1, "EnergyMax": 0.5, "RangeUnits": 'T', "Base": 'R', "SpectrumIndex":
 # -2.7, "Radius": 5, "Nevents": 5}]
 # Flux = "PowerSpectrum"
-# Flux = "Monolines"
+Flux = ["Monolines", {"Names": 'neutron', "Nevents": 2, "T": 5000, "Center": np.array([1.5, 0, 0])}]
+UseDecay = True
+NuclearInteraction = {"GenMax": 3}
 
 Nfiles = 1
 # Output = f"{folder}" + os.sep + "Uniform0.1_20"
@@ -55,12 +58,13 @@ Verbose = True
 # BreakConditions = {"Xmin": 0, "Ymin": 0, "Zmin": 0, "Rmin": 0, "Dist2Path": 0,
 #                    "Xmax": np.inf, "Ymax": np.inf, "Zmax": np.inf, "Rmax": np.inf, "MaxPath": np.inf,
 #                    "MaxTime": np.inf}
-BreakConditions = {"Rmax": 28.5}
+# BreakConditions = {"Rmax": 28.5}
 BCcenter = np.array([-8.5, 0, 0])
-# BreakConditions = None
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield,Medium=Medium, Particles=Flux, Num=int(1e8), Step=10000000,
+BreakConditions = None
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(1e2), Step=0.1,
                                   Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose,
-                                  BreakCondition=BreakConditions, BCcenter=BCcenter)
+                                  BreakCondition=BreakConditions, BCcenter=BCcenter, UseDecay=UseDecay,
+                                  InteractNUC=NuclearInteraction)
 simulator()
 
 # tracks, wout = simulator()

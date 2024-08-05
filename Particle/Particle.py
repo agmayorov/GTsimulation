@@ -5,7 +5,7 @@ from Particle.NucleiProp import NucleiProp
 
 class Particle:
 
-    def __init__(self, Name=None, Z=None, M=None, PDG=None):
+    def __init__(self, Name=None, Z=None, M=None, PDG=None, tau=0):
         # Self properties
         if Name is not None:
             if Name in NucleiProp.keys():
@@ -13,6 +13,7 @@ class Particle:
                 self.Z = NucleiProp[Name]['Z']
                 self.M = NucleiProp[Name]['M']
                 self.PDG = NucleiProp[Name]['PDG']
+                self.tau = NucleiProp[Name].get("tau", 0)
                 self.Name = Name
             elif Z is not None and M is not None:
                 self.A = None
@@ -20,6 +21,7 @@ class Particle:
                 self.M = M
                 self.PDG = None
                 self.Name = Name
+                self.tau = tau
             else:
                 raise Exception("No such particle")
         elif PDG is not None:
@@ -32,6 +34,7 @@ class Particle:
                     self.M = NucleiProp[key]['M']
                     self.PDG = NucleiProp[key]['PDG']
                     self.Name = key
+                    self.tau = NucleiProp[key].get("tau", 0)
                     found = True
                     break
             if not found:
