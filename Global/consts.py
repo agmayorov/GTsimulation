@@ -52,9 +52,3 @@ class Origins(Enum):
     Presipitated = 4
     Trapped = 5
     Unknown = 6
-
-
-class Location(Enum):
-    Earth = 1
-    Interplanetary = 2
-    NearEarth = 3

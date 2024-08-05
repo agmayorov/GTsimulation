@@ -57,3 +57,13 @@ def ConvertUnits(Energy, FromUnits, ToUnits, M, A, Z):
                     EnergyConverted = ConvertT2R(Energy / A, M, A, Z)
 
     return EnergyConverted
+
+
+def GetAntiParticle(particle):
+    particle.Z *= -1
+    particle.PDG *= -1
+
+    if particle.Name[0] == 'a':
+        particle.Name = particle.Name[1:]
+    else:
+        particle.Name = 'a' + particle.Name
