@@ -4,10 +4,9 @@ import pyproj
 from pymsis import msis
 
 from Global import Regions
-from Medium import GTGeneralMedium
+from Medium.Magnetosphere import MagnetosphereMedium
 
-
-class GTnrlmsis(GTGeneralMedium):
+class GTnrlmsis(MagnetosphereMedium):
 
     def __init__(self, date: datetime.datetime, version=2.1):
         super().__init__()
@@ -27,9 +26,6 @@ class GTnrlmsis(GTGeneralMedium):
         lon, lat, alt = self.convert_xyz_to_lla(x, y, z)
         alt *= 1e-3 # m -> km
         self.model_output = msis.run(self.date, lon, lat, alt, self.f107, self.f107a, [self.ap], version=self.version)[0]
-
-    def convert_xyz_to_lla(self, x, y, z):
-        return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
         return self.model_output[0] # kg/m3

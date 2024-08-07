@@ -20,8 +20,10 @@ from Particle import ConvertT2R
 
 
 class GTSimulator(ABC):
-    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles="Monolines", TrackParams=False, IsFirstRun=True, ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
+    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None,
+                 Date=datetime.datetime(2008, 1, 1),
+                 RadLosses=False, Particles="Monolines", TrackParams=False, IsFirstRun=True, ForwardTrck=None,
+                 Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
 
@@ -111,12 +113,14 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("Simulator created!\n")
 
-    def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
+    def __SetNuclearInteractions(self, UseDecay, InteractNUC):
         self.UseDecay = UseDecay
-        self.InteractNUC = UseInteractNUC
+        self.InteractNUC = InteractNUC
         if self.Verbose:
             print(f"\tDecay: {self.UseDecay}")
             print(f"\tNuclear Interactions: {self.InteractNUC}")
+        if self.Medium is not None:
+            self.Medium.SetNuclear(InteractNUC)
 
     def __SetBrck(self, Brck, center):
         if Brck is not None:
@@ -128,7 +132,7 @@ class GTSimulator(ABC):
                 print(f"\t\t{key}: {self.__brck_arr[self.__brck_index[key]]}")
             print(f"\tBC center: {center}")
         self.__brck_arr[BreakMetric] *= self.ToMeters
-        self.BCcenter = center*self.ToMeters
+        self.BCcenter = center * self.ToMeters
 
     def __SetMedium(self, medium):
         if self.Verbose:
@@ -267,13 +271,14 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
+            LocalPathDen, LocalDen, LocalChemComp, nLocal = 0, 0, 0, 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 17))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
             rnd_dec = 0
-            IsPrimDecay = 0
+            IsPrimDecay = False
             prod_tracks = []
             if tau:
                 rnd_dec = np.random.rand()
@@ -285,6 +290,7 @@ class GTSimulator(ABC):
             M = particle.M
             E = particle.E
             T = particle.T
+            PDG = particle.PDG
 
             r = np.array(particle.coordinates)
 
@@ -296,7 +302,7 @@ class GTSimulator(ABC):
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
-                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z !=0 else np.inf} [GV]")
+                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf} [GV]")
                 print(f"\t\t\tCoordinates: {r / self.ToMeters} [{self.Bfield.Units}]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
@@ -322,16 +328,27 @@ class GTSimulator(ABC):
 
                 if self.Medium is not None:
                     self.Medium.calculate_model(r_new[0], r_new[1], r_new[2])
-                    Den = self.Medium.get_density() # kg/m3
-                    PathDen = (Den * 1e-3) * (PathLen * 1e2) # g/cm2
-                    TotPathDen += PathDen # g/cm2
+                    Den = self.Medium.get_density()  # kg/m3
+                    PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
+                    TotPathDen += PathDen  # g/cm2
+                    if self.InteractNUC is not None and Den > 0:
+                        LocalPathDen += PathDen
+                        LocalDen += Den
+                        nLocal += 1
+                        # TODO LocalChemComp += self.Medium.
 
                 #  Decay
                 if tau:
-                    lifetime = tau * (T/M + 1)
-                    if rnd_dec > np.exp(-TotTime/lifetime):
-                        self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
+                    lifetime = tau * (T / M + 1)
+                    if rnd_dec > np.exp(-TotTime / lifetime):
+                        self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, PDG, prod_tracks, r)
                         IsPrimDecay = True
+
+                if self.InteractNUC is not None and not IsPrimDecay:
+                    status, args = self.Medium.InteractNuc(LocalPathDen, LocalDen, V_normalized, PDG, M, T, nLocal,
+                                                           LocalChemComp)
+                    if status:
+                        Vm, V_norm, T = args
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
@@ -400,7 +417,7 @@ class GTSimulator(ABC):
                 track["Density"] = Saves[:, SaveCode["Density"]]
 
             RetArr.append({"Track": track, "WOut": brk,
-                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T, "Gen": Gen},
+                           "Particle": {"PDG": PDG, "M": M, "Ze": particle.Z, "T0": particle.T, "Gen": Gen},
                            "Child": prod_tracks})
 
             # Particles in magnetosphere (Part 1)
@@ -412,9 +429,9 @@ class GTSimulator(ABC):
             #     self.__FindParticleOrigin(RetArr[self.index])
         return RetArr
 
-    def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r):
+    def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, PDG, prod_tracks, r):
         if Gen < GenMax:
-            product = G4Decay(particle.PDG, T / 1e3)
+            product = G4Decay(PDG, T / 1e3)
             rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
             for p in range(len(product) - 1, -1, -1):
                 prod = product[p]
@@ -560,10 +577,11 @@ class GTSimulator(ABC):
                                   R[:, 1][num_mirror[i]:num_mirror[i + 1]],
                                   R[:, 2][num_mirror[i]:num_mirror[i + 1]]])
 
-                I2[i] = np.sum(np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
-                                                                  S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
-                                                                  S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]]) /
-                                                                 H_coil))
+                I2[i] = np.sum(
+                    np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
+                                                          S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
+                                                          S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]]) /
+                                                         H_coil))
 
             if I2.size == 0:
                 I2 = None
@@ -573,7 +591,7 @@ class GTSimulator(ABC):
         if I2 is not None and I2.size == 0:
             I2 = None
 
-        #L-shell and Guiding Centre
+        # L-shell and Guiding Centre
         RE = Units.RE2m
         k0 = 31100 * 1e-5  # Gauss * RE^3
         k0 *= 1e-4 * RE ** 3  # Tesla * m^3
@@ -610,8 +628,9 @@ class GTSimulator(ABC):
                 Bm = np.mean(Hm)
                 X = np.log(I ** 3 * Bm / k0)
 
-                an = (a_new[:, 0] * (X < -22) + a_new[:, 1] * (-22 < X < 3) + a_new[:, 2] * (-3 < X < 3) + a_new[:, 3] * (
-                            3 < X < 11.7)
+                an = (a_new[:, 0] * (X < -22) + a_new[:, 1] * (-22 < X < 3) + a_new[:, 2] * (-3 < X < 3) + a_new[:,
+                                                                                                           3] * (
+                              3 < X < 11.7)
                       + a_new[:, 4] * (11.7 < X < 23)) + a_new[:, 5] * (X > 23)
 
                 Y = np.sum(an * X ** np.arange(10))
@@ -623,7 +642,7 @@ class GTSimulator(ABC):
 
                 # Larmor Radius
                 LR = np.sin(np.deg2rad(pitch[0])) * np.sqrt(1 - 1 / gamma ** 2) * Constants.c / omega
-                LRNit = 2*np.pi*LR / (Vn[0]*self.Step)
+                LRNit = 2 * np.pi * LR / (Vn[0] * self.Step)
 
                 Nit = min(LRNit + 1, len(R))
                 Nit = np.floor(np.arange(1, Nit, Nit / 3 - 1)).astype(int)
@@ -646,14 +665,17 @@ class GTSimulator(ABC):
                 Beq = Bline[e, :]
                 BBo = np.linalg.norm(H[0, :]) / np.linalg.norm(Beq)
 
-                parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1, self.ParamDict["Date"])
+                parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1,
+                                                              self.ParamDict["Date"])
                 GuidingCentre["parL"] = np.linalg.norm(parReqNew) / Units.RE2m
 
                 ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, self.ParamDict["Date"])
                 GuidingCentre["L"] = np.linalg.norm(ReqNew) / Units.RE2m
 
-        GuidingCentre = GuidingCentre | {"LR": LR, "LRNit": LRNit, "parReq": parReq / Units.RE2m, "parBeq": parBeq, "parBBo": parBBo,
-                                         "Req": Req / Units.RE2m, "Beq": Beq, "BBo": BBo, "Rline": Rline / Units.RE2m, "Bline": Bline}
+        GuidingCentre = GuidingCentre | {"LR": LR, "LRNit": LRNit, "parReq": parReq / Units.RE2m, "parBeq": parBeq,
+                                         "parBBo": parBBo,
+                                         "Req": Req / Units.RE2m, "Beq": Beq, "BBo": BBo, "Rline": Rline / Units.RE2m,
+                                         "Bline": Bline}
 
         TrackParams_i = {"Invariants": {"I1": I1, "I2": I2},
                          "PitchAngles": {"Pitch": pitch, "PitchEq": pitch_eq},
@@ -889,7 +911,7 @@ class GTSimulator(ABC):
     @staticmethod
     @jit(fastmath=True, nopython=True)
     def CheckBreak(r, r0, center, TotPath, TotTime, Brck):
-        radi = np.linalg.norm(r-center)
+        radi = np.linalg.norm(r - center)
         dst2path = np.linalg.norm(r - r0) / TotPath
         cond = np.concatenate((np.array([*np.abs(r), radi, dst2path]) < Brck[:5],
                                np.array([*np.abs(r), radi, TotPath, TotTime]) > Brck[5:]))

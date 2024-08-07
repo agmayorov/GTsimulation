@@ -3,10 +3,10 @@ import datetime
 import pyproj
 import iri2016
 
-from Medium import GTGeneralMedium
+from Medium.Magnetosphere import MagnetosphereMedium
 
 
-class GTiri2016(GTGeneralMedium):
+class GTiri2016(MagnetosphereMedium):
 
     def __init__(self, date: datetime.datetime):
         super().__init__()
@@ -23,9 +23,6 @@ class GTiri2016(GTGeneralMedium):
         model_output = iri2016.IRI(self.date, [alt, alt, 1], lat, lon)
         self.density = [2.656, 2.325, 0.167, 0.664, 5.333, 4.983] @ \
                        model_output[['nO+', 'nN+', 'nH+', 'nHe+', 'nO2+', 'nNO+']].to_array().to_numpy() * 1e-23
-
-    def convert_xyz_to_lla(self, x, y, z):
-        return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
         return self.density[0]
