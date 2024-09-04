@@ -17,7 +17,7 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_cir=False, polarity=-1,
-                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=4, coeff2d=1.4, **kwargs):
+                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=6, coeff2d=1.4, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
@@ -343,18 +343,43 @@ class Parker(AbsBfield):
             s += f"""
             Min wave length: {self.log_kmin}
             Max wave length: {self.log_kmax}
-            Number of waves: {self.noise_num}"""
+            Number of waves: {self.noise_num}
+            Coeff_2d: {self.coeff2d}"""
 
         return s
 
 
 if __name__ == "__main__":
     from datetime import datetime
+    import matplotlib.pyplot as plt
 
-    b = Parker(date=datetime(2008, 1, 1), use_noise=True)
 
-    b.CalcBfield(10, 20, 30)
+    b = Parker(date=datetime(2008, 1, 1), use_noise=False)
+    b0 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=0, log_kmax=6, num=256)
+    b1 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=1, log_kmax=6, num=256)
+    z=0.
+    xx = np.cos(np.arange(0, 6*np.pi, 0.1))
+    yy = np.sin(np.arange(0, 6*np.pi, 0.1))
+    B0 = []
+    B1 = []
+    B = []
+    for x, y in zip(xx, yy):
+        B.append(b.CalcBfield(x, y, z))
+        B0.append(b0.CalcBfield(x, y, z))
+        B1.append(b1.CalcBfield(x, y, z))
+    B = np.array(B)
+    B0 = np.array(B0)
+    B1 = np.array(B1)
 
-    st = timer()
-    b.CalcBfield(40, 50, 60)
-    print(timer() - st)
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B[:,0]*xx + B[:, 1]*yy, label='reg')
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,0]*xx + B0[:, 1]*yy, label=0)
+    plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,2], label='z0')
+    plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,2], label='z1')
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,0]*xx + B1[:, 1]*yy, label=1)
+    plt.legend()
+
+    plt.show()
+
+    # st = timer()
+    # b.CalcBfield(40, 50, 60)
+    # print(timer() - st)
