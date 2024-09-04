@@ -66,7 +66,7 @@ class JF12mod(AbsBfield):
 
         # coeffs = np.load(f"Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.npy", allow_pickle=True).item(0)
         coeffs = scipy.io.loadmat(
-            "MagneticFields/Galaxy/Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.mat")
+            "MagneticFields/Galaxy/Data/G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat")
         self.Gx = coeffs["Gx"]
         self.Gy = coeffs["Gy"]
         self.Gz = coeffs["Gz"]
