@@ -22,7 +22,7 @@ from Particle import ConvertT2R, GetAntiParticle
 
 class GTSimulator(ABC):
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True, Backtracing=False,
+                 RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
@@ -125,7 +125,6 @@ class GTSimulator(ABC):
     def refreshParams(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None,
                  Date=datetime.datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
-                 Backtracing=False,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
