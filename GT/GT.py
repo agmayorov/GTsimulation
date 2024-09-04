@@ -380,7 +380,7 @@ class GTSimulator(ABC):
         SaveT = self.Save["Energy"]
 
         Gen = self.__gen
-        GenMax = self.InteractNUC["GenMax"]
+        GenMax = 1 if self.InteractNUC is None else self.InteractNUC.get("GenMax", 1)
 
         for self.index in range(len(self.Particles)):
             if self.Verbose:
