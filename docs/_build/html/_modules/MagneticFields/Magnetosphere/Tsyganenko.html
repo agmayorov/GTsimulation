@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MagneticFields.Magnetosphere.Tsyganenko &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">GTsimulation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MagneticFields.Magnetosphere.Tsyganenko</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MagneticFields.Magnetosphere.Tsyganenko</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">Global</span> <span class="kn">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">Regions</span>
+<span class="kn">from</span> <span class="nn">MagneticFields</span> <span class="kn">import</span> <span class="n">AbsBfield</span>
+<span class="kn">from</span> <span class="nn">MagneticFields.Magnetosphere.Functions</span> <span class="kn">import</span> <span class="n">transformations</span><span class="p">,</span> <span class="n">t89</span><span class="p">,</span> <span class="n">t96</span>
+
+
+<div class="viewcode-block" id="Tsyganenko">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko">[docs]</a>
+<span class="k">class</span> <span class="nc">Tsyganenko</span><span class="p">(</span><span class="n">AbsBfield</span><span class="p">):</span>
+    <span class="n">ToMeters</span> <span class="o">=</span> <span class="n">Units</span><span class="o">.</span><span class="n">RE2m</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ModCode</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModelName</span> <span class="o">=</span> <span class="s2">&quot;Tsyganenko&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Region</span> <span class="o">=</span> <span class="n">Regions</span><span class="o">.</span><span class="n">Magnetosphere</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Units</span> <span class="o">=</span> <span class="s2">&quot;RE&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">=</span> <span class="n">date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span> <span class="o">=</span> <span class="n">ModCode</span>
+
+        <span class="n">T96</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MagneticFields/Magnetosphere/Data/T96input_short.npy&quot;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T96input</span> <span class="o">=</span> <span class="n">T96</span><span class="p">[</span><span class="s2">&quot;T96input&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T96_date</span> <span class="o">=</span> <span class="n">T96</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DTnum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetPsiInd</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__SetPsiInd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ps</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iopt</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.1200</span><span class="p">,</span> <span class="mf">2.0000</span><span class="p">,</span> <span class="mf">1.6000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">year</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()</span><span class="o">.</span><span class="n">tm_yday</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">second</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">minute</span> <span class="o">+</span> <span class="mi">3600</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">hour</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DTnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">toordinal</span><span class="p">()</span>  <span class="c1"># + 366</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetPsi</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iopt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetTsyganenkoInd</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Tsyganenko.GetPsi">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetPsi">[docs]</a>
+    <span class="k">def</span> <span class="nf">GetPsi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">geo2mag_eccentric</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DTnum</span><span class="p">))</span>
+        <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">gei2geo</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">gei2gsm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">psi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">psi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Tsyganenko.GetTsyganenkoInd">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetTsyganenkoInd">[docs]</a>
+    <span class="k">def</span> <span class="nf">GetTsyganenkoInd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">T96_date</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T96_date</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">month</span><span class="p">)</span> <span class="o">*</span>
+                      <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T96_date</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">day</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T96_date</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">hour</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ind</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span> <span class="o">==</span> <span class="mi">89</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T96input</span><span class="p">[</span><span class="n">ia</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span> <span class="o">==</span> <span class="mi">96</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T96input</span><span class="p">[</span><span class="n">ia</span><span class="p">,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">ind</span></div>
+
+
+<div class="viewcode-block" id="Tsyganenko.CalcBfield">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.CalcBfield">[docs]</a>
+    <span class="k">def</span> <span class="nf">CalcBfield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">geo2gsm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span> <span class="o">==</span> <span class="mi">89</span><span class="p">:</span>
+            <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span> <span class="o">=</span> <span class="n">t89</span><span class="o">.</span><span class="n">t89</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iopt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span> <span class="o">==</span> <span class="mi">96</span><span class="p">:</span>
+            <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span> <span class="o">=</span> <span class="n">t96</span><span class="o">.</span><span class="n">t96</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iopt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+
+        <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span> <span class="o">=</span> <span class="n">transformations</span><span class="o">.</span><span class="n">geo2gsm</span><span class="p">(</span><span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Secs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span></div>
+
+
+<div class="viewcode-block" id="Tsyganenko.UpdateState">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.UpdateState">[docs]</a>
+    <span class="k">def</span> <span class="nf">UpdateState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_date</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">=</span> <span class="n">new_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetPsiInd</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Tsyganenko</span>
+<span class="s2">        Mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ModCode</span><span class="si">}</span>
+<span class="s2">        pis: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">s</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

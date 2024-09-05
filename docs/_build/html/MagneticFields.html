@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MagneticFields package &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MagneticFields.Galaxy package" href="MagneticFields.Galaxy.html" />
+    <link rel="prev" title="Global package" href="Global.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MagneticFields package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html">MagneticFields.Galaxy package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html">MagneticFields.Heliosphere package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html">MagneticFields.Magnetosphere package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-MagneticFields.magnetic_field">MagneticFields.magnetic_field module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#MagneticFields.magnetic_field.AbsBfield"><code class="docutils literal notranslate"><span class="pre">AbsBfield</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-MagneticFields">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">GTsimulation</a></li>
+      <li class="breadcrumb-item active">MagneticFields package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/MagneticFields.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="magneticfields-package">
+<h1>MagneticFields package<a class="headerlink" href="#magneticfields-package" title="Link to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MagneticFields.Galaxy.html">MagneticFields.Galaxy package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Galaxy.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Galaxy.html#module-MagneticFields.Galaxy.JF12mod">MagneticFields.Galaxy.JF12mod module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod"><code class="docutils literal notranslate"><span class="pre">JF12mod</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod.CalcBfield"><code class="docutils literal notranslate"><span class="pre">JF12mod.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod.ToMeters"><code class="docutils literal notranslate"><span class="pre">JF12mod.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod.UpdateState"><code class="docutils literal notranslate"><span class="pre">JF12mod.UpdateState()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Galaxy.html#module-MagneticFields.Galaxy">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MagneticFields.Heliosphere.html">MagneticFields.Heliosphere package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Heliosphere.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Heliosphere.html#module-MagneticFields.Heliosphere.Parker">MagneticFields.Heliosphere.Parker module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker"><code class="docutils literal notranslate"><span class="pre">Parker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.CalcBfield"><code class="docutils literal notranslate"><span class="pre">Parker.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.CalcTiltAngle"><code class="docutils literal notranslate"><span class="pre">Parker.CalcTiltAngle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.HCS"><code class="docutils literal notranslate"><span class="pre">Parker.HCS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.ToMeters"><code class="docutils literal notranslate"><span class="pre">Parker.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.UpdateState"><code class="docutils literal notranslate"><span class="pre">Parker.UpdateState()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.a"><code class="docutils literal notranslate"><span class="pre">Parker.a()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.km2AU"><code class="docutils literal notranslate"><span class="pre">Parker.km2AU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.omega"><code class="docutils literal notranslate"><span class="pre">Parker.omega</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.rs"><code class="docutils literal notranslate"><span class="pre">Parker.rs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.v_wind"><code class="docutils literal notranslate"><span class="pre">Parker.v_wind()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker.years11"><code class="docutils literal notranslate"><span class="pre">Parker.years11</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Heliosphere.html#module-MagneticFields.Heliosphere">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MagneticFields.Magnetosphere.html">MagneticFields.Magnetosphere package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Additions">MagneticFields.Magnetosphere.Additions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.AddLon"><code class="docutils literal notranslate"><span class="pre">AddLon()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.AddTrajectory"><code class="docutils literal notranslate"><span class="pre">AddTrajectory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.FieldLine"><code class="docutils literal notranslate"><span class="pre">FieldLine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.FindParticleOrigin"><code class="docutils literal notranslate"><span class="pre">FindParticleOrigin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetBCparams"><code class="docutils literal notranslate"><span class="pre">GetBCparams()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetEarthBfieldLine"><code class="docutils literal notranslate"><span class="pre">GetEarthBfieldLine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetParticleOrigin"><code class="docutils literal notranslate"><span class="pre">GetParticleOrigin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetTrackParams"><code class="docutils literal notranslate"><span class="pre">GetTrackParams()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Dipole">MagneticFields.Magnetosphere.Dipole module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole"><code class="docutils literal notranslate"><span class="pre">Dipole</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole.CalcBfield"><code class="docutils literal notranslate"><span class="pre">Dipole.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole.GetNDaysInMonth"><code class="docutils literal notranslate"><span class="pre">Dipole.GetNDaysInMonth()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole.Re"><code class="docutils literal notranslate"><span class="pre">Dipole.Re</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole.ToMeters"><code class="docutils literal notranslate"><span class="pre">Dipole.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole.UpdateState"><code class="docutils literal notranslate"><span class="pre">Dipole.UpdateState()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Gauss">MagneticFields.Magnetosphere.Gauss module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss"><code class="docutils literal notranslate"><span class="pre">Gauss</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.CalcBfield"><code class="docutils literal notranslate"><span class="pre">Gauss.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.SetFullModelName"><code class="docutils literal notranslate"><span class="pre">Gauss.SetFullModelName()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.ToMeters"><code class="docutils literal notranslate"><span class="pre">Gauss.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.UpdateState"><code class="docutils literal notranslate"><span class="pre">Gauss.UpdateState()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels"><code class="docutils literal notranslate"><span class="pre">GaussModels</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.CHAOS"><code class="docutils literal notranslate"><span class="pre">GaussModels.CHAOS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.CM"><code class="docutils literal notranslate"><span class="pre">GaussModels.CM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.COV_OBS"><code class="docutils literal notranslate"><span class="pre">GaussModels.COV_OBS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.DIFI"><code class="docutils literal notranslate"><span class="pre">GaussModels.DIFI</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.IGRF"><code class="docutils literal notranslate"><span class="pre">GaussModels.IGRF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.LCS"><code class="docutils literal notranslate"><span class="pre">GaussModels.LCS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels.SIFM"><code class="docutils literal notranslate"><span class="pre">GaussModels.SIFM</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussTypes"><code class="docutils literal notranslate"><span class="pre">GaussTypes</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussTypes.core"><code class="docutils literal notranslate"><span class="pre">GaussTypes.core</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussTypes.ionosphere"><code class="docutils literal notranslate"><span class="pre">GaussTypes.ionosphere</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussTypes.static"><code class="docutils literal notranslate"><span class="pre">GaussTypes.static</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Summary">MagneticFields.Magnetosphere.Summary module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Summary.Summary"><code class="docutils literal notranslate"><span class="pre">Summary</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Summary.Summary.CalcBfield"><code class="docutils literal notranslate"><span class="pre">Summary.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Summary.Summary.ToMeters"><code class="docutils literal notranslate"><span class="pre">Summary.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Summary.Summary.UpdateState"><code class="docutils literal notranslate"><span class="pre">Summary.UpdateState()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Tsyganenko">MagneticFields.Magnetosphere.Tsyganenko module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko"><code class="docutils literal notranslate"><span class="pre">Tsyganenko</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.CalcBfield"><code class="docutils literal notranslate"><span class="pre">Tsyganenko.CalcBfield()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetPsi"><code class="docutils literal notranslate"><span class="pre">Tsyganenko.GetPsi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetTsyganenkoInd"><code class="docutils literal notranslate"><span class="pre">Tsyganenko.GetTsyganenkoInd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.ToMeters"><code class="docutils literal notranslate"><span class="pre">Tsyganenko.ToMeters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.UpdateState"><code class="docutils literal notranslate"><span class="pre">Tsyganenko.UpdateState()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-MagneticFields.magnetic_field">
+<span id="magneticfields-magnetic-field-module"></span><h2>MagneticFields.magnetic_field module<a class="headerlink" href="#module-MagneticFields.magnetic_field" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.magnetic_field.</span></span><span class="sig-name descname"><span class="pre">AbsBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_tesla</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.CalcBfield">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CalcBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield.CalcBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.CalcBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.FromMeters">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FromMeters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield.FromMeters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.FromMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.GetBfield">
+<span class="sig-name descname"><span class="pre">GetBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield.GetBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.GetBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.ToMeters">
+<span class="sig-name descname"><span class="pre">ToMeters</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.ToMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.ToTesla">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ToTesla</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Bx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">By</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield.ToTesla"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.ToTesla" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.magnetic_field.AbsBfield.UpdateState">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/magnetic_field.html#AbsBfield.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.magnetic_field.AbsBfield.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MagneticFields">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-MagneticFields" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Global.html" class="btn btn-neutral float-left" title="Global package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="MagneticFields.Galaxy.html" class="btn btn-neutral float-right" title="MagneticFields.Galaxy package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

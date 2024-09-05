@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MagneticFields.Galaxy.JF12mod &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">GTsimulation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MagneticFields.Galaxy.JF12mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MagneticFields.Galaxy.JF12mod</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">jit</span>
+
+<span class="kn">from</span> <span class="nn">Global</span> <span class="kn">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">Regions</span>
+<span class="kn">from</span> <span class="nn">MagneticFields</span> <span class="kn">import</span> <span class="n">AbsBfield</span>
+
+
+<div class="viewcode-block" id="JF12mod">
+<a class="viewcode-back" href="../../../MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod">[docs]</a>
+<span class="k">class</span> <span class="nc">JF12mod</span><span class="p">(</span><span class="n">AbsBfield</span><span class="p">):</span>
+    <span class="n">ToMeters</span> <span class="o">=</span> <span class="n">Units</span><span class="o">.</span><span class="n">kpc2m</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_noise</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Region</span> <span class="o">=</span> <span class="n">Regions</span><span class="o">.</span><span class="n">Galaxy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModelName</span> <span class="o">=</span> <span class="s2">&quot;JF12mod&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Units</span> <span class="o">=</span> <span class="s2">&quot;kpc&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_noise</span> <span class="o">=</span> <span class="n">use_noise</span>
+
+        <span class="c1"># Regular field #</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_disk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.7</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_arms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.1</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.3</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">,</span> <span class="mf">11.4</span><span class="p">,</span> <span class="mf">12.7</span><span class="p">,</span> <span class="mf">15.5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_ring</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">h_disk</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_disk</span> <span class="o">=</span> <span class="mf">0.27</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="mf">11.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sinPitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosPitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
+
+        <span class="c1"># Toroidal halo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">B_n</span> <span class="o">=</span> <span class="mf">1.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">B_s</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_n</span> <span class="o">=</span> <span class="mf">9.22</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_s</span> <span class="o">=</span> <span class="mf">16.7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_h</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">=</span> <span class="mf">5.3</span>
+
+        <span class="c1"># X halo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bX</span> <span class="o">=</span> <span class="mf">4.6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thetaX0</span> <span class="o">=</span> <span class="mf">49.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sinThetaX0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaX0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosThetaX0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaX0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tanThetaX0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetaX0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rXc</span> <span class="o">=</span> <span class="mf">4.8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rX</span> <span class="o">=</span> <span class="mf">2.9</span>
+
+        <span class="c1"># Non-regular field #</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_a</span> <span class="o">=</span> <span class="mf">0.6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_i</span> <span class="o">=</span> <span class="mf">0.3</span>
+
+        <span class="c1"># Striated field parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_str</span> <span class="o">=</span> <span class="mf">1.36</span>
+
+        <span class="c1"># Disk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_int_turb</span> <span class="o">=</span> <span class="mf">7.63</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_disk_turb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">10.81</span><span class="p">,</span> <span class="mf">6.96</span><span class="p">,</span> <span class="mf">9.59</span><span class="p">,</span> <span class="mf">6.96</span><span class="p">,</span> <span class="mf">1.96</span><span class="p">,</span> <span class="mf">16.34</span><span class="p">,</span> <span class="mf">37.29</span><span class="p">,</span> <span class="mf">10.35</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_disk_turb</span> <span class="o">=</span> <span class="mf">0.61</span>
+
+        <span class="c1"># Halo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_halo_turb</span> <span class="o">=</span> <span class="mf">4.68</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_halo_turb</span> <span class="o">=</span> <span class="mf">10.97</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_halo_turb</span> <span class="o">=</span> <span class="mf">2.84</span>
+
+        <span class="c1"># coeffs = np.load(f&quot;Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.npy&quot;, allow_pickle=True).item(0)</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+            <span class="s2">&quot;MagneticFields/Galaxy/Data/G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gx</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;Gx&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gy</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;Gy&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gz</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;Gz&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_grid</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;x_grid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_grid</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;y_grid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="s2">&quot;z_grid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+<div class="viewcode-block" id="JF12mod.CalcBfield">
+<a class="viewcode-back" href="../../../MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod.CalcBfield">[docs]</a>
+    <span class="k">def</span> <span class="nf">CalcBfield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calc_b_field</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">h_disk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_disk</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">b_ring</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_disk</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">r_arms</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sinPitch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosPitch</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_h</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">B_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">B_s</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">rXc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rX</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">tanThetaX0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sinThetaX0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosThetaX0</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">bX</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">x_grid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_grid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_grid</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">Gx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gz</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">beta_str</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">b_int_turb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_disk_turb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_disk_turb</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">b_halo_turb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_halo_turb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_halo_turb</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">f_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_i</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">use_noise</span><span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@jit</span><span class="p">(</span><span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__calc_b_field</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>
+                       <span class="n">h_disk</span><span class="p">,</span> <span class="n">w_disk</span><span class="p">,</span>
+                       <span class="n">b_ring</span><span class="p">,</span> <span class="n">b_disk</span><span class="p">,</span> <span class="n">r_arms</span><span class="p">,</span>
+                       <span class="n">pitch</span><span class="p">,</span> <span class="n">sinPitch</span><span class="p">,</span> <span class="n">cosPitch</span><span class="p">,</span>
+                       <span class="n">z_0</span><span class="p">,</span> <span class="n">r_n</span><span class="p">,</span> <span class="n">r_s</span><span class="p">,</span> <span class="n">w_h</span><span class="p">,</span>
+                       <span class="n">B_n</span><span class="p">,</span> <span class="n">B_s</span><span class="p">,</span>
+                       <span class="n">rXc</span><span class="p">,</span> <span class="n">rX</span><span class="p">,</span>
+                       <span class="n">tanThetaX0</span><span class="p">,</span> <span class="n">sinThetaX0</span><span class="p">,</span> <span class="n">cosThetaX0</span><span class="p">,</span>
+                       <span class="n">bX</span><span class="p">,</span>
+                       <span class="n">x_grid</span><span class="p">,</span> <span class="n">y_grid</span><span class="p">,</span> <span class="n">z_grid</span><span class="p">,</span>
+                       <span class="n">Gx</span><span class="p">,</span> <span class="n">Gy</span><span class="p">,</span> <span class="n">Gz</span><span class="p">,</span>
+                       <span class="n">beta_str</span><span class="p">,</span>
+                       <span class="n">b_int_turb</span><span class="p">,</span> <span class="n">b_disk_turb</span><span class="p">,</span> <span class="n">z_disk_turb</span><span class="p">,</span>
+                       <span class="n">b_halo_turb</span><span class="p">,</span> <span class="n">r_halo_turb</span><span class="p">,</span> <span class="n">z_halo_turb</span><span class="p">,</span>
+                       <span class="n">f_a</span><span class="p">,</span> <span class="n">f_i</span><span class="p">,</span>
+                       <span class="n">use_noise</span><span class="p">):</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+        <span class="n">lfDisk</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">-</span> <span class="n">h_disk</span><span class="p">)</span> <span class="o">/</span> <span class="n">w_disk</span><span class="p">))</span>
+
+        <span class="c1"># Disk component</span>
+        <span class="n">Bx_d</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">By_d</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">disk_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="mi">3</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="c1"># Molecular ring</span>
+            <span class="n">bMag</span> <span class="o">=</span> <span class="n">b_ring</span> <span class="o">*</span> <span class="p">(</span><span class="mi">5</span> <span class="o">/</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lfDisk</span><span class="p">)</span>
+            <span class="n">Bx_d</span> <span class="o">=</span> <span class="o">-</span><span class="n">bMag</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">By_d</span> <span class="o">=</span> <span class="n">bMag</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="mi">5</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="n">plus2pi</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">r_negx</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">phi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">plus2pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">pitch</span><span class="p">))</span>
+            <span class="k">while</span> <span class="n">r_negx</span> <span class="o">&gt;</span> <span class="n">r_arms</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span>
+                <span class="n">plus2pi</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                <span class="n">r_negx</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">phi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">plus2pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">pitch</span><span class="p">))</span>
+
+            <span class="n">disk_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">r_negx</span> <span class="o">&lt;=</span> <span class="n">r_arms</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bMag</span> <span class="o">=</span> <span class="n">b_disk</span><span class="p">[</span><span class="n">disk_idx</span><span class="p">]</span>
+            <span class="n">bMag</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">5</span> <span class="o">/</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lfDisk</span><span class="p">)</span>
+            <span class="n">Bx_d</span> <span class="o">=</span> <span class="n">bMag</span> <span class="o">*</span> <span class="p">(</span><span class="n">sinPitch</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">-</span> <span class="n">cosPitch</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
+            <span class="n">By_d</span> <span class="o">=</span> <span class="n">bMag</span> <span class="o">*</span> <span class="p">(</span><span class="n">sinPitch</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">+</span> <span class="n">cosPitch</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
+
+        <span class="c1"># Toroidal component</span>
+        <span class="n">Bx_t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">By_t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="n">bMagH</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="n">z_0</span><span class="p">)</span> <span class="o">*</span> <span class="n">lfDisk</span>
+            <span class="k">if</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lf_north</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="n">r_n</span><span class="p">)</span> <span class="o">/</span> <span class="n">w_h</span><span class="p">))</span>
+                <span class="n">bMagH</span> <span class="o">*=</span> <span class="n">B_n</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lf_north</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lf_south</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="n">r_s</span><span class="p">)</span> <span class="o">/</span> <span class="n">w_h</span><span class="p">))</span>
+                <span class="n">bMagH</span> <span class="o">*=</span> <span class="n">B_s</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lf_south</span><span class="p">)</span>
+
+            <span class="n">Bx_t</span> <span class="o">=</span> <span class="o">-</span><span class="n">bMagH</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">By_t</span> <span class="o">=</span> <span class="n">bMagH</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+
+        <span class="c1"># X-field component</span>
+        <span class="n">Bx_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">By_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Bz_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="n">rc</span> <span class="o">=</span> <span class="n">rXc</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="n">tanThetaX0</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">rc</span><span class="p">:</span>
+                <span class="n">rp</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">rXc</span> <span class="o">/</span> <span class="n">rc</span>
+                <span class="n">bMagX</span> <span class="o">=</span> <span class="n">bX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">rp</span> <span class="o">/</span> <span class="n">rX</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">rp</span> <span class="o">/</span> <span class="n">r</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">thetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">z</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">rp</span><span class="p">))</span>
+                <span class="n">sinThetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetaX</span><span class="p">)</span>
+                <span class="n">cosThetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetaX</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">bMagX</span> <span class="o">=</span> <span class="n">bX</span> <span class="o">*</span> <span class="p">(</span><span class="n">rXc</span> <span class="o">/</span> <span class="n">rc</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">thetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">sinThetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetaX</span><span class="p">)</span>
+                <span class="n">cosThetaX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetaX</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rp</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="n">tanThetaX0</span>
+                <span class="n">bMagX</span> <span class="o">=</span> <span class="n">bX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">rp</span> <span class="o">/</span> <span class="n">rX</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">rp</span> <span class="o">/</span> <span class="n">r</span><span class="p">)</span>
+                <span class="n">sinThetaX</span> <span class="o">=</span> <span class="n">sinThetaX0</span>
+                <span class="n">cosThetaX</span> <span class="o">=</span> <span class="n">cosThetaX0</span>
+            <span class="n">Bx_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="n">bMagX</span> <span class="o">*</span> <span class="n">cosThetaX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">By_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="n">bMagX</span> <span class="o">*</span> <span class="n">cosThetaX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">Bz_x</span> <span class="o">=</span> <span class="n">bMagX</span> <span class="o">*</span> <span class="n">sinThetaX</span>
+
+            <span class="c1"># Total REGULAR field</span>
+
+        <span class="n">Bx</span> <span class="o">=</span> <span class="n">Bx_x</span> <span class="o">+</span> <span class="n">Bx_d</span> <span class="o">+</span> <span class="n">Bx_t</span>
+        <span class="n">By</span> <span class="o">=</span> <span class="n">By_x</span> <span class="o">+</span> <span class="n">By_d</span> <span class="o">+</span> <span class="n">By_t</span>
+        <span class="n">Bz</span> <span class="o">=</span> <span class="n">Bz_x</span>
+        <span class="n">Babs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Bx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">By</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">Bz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">Bx_aniso</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">By_aniso</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Bz_aniso</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">Bx_iso</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">By_iso</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Bz_iso</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">use_noise</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">20</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+                <span class="n">ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">%</span> <span class="n">x_grid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">x_grid</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">iy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">%</span> <span class="n">y_grid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">y_grid</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">iz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">z</span> <span class="o">%</span> <span class="n">z_grid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">z_grid</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">Gx_p</span> <span class="o">=</span> <span class="n">Gx</span><span class="p">[</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">]</span>
+                <span class="n">Gy_p</span> <span class="o">=</span> <span class="n">Gy</span><span class="p">[</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">]</span>
+                <span class="n">Gz_p</span> <span class="o">=</span> <span class="n">Gz</span><span class="p">[</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">]</span>
+
+                <span class="c1"># Anisotropic random field</span>
+                <span class="n">B_aniso_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">beta_str</span><span class="p">)</span> <span class="o">*</span> <span class="n">Babs</span> <span class="o">*</span> <span class="p">(</span><span class="n">Bx</span> <span class="o">*</span> <span class="n">Gx_p</span> <span class="o">+</span> <span class="n">By</span> <span class="o">*</span> <span class="n">Gy_p</span> <span class="o">+</span> <span class="n">Bz</span> <span class="o">*</span> <span class="n">Gz_p</span><span class="p">)</span>
+                <span class="n">Bx_aniso</span> <span class="o">=</span> <span class="n">B_aniso_rms</span> <span class="o">*</span> <span class="n">Bx</span>
+                <span class="n">By_aniso</span> <span class="o">=</span> <span class="n">B_aniso_rms</span> <span class="o">*</span> <span class="n">By</span>
+                <span class="n">Bz_aniso</span> <span class="o">=</span> <span class="n">B_aniso_rms</span> <span class="o">*</span> <span class="n">Bz</span>
+
+                <span class="c1"># Isotropic random field</span>
+                <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="n">B_iso_disk</span> <span class="o">=</span> <span class="n">b_int_turb</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">B_iso_disk</span> <span class="o">=</span> <span class="n">b_disk_turb</span><span class="p">[</span><span class="n">disk_idx</span><span class="p">]</span>
+                    <span class="n">B_iso_disk</span> <span class="o">=</span> <span class="n">B_iso_disk</span> <span class="o">*</span> <span class="p">(</span><span class="mi">5</span> <span class="o">/</span> <span class="n">r</span><span class="p">)</span>
+                <span class="n">B_iso_disk</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">z_disk_turb</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+                <span class="c1"># Halo</span>
+                <span class="n">B_iso_halo</span> <span class="o">=</span> <span class="n">b_halo_turb</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">r</span><span class="o">/</span><span class="n">r_halo_turb</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">z_halo_turb</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+                <span class="c1"># General</span>
+                <span class="n">B_iso_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B_iso_halo</span><span class="o">**</span><span class="mi">2</span>  <span class="o">+</span> <span class="n">B_iso_disk</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">Bx_iso</span> <span class="o">=</span> <span class="n">B_iso_rms</span> <span class="o">*</span> <span class="n">Gx_p</span>
+                <span class="n">By_iso</span> <span class="o">=</span> <span class="n">B_iso_rms</span> <span class="o">*</span> <span class="n">Gy_p</span>
+                <span class="n">Bz_iso</span> <span class="o">=</span> <span class="n">B_iso_rms</span> <span class="o">*</span> <span class="n">Gz_p</span>
+
+        <span class="k">return</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">Bx</span> <span class="o">+</span> <span class="n">f_a</span><span class="o">*</span><span class="n">Bx_aniso</span> <span class="o">+</span> <span class="n">f_i</span> <span class="o">*</span> <span class="n">Bx_iso</span><span class="p">),</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">By</span> <span class="o">+</span> <span class="n">f_a</span><span class="o">*</span><span class="n">By_aniso</span> <span class="o">+</span> <span class="n">f_i</span> <span class="o">*</span> <span class="n">By_iso</span><span class="p">),</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">Bz</span> <span class="o">+</span> <span class="n">f_a</span><span class="o">*</span><span class="n">Bz_aniso</span> <span class="o">+</span> <span class="n">f_i</span> <span class="o">*</span> <span class="n">Bz_iso</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JF12mod.UpdateState">
+<a class="viewcode-back" href="../../../MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod.UpdateState">[docs]</a>
+    <span class="k">def</span> <span class="nf">UpdateState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_date</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;JF12mod</span>
+<span class="s2">        Noise: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">use_noise</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">s</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

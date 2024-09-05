@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Particle package &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Particle.Generators package" href="Particle.Generators.html" />
+    <link rel="prev" title="Medium.Magnetosphere package" href="Medium.Magnetosphere.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Particle package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html">Particle.Generators package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.Flux">Particle.Flux module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.Flux.Flux"><code class="docutils literal notranslate"><span class="pre">Flux</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.Flux.GeneratorModes"><code class="docutils literal notranslate"><span class="pre">GeneratorModes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.GeneratorCR">Particle.GeneratorCR module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.ConvertUnits"><code class="docutils literal notranslate"><span class="pre">ConvertUnits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.GeneratorCR"><code class="docutils literal notranslate"><span class="pre">GeneratorCR()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.GetGCRflux"><code class="docutils literal notranslate"><span class="pre">GetGCRflux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.GetParticleArguments"><code class="docutils literal notranslate"><span class="pre">GetParticleArguments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.GetSourceArguments"><code class="docutils literal notranslate"><span class="pre">GetSourceArguments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GeneratorCR.GetSpectrumArguments"><code class="docutils literal notranslate"><span class="pre">GetSpectrumArguments()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.GetNucleiProp">Particle.GetNucleiProp module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.GetNucleiProp.GetNucleiProp"><code class="docutils literal notranslate"><span class="pre">GetNucleiProp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.NucleiProp">Particle.NucleiProp module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.Particle">Particle.Particle module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.Particle.CRParticle"><code class="docutils literal notranslate"><span class="pre">CRParticle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.Particle.Particle"><code class="docutils literal notranslate"><span class="pre">Particle</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle.functions">Particle.functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.functions.ConvertR2T"><code class="docutils literal notranslate"><span class="pre">ConvertR2T()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.functions.ConvertT2R"><code class="docutils literal notranslate"><span class="pre">ConvertT2R()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.functions.ConvertUnits"><code class="docutils literal notranslate"><span class="pre">ConvertUnits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Particle.functions.GetAntiParticle"><code class="docutils literal notranslate"><span class="pre">GetAntiParticle()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Particle">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">GTsimulation</a></li>
+      <li class="breadcrumb-item active">Particle package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Particle.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="particle-package">
+<h1>Particle package<a class="headerlink" href="#particle-package" title="Link to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Particle.Generators.html">Particle.Generators package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Particle.Generators.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums">Particle.Generators.Spectrums module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines"><code class="docutils literal notranslate"><span class="pre">Monolines</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">Monolines.GenerateEnergySpectrum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum.GenerateEnergySpectrum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform"><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">Uniform.GenerateEnergySpectrum()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Particle.Flux">
+<span id="particle-flux-module"></span><h2>Particle.Flux module<a class="headerlink" href="#module-Particle.Flux" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Particle.Flux.Flux">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Particle.Flux.</span></span><span class="sig-name descname"><span class="pre">Flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#Particle.Flux.GeneratorModes" title="Particle.Flux.GeneratorModes"><span class="pre">GeneratorModes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GeneratorModes.Inward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.,</span> <span class="pre">0.,</span> <span class="pre">0.])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nevents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToMeters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Flux.Flux.Generate">
+<span class="sig-name descname"><span class="pre">Generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.Generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.Generate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Flux.Flux.GenerateCoordinates">
+<span class="sig-name descname"><span class="pre">GenerateCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ro</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.GenerateCoordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.GenerateCoordinates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Flux.Flux.GenerateEnergySpectrum">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GenerateEnergySpectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.GenerateEnergySpectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.GenerateEnergySpectrum" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Flux.Flux.GenerateParticles">
+<span class="sig-name descname"><span class="pre">GenerateParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.GenerateParticles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.GenerateParticles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Particle.Flux.GeneratorModes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Particle.Flux.</span></span><span class="sig-name descname"><span class="pre">GeneratorModes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#GeneratorModes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.GeneratorModes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Particle.Flux.GeneratorModes.Inward">
+<span class="sig-name descname"><span class="pre">Inward</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#Particle.Flux.GeneratorModes.Inward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Particle.Flux.GeneratorModes.Outward">
+<span class="sig-name descname"><span class="pre">Outward</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></em><a class="headerlink" href="#Particle.Flux.GeneratorModes.Outward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Particle.GeneratorCR">
+<span id="particle-generatorcr-module"></span><h2>Particle.GeneratorCR module<a class="headerlink" href="#module-Particle.GeneratorCR" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.ConvertUnits">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">ConvertUnits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FromUnits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToUnits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#ConvertUnits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.ConvertUnits" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.GeneratorCR">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">GeneratorCR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Particle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nevents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#GeneratorCR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.GeneratorCR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.GetGCRflux">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">GetGCRflux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PartName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#GetGCRflux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.GetGCRflux" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.GetParticleArguments">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">GetParticleArguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParticleArguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#GetParticleArguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.GetParticleArguments" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.GetSourceArguments">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">GetSourceArguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SourceArguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#GetSourceArguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.GetSourceArguments" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GeneratorCR.GetSpectrumArguments">
+<span class="sig-prename descclassname"><span class="pre">Particle.GeneratorCR.</span></span><span class="sig-name descname"><span class="pre">GetSpectrumArguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpectrumArguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GeneratorCR.html#GetSpectrumArguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GeneratorCR.GetSpectrumArguments" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-Particle.GetNucleiProp">
+<span id="particle-getnucleiprop-module"></span><h2>Particle.GetNucleiProp module<a class="headerlink" href="#module-Particle.GetNucleiProp" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.GetNucleiProp.GetNucleiProp">
+<span class="sig-prename descclassname"><span class="pre">Particle.GetNucleiProp.</span></span><span class="sig-name descname"><span class="pre">GetNucleiProp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/GetNucleiProp.html#GetNucleiProp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.GetNucleiProp.GetNucleiProp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-Particle.NucleiProp">
+<span id="particle-nucleiprop-module"></span><h2>Particle.NucleiProp module<a class="headerlink" href="#module-Particle.NucleiProp" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Particle.Particle">
+<span id="particle-particle-module"></span><h2>Particle.Particle module<a class="headerlink" href="#module-Particle.Particle" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Particle.Particle.CRParticle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Particle.Particle.</span></span><span class="sig-name descname"><span class="pre">CRParticle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([1,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([1,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#CRParticle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.CRParticle" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Particle.Particle.Particle" title="Particle.Particle.Particle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Particle</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Particle.CRParticle.UpdateState">
+<span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#CRParticle.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.CRParticle.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Particle.Particle.Particle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Particle.Particle.</span></span><span class="sig-name descname"><span class="pre">Particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PDG</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#Particle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.Particle" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-Particle.functions">
+<span id="particle-functions-module"></span><h2>Particle.functions module<a class="headerlink" href="#module-Particle.functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.functions.ConvertR2T">
+<span class="sig-prename descclassname"><span class="pre">Particle.functions.</span></span><span class="sig-name descname"><span class="pre">ConvertR2T</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/functions.html#ConvertR2T"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.functions.ConvertR2T" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.functions.ConvertT2R">
+<span class="sig-prename descclassname"><span class="pre">Particle.functions.</span></span><span class="sig-name descname"><span class="pre">ConvertT2R</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/functions.html#ConvertT2R"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.functions.ConvertT2R" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.functions.ConvertUnits">
+<span class="sig-prename descclassname"><span class="pre">Particle.functions.</span></span><span class="sig-name descname"><span class="pre">ConvertUnits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FromUnits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToUnits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/functions.html#ConvertUnits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.functions.ConvertUnits" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Particle.functions.GetAntiParticle">
+<span class="sig-prename descclassname"><span class="pre">Particle.functions.</span></span><span class="sig-name descname"><span class="pre">GetAntiParticle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/functions.html#GetAntiParticle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.functions.GetAntiParticle" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-Particle">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Particle" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Medium.Magnetosphere.html" class="btn btn-neutral float-left" title="Medium.Magnetosphere package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Particle.Generators.html" class="btn btn-neutral float-right" title="Particle.Generators package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

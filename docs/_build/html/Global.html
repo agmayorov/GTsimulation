@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global package &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MagneticFields package" href="MagneticFields.html" />
+    <link rel="prev" title="GeantInteraction package" href="GeantInteraction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Global package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Global.codes">Global.codes module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Global.consts">Global.consts module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Global.consts.Constants"><code class="docutils literal notranslate"><span class="pre">Constants</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Global.consts.Origins"><code class="docutils literal notranslate"><span class="pre">Origins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Global.consts.Regions"><code class="docutils literal notranslate"><span class="pre">Regions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Global.consts.Units"><code class="docutils literal notranslate"><span class="pre">Units</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Global.functions">Global.functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Global.functions.vecRotMat"><code class="docutils literal notranslate"><span class="pre">vecRotMat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Global">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">GTsimulation</a></li>
+      <li class="breadcrumb-item active">Global package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Global.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="global-package">
+<h1>Global package<a class="headerlink" href="#global-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Global.codes">
+<span id="global-codes-module"></span><h2>Global.codes module<a class="headerlink" href="#module-Global.codes" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Global.consts">
+<span id="global-consts-module"></span><h2>Global.consts module<a class="headerlink" href="#module-Global.consts" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Global.consts.Constants">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.consts.</span></span><span class="sig-name descname"><span class="pre">Constants</span></span><a class="reference internal" href="_modules/Global/consts.html#Constants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.consts.Constants" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.alpha">
+<span class="sig-name descname"><span class="pre">alpha</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0072973525664</span></em><a class="headerlink" href="#Global.consts.Constants.alpha" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.ao">
+<span class="sig-name descname"><span class="pre">ao</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.291772086e-09</span></em><a class="headerlink" href="#Global.consts.Constants.ao" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.c">
+<span class="sig-name descname"><span class="pre">c</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">299792458.0</span></em><a class="headerlink" href="#Global.consts.Constants.c" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.e">
+<span class="sig-name descname"><span class="pre">e</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.602176634e-19</span></em><a class="headerlink" href="#Global.consts.Constants.e" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.hbar">
+<span class="sig-name descname"><span class="pre">hbar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.582119514e-22</span></em><a class="headerlink" href="#Global.consts.Constants.hbar" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.hbarc">
+<span class="sig-name descname"><span class="pre">hbarc</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">197.3269788</span></em><a class="headerlink" href="#Global.consts.Constants.hbarc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.me">
+<span class="sig-name descname"><span class="pre">me</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5109989461</span></em><a class="headerlink" href="#Global.consts.Constants.me" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.mhe4">
+<span class="sig-name descname"><span class="pre">mhe4</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3728.40129745092</span></em><a class="headerlink" href="#Global.consts.Constants.mhe4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Constants.u">
+<span class="sig-name descname"><span class="pre">u</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4.00260325413</span></em><a class="headerlink" href="#Global.consts.Constants.u" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Global.consts.Origins">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.consts.</span></span><span class="sig-name descname"><span class="pre">Origins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/consts.html#Origins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.consts.Origins" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.Albedo">
+<span class="sig-name descname"><span class="pre">Albedo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#Global.consts.Origins.Albedo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.Galactic">
+<span class="sig-name descname"><span class="pre">Galactic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#Global.consts.Origins.Galactic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.Presipitated">
+<span class="sig-name descname"><span class="pre">Presipitated</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#Global.consts.Origins.Presipitated" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.QuasiTrapped">
+<span class="sig-name descname"><span class="pre">QuasiTrapped</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#Global.consts.Origins.QuasiTrapped" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.Trapped">
+<span class="sig-name descname"><span class="pre">Trapped</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#Global.consts.Origins.Trapped" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Origins.Unknown">
+<span class="sig-name descname"><span class="pre">Unknown</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#Global.consts.Origins.Unknown" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Global.consts.Regions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.consts.</span></span><span class="sig-name descname"><span class="pre">Regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/consts.html#Regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.consts.Regions" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Regions.Galaxy">
+<span class="sig-name descname"><span class="pre">Galaxy</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#Global.consts.Regions.Galaxy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Regions.Heliosphere">
+<span class="sig-name descname"><span class="pre">Heliosphere</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#Global.consts.Regions.Heliosphere" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Regions.Magnetosphere">
+<span class="sig-name descname"><span class="pre">Magnetosphere</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#Global.consts.Regions.Magnetosphere" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Global.consts.Units">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.consts.</span></span><span class="sig-name descname"><span class="pre">Units</span></span><a class="reference internal" href="_modules/Global/consts.html#Units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.consts.Units" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.AU2km">
+<span class="sig-name descname"><span class="pre">AU2km</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">149597870.7</span></em><a class="headerlink" href="#Global.consts.Units.AU2km" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.AU2m">
+<span class="sig-name descname"><span class="pre">AU2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">149597870700.0</span></em><a class="headerlink" href="#Global.consts.Units.AU2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.MeV2g">
+<span class="sig-name descname"><span class="pre">MeV2g</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.7826619216224e-27</span></em><a class="headerlink" href="#Global.consts.Units.MeV2g" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.MeV2kg">
+<span class="sig-name descname"><span class="pre">MeV2kg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.7826619216224e-30</span></em><a class="headerlink" href="#Global.consts.Units.MeV2kg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.RE2km">
+<span class="sig-name descname"><span class="pre">RE2km</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378.1371</span></em><a class="headerlink" href="#Global.consts.Units.RE2km" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.RE2m">
+<span class="sig-name descname"><span class="pre">RE2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378137.1</span></em><a class="headerlink" href="#Global.consts.Units.RE2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.RM2km">
+<span class="sig-name descname"><span class="pre">RM2km</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1737.4</span></em><a class="headerlink" href="#Global.consts.Units.RM2km" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.RM2m">
+<span class="sig-name descname"><span class="pre">RM2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1737400</span></em><a class="headerlink" href="#Global.consts.Units.RM2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.T2nT">
+<span class="sig-name descname"><span class="pre">T2nT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000000.0</span></em><a class="headerlink" href="#Global.consts.Units.T2nT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.fm2cm">
+<span class="sig-name descname"><span class="pre">fm2cm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-13</span></em><a class="headerlink" href="#Global.consts.Units.fm2cm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.km2m">
+<span class="sig-name descname"><span class="pre">km2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></em><a class="headerlink" href="#Global.consts.Units.km2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.kpc2m">
+<span class="sig-name descname"><span class="pre">kpc2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3.08567758149e+19</span></em><a class="headerlink" href="#Global.consts.Units.kpc2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.consts.Units.pc2m">
+<span class="sig-name descname"><span class="pre">pc2m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3.08567758149e+16</span></em><a class="headerlink" href="#Global.consts.Units.pc2m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Global.functions">
+<span id="global-functions-module"></span><h2>Global.functions module<a class="headerlink" href="#module-Global.functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Global.functions.vecRotMat">
+<span class="sig-prename descclassname"><span class="pre">Global.functions.</span></span><span class="sig-name descname"><span class="pre">vecRotMat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/functions.html#vecRotMat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.functions.vecRotMat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-Global">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Global" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="GeantInteraction.html" class="btn btn-neutral float-left" title="GeantInteraction package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="MagneticFields.html" class="btn btn-neutral float-right" title="MagneticFields package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

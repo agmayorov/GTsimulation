@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GT.GT &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">GTsimulation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">GT.GT</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for GT.GT</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">timer</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">jit</span>
+
+<span class="kn">from</span> <span class="nn">GeantInteraction</span> <span class="kn">import</span> <span class="n">G4Decay</span>
+<span class="kn">from</span> <span class="nn">MagneticFields.Magnetosphere</span> <span class="kn">import</span> <span class="n">Functions</span><span class="p">,</span> <span class="n">Additions</span>
+<span class="kn">from</span> <span class="nn">Global</span> <span class="kn">import</span> <span class="n">Constants</span><span class="p">,</span> <span class="n">Units</span><span class="p">,</span> <span class="n">Regions</span><span class="p">,</span> <span class="n">BreakCode</span><span class="p">,</span> <span class="n">BreakIndex</span><span class="p">,</span> <span class="n">SaveCode</span><span class="p">,</span> <span class="n">SaveDef</span><span class="p">,</span> <span class="n">BreakDef</span><span class="p">,</span> \
+    <span class="n">BreakMetric</span><span class="p">,</span> <span class="n">SaveMetric</span><span class="p">,</span> <span class="n">vecRotMat</span>
+<span class="kn">from</span> <span class="nn">Particle</span> <span class="kn">import</span> <span class="n">ConvertT2R</span><span class="p">,</span> <span class="n">GetAntiParticle</span>
+
+
+<div class="viewcode-block" id="GTSimulator">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator">[docs]</a>
+<span class="k">class</span> <span class="nc">GTSimulator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Bfield</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Efield</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Region</span><span class="o">=</span><span class="n">Regions</span><span class="o">.</span><span class="n">Magnetosphere</span><span class="p">,</span> <span class="n">Medium</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2008</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                 <span class="n">RadLosses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">Particles</span><span class="o">=</span><span class="s2">&quot;Monolines&quot;</span><span class="p">,</span> <span class="n">TrackParams</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ParticleOrigin</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">IsFirstRun</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">ForwardTrck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Save</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">1e6</span><span class="p">,</span>
+                 <span class="n">Step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Nfiles</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">BreakCondition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">BCcenter</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">UseDecay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">InteractNUC</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">__v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__v</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParamDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span><span class="p">))</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span> <span class="o">=</span> <span class="n">Verbose</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating simulator object...&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">=</span> <span class="n">Date</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Date: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Step</span> <span class="o">=</span> <span class="n">Step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">Num</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Time step: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Number of steps: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">UseRadLosses</span> <span class="o">=</span> <span class="n">RadLosses</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Radiation Losses: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">UseRadLosses</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOrigin</span> <span class="o">=</span> <span class="n">ParticleOrigin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOrigin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span> <span class="o">=</span> <span class="n">TrackParams</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IsFirstRun</span> <span class="o">=</span> <span class="n">IsFirstRun</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Region: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Efield</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetEMFF</span><span class="p">(</span><span class="n">Bfield</span><span class="p">,</span> <span class="n">Efield</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetMedium</span><span class="p">(</span><span class="n">Medium</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__gen</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetNuclearInteractions</span><span class="p">(</span><span class="n">UseDecay</span><span class="p">,</span> <span class="n">InteractNUC</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetFlux</span><span class="p">(</span><span class="n">Particles</span><span class="p">,</span> <span class="n">ForwardTrck</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">Nfiles</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">Nfiles</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Nfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Output</span> <span class="o">=</span> <span class="n">Output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Npts</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Save</span> <span class="o">=</span> <span class="n">SaveDef</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Number of files: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Output file name: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Output</span><span class="si">}</span><span class="s2">_file_num.npy&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetSave</span><span class="p">(</span><span class="n">Save</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span> <span class="o">=</span> <span class="n">BreakCode</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;Loop&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__index_brck</span> <span class="o">=</span> <span class="n">BreakIndex</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span> <span class="o">=</span> <span class="n">BreakDef</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetBrck</span><span class="p">(</span><span class="n">BreakCondition</span><span class="p">,</span> <span class="n">BCcenter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulator created!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GTSimulator.refreshParams">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.refreshParams">[docs]</a>
+    <span class="k">def</span> <span class="nf">refreshParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Bfield</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Efield</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Region</span><span class="o">=</span><span class="n">Regions</span><span class="o">.</span><span class="n">Magnetosphere</span><span class="p">,</span> <span class="n">Medium</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">Date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2008</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                 <span class="n">RadLosses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">Particles</span><span class="o">=</span><span class="s2">&quot;Monolines&quot;</span><span class="p">,</span> <span class="n">TrackParams</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ParticleOrigin</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">IsFirstRun</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">ForwardTrck</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Save</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">1e6</span><span class="p">,</span>
+                 <span class="n">Step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Nfiles</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">BreakCondition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">BCcenter</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">UseDecay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">InteractNUC</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">__v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__v</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParamDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span><span class="p">))</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__vals</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span> <span class="o">=</span> <span class="n">Verbose</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(&quot;Creating simulator object...&quot;)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Date</span> <span class="o">=</span> <span class="n">Date</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(f&quot;\tDate: {self.Date}&quot;)</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Step</span> <span class="o">=</span> <span class="n">Step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">Num</span><span class="p">)</span>
+
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(f&quot;\tTime step: {self.Step}&quot;)</span>
+        <span class="c1">#     print(f&quot;\tNumber of steps: {self.Num}&quot;)</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">UseRadLosses</span> <span class="o">=</span> <span class="n">RadLosses</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(f&quot;\tRadiation Losses: {self.UseRadLosses}&quot;)</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOrigin</span> <span class="o">=</span> <span class="n">ParticleOrigin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOrigin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span> <span class="o">=</span> <span class="n">TrackParams</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">TrackParams</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IsFirstRun</span> <span class="o">=</span> <span class="n">IsFirstRun</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span>
+
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(f&quot;\tRegion: {self.Region.name}&quot;)</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Efield</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetEMFF</span><span class="p">(</span><span class="n">Bfield</span><span class="p">,</span> <span class="n">Efield</span><span class="p">)</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetMedium</span><span class="p">(</span><span class="n">Medium</span><span class="p">)</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__gen</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetNuclearInteractions</span><span class="p">(</span><span class="n">UseDecay</span><span class="p">,</span> <span class="n">InteractNUC</span><span class="p">)</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetFlux</span><span class="p">(</span><span class="n">Particles</span><span class="p">,</span> <span class="n">ForwardTrck</span><span class="p">)</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">Nfiles</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">Nfiles</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Nfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Output</span> <span class="o">=</span> <span class="n">Output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Npts</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Save</span> <span class="o">=</span> <span class="n">SaveDef</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(f&quot;\tNumber of files: {self.Nfiles}&quot;)</span>
+        <span class="c1">#     print(f&quot;\tOutput file name: {self.Output}_file_num.npy&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetSave</span><span class="p">(</span><span class="n">Save</span><span class="p">)</span>
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span> <span class="o">=</span> <span class="n">BreakCode</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;Loop&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__index_brck</span> <span class="o">=</span> <span class="n">BreakIndex</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span> <span class="o">=</span> <span class="n">BreakDef</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__SetBrck</span><span class="p">(</span><span class="n">BreakCondition</span><span class="p">,</span> <span class="n">BCcenter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+        <span class="c1"># if self.Verbose:</span>
+        <span class="c1">#     print(&quot;Simulator created!\n&quot;)</span>
+
+    <span class="k">def</span> <span class="nf">__SetNuclearInteractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">UseDecay</span><span class="p">,</span> <span class="n">UseInteractNUC</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span> <span class="o">=</span> <span class="n">UseDecay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span> <span class="o">=</span> <span class="n">UseInteractNUC</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Decay: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Nuclear Interactions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__SetBrck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Brck</span><span class="p">,</span> <span class="n">center</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Brck</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Brck</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Brck</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Break Conditions: &quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">BC center: </span><span class="si">{</span><span class="n">center</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span><span class="p">[</span><span class="n">BreakMetric</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BCcenter</span> <span class="o">=</span> <span class="n">center</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span>
+
+    <span class="k">def</span> <span class="nf">__SetMedium</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Medium: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">medium</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">module_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Medium.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">medium</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">medium</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="o">**</span><span class="p">({}</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">medium</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">):</span>
+                <span class="n">class_medium</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span> <span class="o">=</span> <span class="n">class_medium</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Medium</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No such medium&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__SetFlux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">forward_trck</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Flux: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">module_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Particle.Generators&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">flux</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flux</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">flux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ToMeters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ToMeters&quot;</span><span class="p">:</span> <span class="n">ToMeters</span><span class="p">,</span> <span class="o">**</span><span class="p">({}</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flux</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">flux</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">):</span>
+            <span class="n">flux</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span> <span class="o">=</span> <span class="n">flux</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No spectrum&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">forward_trck</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">=</span> <span class="n">forward_trck</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="o">.</span><span class="n">Mode</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Tracing: </span><span class="si">{</span><span class="s1">&#39;Inward&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Outward&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__SetEMFF</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Bfield</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Efield</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Electric field: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Efield</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Magnetic field: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Bfield</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">module_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MagneticFields.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">Bfield</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Bfield</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">Bfield</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="s2">&quot;use_tesla&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;use_meters&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                      <span class="o">**</span><span class="p">({}</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Bfield</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">Bfield</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">):</span>
+                <span class="n">B</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span> <span class="o">=</span> <span class="n">B</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span><span class="o">.</span><span class="n">ToMeters</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No such field&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__SetSave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Save</span><span class="p">):</span>
+        <span class="n">Nsave</span> <span class="o">=</span> <span class="n">Save</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Save</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">Save</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Npts</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Num</span> <span class="o">/</span> <span class="n">Nsave</span><span class="p">)</span> <span class="k">if</span> <span class="n">Nsave</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Nsave</span> <span class="o">=</span> <span class="n">Nsave</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Save every </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Nsave</span><span class="si">}</span><span class="s2"> step of:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Coordinates: True&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Velocities: True&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Save</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">saves</span> <span class="ow">in</span> <span class="n">Save</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="n">saves</span><span class="p">]</span> <span class="o">=</span> <span class="n">Save</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">saves</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">saves</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="si">{</span><span class="n">saves</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="n">saves</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Track</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Launching simulation...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IsFirstRun</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">File No </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+                <span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Output</span><span class="si">}</span><span class="s1">_params.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ParamDict</span><span class="p">))</span>
+
+            <span class="n">RetArr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CallOneFile</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nfiles</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Output</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="n">RetArr</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Output</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="n">RetArr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">File saved!&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Track</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RetArr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation completed!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Track</span>
+
+<div class="viewcode-block" id="GTSimulator.CallOneFile">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.CallOneFile">[docs]</a>
+    <span class="k">def</span> <span class="nf">CallOneFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="o">.</span><span class="n">Generate</span><span class="p">()</span>
+        <span class="n">RetArr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;Done&quot;</span>
+
+        <span class="n">SaveE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Efield&quot;</span><span class="p">]</span>
+        <span class="n">SaveB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Bfield&quot;</span><span class="p">]</span>
+        <span class="n">SaveA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Angles&quot;</span><span class="p">]</span>
+        <span class="n">SaveP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">]</span>
+        <span class="n">SaveD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Density&quot;</span><span class="p">]</span>
+        <span class="n">SaveC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Clock&quot;</span><span class="p">]</span>
+        <span class="n">SaveT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Save</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">]</span>
+
+        <span class="n">Gen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gen</span>
+        <span class="n">GenMax</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">InteractNUC</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GenMax&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Starting event...&quot;</span><span class="p">)</span>
+            <span class="n">TotTime</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotPathDen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="n">lon_total</span><span class="p">,</span> <span class="n">lon_prev</span><span class="p">,</span> <span class="n">full_revolutions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">]]),</span> <span class="mi">0</span>
+            <span class="n">particle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">Saves</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Npts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">))</span>
+            <span class="n">BrckArr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span>
+            <span class="n">BCcenter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BCcenter</span>
+            <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span> <span class="o">*</span> <span class="n">particle</span><span class="o">.</span><span class="n">tau</span>
+            <span class="n">rnd_dec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">IsPrimDecay</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">prod_tracks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">tau</span><span class="p">:</span>
+                <span class="n">rnd_dec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Use Decay: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">UseDecay</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Decay rnd: </span><span class="si">{</span><span class="n">rnd_dec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t\t</span><span class="s1">BackTracing mode is ON&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t\t</span><span class="s1">Redefinition of particle on antiparticle&#39;</span><span class="p">)</span>
+                <span class="n">GetAntiParticle</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+                <span class="n">particle</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="o">-</span><span class="n">particle</span><span class="o">.</span><span class="n">velocities</span>
+
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">Z</span> <span class="o">*</span> <span class="n">Constants</span><span class="o">.</span><span class="n">e</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">M</span>
+            <span class="n">E</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">E</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">T</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+            <span class="n">V_normalized</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">velocities</span><span class="p">)</span>
+            <span class="n">V_norm</span> <span class="o">=</span> <span class="n">Constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">E</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">M</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">E</span>
+            <span class="n">Vm</span> <span class="o">=</span> <span class="n">V_norm</span> <span class="o">*</span> <span class="n">V_normalized</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Particle: </span><span class="si">{</span><span class="n">particle</span><span class="o">.</span><span class="n">Name</span><span class="si">}</span><span class="s2"> (M = </span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2"> [MeV], &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;Z = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">Z</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Energy: </span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s2"> [MeV], Rigidity: &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ConvertT2R</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">particle</span><span class="o">.</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">particle</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">particle</span><span class="o">.</span><span class="n">Z</span><span class="w"> </span><span class="o">!=</span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="si">}</span><span class="s2"> [GV]&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Coordinates: </span><span class="si">{</span><span class="n">r</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span><span class="o">.</span><span class="n">Units</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Velocity: </span><span class="si">{</span><span class="n">V_normalized</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">beta: </span><span class="si">{</span><span class="n">V_norm</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Constants</span><span class="o">.</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">beta*dt: </span><span class="si">{</span><span class="n">V_norm</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">Step</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">}</span><span class="s2"> [km] / &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">V_norm</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">Step</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Bfield</span><span class="o">.</span><span class="n">Units</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+
+            <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Step</span> <span class="o">*</span> <span class="n">Q</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">Units</span><span class="o">.</span><span class="n">MeV2kg</span><span class="p">)</span> <span class="k">if</span> <span class="n">M</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">brk</span> <span class="o">=</span> <span class="n">BreakCode</span><span class="p">[</span><span class="s2">&quot;Loop&quot;</span><span class="p">]</span>
+            <span class="n">Step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Step</span>
+            <span class="n">Num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Num</span>
+            <span class="n">Nsave</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nsave</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nsave</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Num</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">i_save</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Calculating: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Num</span><span class="p">):</span>
+                <span class="n">PathLen</span> <span class="o">=</span> <span class="n">V_norm</span> <span class="o">*</span> <span class="n">Step</span>
+
+                <span class="n">Vp</span><span class="p">,</span> <span class="n">Yp</span><span class="p">,</span> <span class="n">Ya</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">AlgoStep</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                <span class="n">Vm</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RadLossStep</span><span class="p">(</span><span class="n">Vp</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">Yp</span><span class="p">,</span> <span class="n">Ya</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span>
+
+                <span class="n">V_norm</span><span class="p">,</span> <span class="n">r_new</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotTime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">PathLen</span><span class="p">,</span> <span class="n">Step</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span><span class="o">.</span><span class="n">calculate_model</span><span class="p">(</span><span class="n">r_new</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r_new</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r_new</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="n">Den</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Medium</span><span class="o">.</span><span class="n">get_density</span><span class="p">()</span> <span class="c1"># kg/m3</span>
+                    <span class="n">PathDen</span> <span class="o">=</span> <span class="p">(</span><span class="n">Den</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">PathLen</span> <span class="o">*</span> <span class="mf">1e2</span><span class="p">)</span> <span class="c1"># g/cm2</span>
+                    <span class="n">TotPathDen</span> <span class="o">+=</span> <span class="n">PathDen</span> <span class="c1"># g/cm2</span>
+
+                <span class="c1"># Decay</span>
+                <span class="k">if</span> <span class="n">tau</span><span class="p">:</span>
+                    <span class="n">lifetime</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">*</span> <span class="p">(</span><span class="n">T</span><span class="o">/</span><span class="n">M</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">rnd_dec</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">TotTime</span><span class="o">/</span><span class="n">lifetime</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__Decay</span><span class="p">(</span><span class="n">Gen</span><span class="p">,</span> <span class="n">GenMax</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">prod_tracks</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                        <span class="n">IsPrimDecay</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">Nsave</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="n">Num</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">i_save</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">SaveStep</span><span class="p">(</span><span class="n">r_new</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotPathDen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">i_save</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Saves</span><span class="p">,</span>
+                                  <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Velocities&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Efield&quot;</span><span class="p">],</span>
+                                  <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Bfield&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Angles&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Density&quot;</span><span class="p">],</span>
+                                  <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Clock&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">],</span>
+                                  <span class="n">SaveE</span><span class="p">,</span>
+                                  <span class="n">SaveB</span><span class="p">,</span>
+                                  <span class="n">SaveA</span><span class="p">,</span>
+                                  <span class="n">SaveP</span><span class="p">,</span>
+                                  <span class="n">SaveD</span><span class="p">,</span>
+                                  <span class="n">SaveC</span><span class="p">,</span>
+                                  <span class="n">SaveT</span><span class="p">)</span>
+                    <span class="n">i_save</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">r_new</span>
+
+                <span class="c1"># Full revolution</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">__brck_arr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="p">[</span><span class="s2">&quot;MaxRev&quot;</span><span class="p">]]</span> <span class="o">!=</span> <span class="n">BreakDef</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">a_</span><span class="p">,</span> <span class="n">b_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Functions</span><span class="o">.</span><span class="n">transformations</span><span class="o">.</span><span class="n">geo2mag_eccentric</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParamDict</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">])</span>
+                    <span class="n">lon_total</span><span class="p">,</span> <span class="n">lon_prev</span><span class="p">,</span> <span class="n">full_revolutions</span> <span class="o">=</span> <span class="n">Additions</span><span class="o">.</span><span class="n">AddLon</span><span class="p">(</span><span class="n">lon_total</span><span class="p">,</span> <span class="n">lon_prev</span><span class="p">,</span> <span class="n">full_revolutions</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">a_</span><span class="p">,</span> <span class="n">b_</span><span class="p">)</span>
+
+                <span class="c1"># if i % (self.Num // 100) == 0:</span>
+                <span class="n">brck</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CheckBreak</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">Saves</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">BCcenter</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">full_revolutions</span><span class="p">,</span> <span class="n">BrckArr</span><span class="p">)</span>
+                <span class="n">brk</span> <span class="o">=</span> <span class="n">brck</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">brck</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">IsPrimDecay</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">brk</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">SaveStep</span><span class="p">(</span><span class="n">r_new</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotPathDen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">i_save</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Saves</span><span class="p">,</span>
+                                      <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Velocities&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Efield&quot;</span><span class="p">],</span>
+                                      <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Bfield&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Angles&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Density&quot;</span><span class="p">],</span>
+                                      <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Clock&quot;</span><span class="p">],</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">],</span>
+                                      <span class="n">SaveE</span><span class="p">,</span>
+                                      <span class="n">SaveB</span><span class="p">,</span>
+                                      <span class="n">SaveA</span><span class="p">,</span>
+                                      <span class="n">SaveP</span><span class="p">,</span>
+                                      <span class="n">SaveD</span><span class="p">,</span>
+                                      <span class="n">SaveC</span><span class="p">,</span>
+                                      <span class="n">SaveT</span><span class="p">)</span>
+                        <span class="n">i_save</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">IsPrimDecay</span><span class="p">:</span>
+                        <span class="n">brk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__brck_index</span><span class="p">[</span><span class="s2">&quot;Decay&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; ### Break due to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__index_brck</span><span class="p">[</span><span class="n">brk</span><span class="p">]</span><span class="si">}</span><span class="s2"> ### &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;DefaultBC_&quot;</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__index_brck</span><span class="p">[</span><span class="n">brk</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Num</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">Num</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;100%&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IsFirstRun</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Event No </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Particles</span><span class="p">)</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">timer</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">st</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">()</span>
+            <span class="n">Saves</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:</span><span class="n">i_save</span><span class="p">]</span>
+            <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveMetric</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span>
+
+            <span class="n">track</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">:</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">]],</span> <span class="s2">&quot;Velocities&quot;</span><span class="p">:</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Velocities&quot;</span><span class="p">]]}</span>
+
+            <span class="k">if</span> <span class="n">SaveE</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Efield&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Efield&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveB</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Bfield&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Bfield&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveA</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Angles&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Angles&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveP</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveC</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Clock&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Clock&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveT</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">SaveD</span><span class="p">:</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">&quot;Density&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saves</span><span class="p">[:,</span> <span class="n">SaveCode</span><span class="p">[</span><span class="s2">&quot;Density&quot;</span><span class="p">]]</span>
+
+            <span class="n">RetArr</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Track&quot;</span><span class="p">:</span> <span class="n">track</span><span class="p">,</span>
+                           <span class="s2">&quot;BC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;WOut&quot;</span><span class="p">:</span> <span class="n">brk</span><span class="p">,</span> <span class="s2">&quot;lon_total&quot;</span><span class="p">:</span> <span class="n">lon_total</span><span class="p">,</span> <span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">},</span>
+                           <span class="s2">&quot;Particle&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;PDG&quot;</span><span class="p">:</span> <span class="n">particle</span><span class="o">.</span><span class="n">PDG</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="n">M</span><span class="p">,</span> <span class="s2">&quot;Ze&quot;</span><span class="p">:</span> <span class="n">particle</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="s2">&quot;T0&quot;</span><span class="p">:</span> <span class="n">particle</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="s2">&quot;Gen&quot;</span><span class="p">:</span> <span class="n">Gen</span><span class="p">},</span>
+                           <span class="s2">&quot;Child&quot;</span><span class="p">:</span> <span class="n">prod_tracks</span><span class="p">})</span>
+
+            <span class="c1"># Particles in magnetosphere (Part 1)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">TrackParamsIsOn</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Get trajectory parameters ...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">TrackParams_i</span> <span class="o">=</span> <span class="n">Additions</span><span class="o">.</span><span class="n">GetTrackParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RetArr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+                <span class="n">RetArr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">][</span><span class="s2">&quot;Additions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TrackParams_i</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Particles in magnetosphere (Part 2)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParticleOriginIsOn</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">IsFirstRun</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t\t\t</span><span class="s2">Get particle origin ...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">origin</span> <span class="o">=</span> <span class="n">Additions</span><span class="o">.</span><span class="n">FindParticleOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RetArr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+                <span class="n">RetArr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">][</span><span class="s2">&quot;Additions&quot;</span><span class="p">][</span><span class="s2">&quot;ParticleOrigin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">origin</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">RetArr</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__Decay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Gen</span><span class="p">,</span> <span class="n">GenMax</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">prod_tracks</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Gen</span> <span class="o">&lt;</span> <span class="n">GenMax</span><span class="p">:</span>
+            <span class="n">product</span> <span class="o">=</span> <span class="n">G4Decay</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">PDG</span><span class="p">,</span> <span class="n">T</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">)</span>
+            <span class="n">rotationMatrix</span> <span class="o">=</span> <span class="n">vecRotMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">Vm</span> <span class="o">/</span> <span class="n">V_norm</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">product</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">prod</span> <span class="o">=</span> <span class="n">product</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="n">v_prod</span> <span class="o">=</span> <span class="n">rotationMatrix</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prod</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
+                <span class="n">r_prod</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ToMeters</span>
+                <span class="n">T_prod</span> <span class="o">=</span> <span class="n">prod</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e3</span>
+                <span class="n">name_prod</span> <span class="o">=</span> <span class="n">prod</span><span class="p">[</span><span class="s2">&quot;ParticleName&quot;</span><span class="p">]</span>
+
+                <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ParamDict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Monolines&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Names&quot;</span><span class="p">:</span> <span class="n">name_prod</span><span class="p">,</span>
+                                                     <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="n">T_prod</span><span class="p">,</span>
+                                                     <span class="s2">&quot;Center&quot;</span><span class="p">:</span> <span class="n">r_prod</span><span class="p">,</span>
+                                                     <span class="s2">&quot;Radius&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                                     <span class="s2">&quot;V0&quot;</span><span class="p">:</span> <span class="n">v_prod</span><span class="p">,</span>
+                                                     <span class="s2">&quot;Nevents&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">TotTime</span><span class="p">)</span>
+                <span class="n">new_proc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+                <span class="n">new_proc</span><span class="o">.</span><span class="n">__gen</span> <span class="o">=</span> <span class="n">Gen</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">prod_tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_proc</span><span class="o">.</span><span class="n">CallOneFile</span><span class="p">())</span>
+
+<div class="viewcode-block" id="GTSimulator.CheckBreak">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.CheckBreak">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@jit</span><span class="p">(</span><span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">CheckBreak</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r0</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">TotPath</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">full_revolutions</span><span class="p">,</span> <span class="n">Brck</span><span class="p">):</span>
+        <span class="n">radi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span>
+        <span class="n">dst2path</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">r0</span><span class="p">)</span> <span class="o">/</span> <span class="n">TotPath</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">radi</span><span class="p">,</span> <span class="n">dst2path</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">Brck</span><span class="p">[:</span><span class="mi">5</span><span class="p">],</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">radi</span><span class="p">,</span> <span class="n">TotPath</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">Brck</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">full_revolutions</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">Brck</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cond</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="GTSimulator.Update">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.Update">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@jit</span><span class="p">(</span><span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">Update</span><span class="p">(</span><span class="n">PathLen</span><span class="p">,</span> <span class="n">Step</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="n">V_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Vm</span><span class="p">)</span>
+        <span class="n">r_new</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">Vm</span> <span class="o">*</span> <span class="n">Step</span>
+        <span class="n">TotTime</span> <span class="o">+=</span> <span class="n">Step</span>
+        <span class="n">TotPathLen</span> <span class="o">+=</span> <span class="n">PathLen</span>
+        <span class="k">return</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">r_new</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotTime</span></div>
+
+
+<div class="viewcode-block" id="GTSimulator.SaveStep">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.SaveStep">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@jit</span><span class="p">(</span><span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">SaveStep</span><span class="p">(</span><span class="n">r_new</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">,</span> <span class="n">TotPathLen</span><span class="p">,</span> <span class="n">TotPathDen</span><span class="p">,</span> <span class="n">TotTime</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">i_save</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Saves</span><span class="p">,</span>
+                 <span class="n">CordCode</span><span class="p">,</span> <span class="n">VCode</span><span class="p">,</span> <span class="n">ECode</span><span class="p">,</span> <span class="n">BCode</span><span class="p">,</span> <span class="n">ACode</span><span class="p">,</span> <span class="n">PCode</span><span class="p">,</span> <span class="n">DCode</span><span class="p">,</span> <span class="n">CCode</span><span class="p">,</span> <span class="n">EnCode</span><span class="p">,</span>
+                 <span class="n">SaveE</span><span class="p">,</span>
+                 <span class="n">SaveB</span><span class="p">,</span>
+                 <span class="n">SaveA</span><span class="p">,</span>
+                 <span class="n">SaveP</span><span class="p">,</span>
+                 <span class="n">SaveD</span><span class="p">,</span>
+                 <span class="n">SaveC</span><span class="p">,</span>
+                 <span class="n">SaveT</span>
+                 <span class="p">):</span>
+        <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">CordCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">VCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">Vm</span> <span class="o">/</span> <span class="n">V_norm</span>
+        <span class="k">if</span> <span class="n">SaveE</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">ECode</span><span class="p">]</span> <span class="o">=</span> <span class="n">E</span>
+        <span class="k">if</span> <span class="n">SaveB</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">BCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span>
+        <span class="k">if</span> <span class="n">SaveA</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">ACode</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_new</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_new</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">SaveP</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">PCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">TotPathLen</span>
+        <span class="k">if</span> <span class="n">SaveD</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">DCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">TotPathDen</span>
+        <span class="k">if</span> <span class="n">SaveC</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">CCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">TotTime</span>
+        <span class="k">if</span> <span class="n">SaveT</span><span class="p">:</span>
+            <span class="n">Saves</span><span class="p">[</span><span class="n">i_save</span><span class="p">,</span> <span class="n">EnCode</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="GTSimulator.RadLossStep">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.RadLossStep">[docs]</a>
+    <span class="k">def</span> <span class="nf">RadLossStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Vp</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">Yp</span><span class="p">,</span> <span class="n">Ya</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">Q</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">UseRadLosses</span><span class="p">:</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">M</span> <span class="o">*</span> <span class="p">(</span><span class="n">Yp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Vp</span><span class="p">,</span> <span class="n">T</span>
+
+        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">Vp</span> <span class="o">-</span> <span class="n">Vm</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Step</span>
+        <span class="n">Vn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Vp</span> <span class="o">+</span> <span class="n">Vm</span><span class="p">)</span>
+        <span class="n">Vinter</span> <span class="o">=</span> <span class="p">(</span><span class="n">Vp</span> <span class="o">+</span> <span class="n">Vm</span><span class="p">)</span> <span class="o">/</span> <span class="n">Vn</span>
+
+        <span class="n">acc_par</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">Vinter</span><span class="p">)</span>
+        <span class="n">acc_per</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">acc_par</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">dE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Step</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">8.854187e-12</span><span class="p">)</span> <span class="o">*</span> <span class="n">Q</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ya</span> <span class="o">**</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">Constants</span><span class="o">.</span><span class="n">c</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span>
+                          <span class="p">(</span><span class="n">acc_per</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">acc_par</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Ya</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">Constants</span><span class="o">.</span><span class="n">e</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">M</span> <span class="o">*</span> <span class="p">(</span><span class="n">Yp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ForwardTracing</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dE</span><span class="p">)</span>
+
+        <span class="n">V</span> <span class="o">=</span> <span class="n">Constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">T</span> <span class="o">+</span> <span class="n">M</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">M</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="n">M</span><span class="p">)</span>
+        <span class="n">Vn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Vp</span><span class="p">)</span>
+
+        <span class="n">Vm</span> <span class="o">=</span> <span class="n">V</span> <span class="o">*</span> <span class="n">Vp</span> <span class="o">/</span> <span class="n">Vn</span>
+
+        <span class="k">return</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="GTSimulator.AlgoStep">
+<a class="viewcode-back" href="../../GT.html#GT.GT.GTSimulator.AlgoStep">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">AlgoStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">Vm</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+<span class="c1"># if self.Save is None:</span>
+<span class="c1">#     ax = plt.figure().add_subplot(projection=&#39;3d&#39;)</span>
+<span class="c1">#     ax.plot(0, 0, 0, &#39;*&#39;)</span>
+<span class="c1">#     print(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2])</span>
+<span class="c1">#     print(TotPathLen / 1000)</span>
+<span class="c1">#     ax.plot(Trajectory[0, 0], Trajectory[0, 1], Trajectory[0, 2], &#39;o&#39;)</span>
+<span class="c1">#     ax.plot(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2], &#39;o&#39;)</span>
+<span class="c1">#     ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])</span>
+<span class="c1">#     ax.set_xlim([-1, 1.5])</span>
+<span class="c1">#     ax.set_ylim([-1, 1])</span>
+<span class="c1">#     ax.set_zlim([-1, 1])</span>
+<span class="c1">#     plt.show()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
