@@ -16,13 +16,14 @@ class Parker(AbsBfield):
     years11 = 347133600
     km2AU = 1 / Units.AU2km
 
-    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_cir=False, polarity=-1,
-                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=4, coeff2d=1.4, **kwargs):
+    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_hcs=True, use_cir=False, polarity=-1,
+                 use_noise=False, noise_num=256, log_kmin=0, log_kmax=6, coeff2d=1.4, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
         self.Units = "AU"
         self.magnitude = magnitude
+        self.use_hcs = use_hcs
         self.use_cir = use_cir
         self.polarity = polarity
         self.use_reg = use_reg
@@ -53,6 +54,7 @@ class Parker(AbsBfield):
         v_wind = self.v_wind(theta, self.km2AU)
         omega = self.omega
         rs = self.rs
+        use_hcs = self.use_hcs
 
         Bx = np.zeros_like(r)
         By = np.zeros_like(r)
@@ -64,7 +66,7 @@ class Parker(AbsBfield):
             alpha = self.CalcTiltAngle(t)
             dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
 
-            Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha)
+            Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha, use_hcs)
 
             # alpha -= np.pi / years11 * (r - rs) / v_wind * dalpha
             #
@@ -121,14 +123,16 @@ class Parker(AbsBfield):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def _calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha):
-        alpha_n = alpha - np.pi / years11 * (r - rs) / v_wind * dalpha
+    def _calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha, use_hcs):
+        HCS = 1.
+        if use_hcs:
+            alpha_n = alpha - np.pi / years11 * (r - rs) / v_wind * dalpha
 
-        theta0 = np.pi / 2 - np.arctan(-np.tan(alpha_n) * np.sin(phi + omega * (r - rs) / v_wind -
-                                                                 omega * t))
-        L = 0.0002
-        dt = r * (theta - theta0) / L
-        HCS = -np.tanh(dt)
+            theta0 = np.pi / 2 - np.arctan(-np.tan(alpha_n) * np.sin(phi + omega * (r - rs) / v_wind -
+                                                                     omega * t))
+            L = 0.0002
+            dt = r * (theta - theta0) / L
+            HCS = -np.tanh(dt)
 
         Br = A0 / r ** 2 * HCS
         Bphi = -A0 / r ** 2 * (((r - rs) * omega) / v_wind) * np.sin(theta) * HCS
@@ -335,26 +339,53 @@ class Parker(AbsBfield):
         s = f"""Parker
         Regular: {self.use_reg}
         Magnitude: {self.magnitude}
+        HCS: {self.use_hcs}
         CIR: {self.use_cir}
         Polarity: {self.polarity}
-        Noise: {self.use_noise}"""
+        Noise: {self.use_noise}
+        """
 
         if self.use_noise:
             s += f"""
             Min wave length: {self.log_kmin}
             Max wave length: {self.log_kmax}
-            Number of waves: {self.noise_num}"""
+            Number of waves: {self.noise_num}
+            Coeff_2d: {self.coeff2d}"""
 
         return s
 
 
 if __name__ == "__main__":
     from datetime import datetime
+    import matplotlib.pyplot as plt
 
-    b = Parker(date=datetime(2008, 1, 1), use_noise=True)
 
-    b.CalcBfield(10, 20, 30)
+    b = Parker(date=datetime(2008, 1, 1), use_noise=False)
+    b0 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=0, log_kmax=6, num=256)
+    b1 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=1, log_kmax=6, num=256)
+    z=0.
+    xx = np.cos(np.arange(0, 6*np.pi, 0.1))
+    yy = np.sin(np.arange(0, 6*np.pi, 0.1))
+    B0 = []
+    B1 = []
+    B = []
+    for x, y in zip(xx, yy):
+        B.append(b.CalcBfield(x, y, z))
+        B0.append(b0.CalcBfield(x, y, z))
+        B1.append(b1.CalcBfield(x, y, z))
+    B = np.array(B)
+    B0 = np.array(B0)
+    B1 = np.array(B1)
 
-    st = timer()
-    b.CalcBfield(40, 50, 60)
-    print(timer() - st)
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B[:,0]*xx + B[:, 1]*yy, label='reg')
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,0]*xx + B0[:, 1]*yy, label=0)
+    plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,2], label='z0')
+    plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,2], label='z1')
+    # plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,0]*xx + B1[:, 1]*yy, label=1)
+    plt.legend()
+
+    plt.show()
+
+    # st = timer()
+    # b.CalcBfield(40, 50, 60)
+    # print(timer() - st)

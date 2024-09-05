@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MagneticFields.Magnetosphere package &mdash; GTsimulation 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Medium package" href="Medium.html" />
+    <link rel="prev" title="MagneticFields.Heliosphere package" href="MagneticFields.Heliosphere.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            GTsimulation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="MagneticFields.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html">MagneticFields.Galaxy package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html">MagneticFields.Heliosphere package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">MagneticFields.Magnetosphere package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields.magnetic_field">MagneticFields.magnetic_field module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GTsimulation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">GTsimulation</a></li>
+          <li class="breadcrumb-item"><a href="MagneticFields.html">MagneticFields package</a></li>
+      <li class="breadcrumb-item active">MagneticFields.Magnetosphere package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/MagneticFields.Magnetosphere.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="magneticfields-magnetosphere-package">
+<h1>MagneticFields.Magnetosphere package<a class="headerlink" href="#magneticfields-magnetosphere-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-MagneticFields.Magnetosphere.Additions">
+<span id="magneticfields-magnetosphere-additions-module"></span><h2>MagneticFields.Magnetosphere.Additions module<a class="headerlink" href="#module-MagneticFields.Magnetosphere.Additions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.AddLon">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">AddLon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_prev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_revolutions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#AddLon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.AddLon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.AddTrajectory">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">AddTrajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonTotal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additions_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#AddTrajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.AddTrajectory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.FieldLine">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">FieldLine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sgn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#FieldLine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.FieldLine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.FindParticleOrigin">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">FindParticleOrigin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Simulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RetArr_i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#FindParticleOrigin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.FindParticleOrigin" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.GetBCparams">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">GetBCparams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RetArr_i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#GetBCparams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.GetBCparams" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.GetEarthBfieldLine">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">GetEarthBfieldLine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rinp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#GetEarthBfieldLine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.GetEarthBfieldLine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.GetParticleOrigin">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">GetParticleOrigin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">TrackParams_i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#GetParticleOrigin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.GetParticleOrigin" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Additions.GetTrackParams">
+<span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Additions.</span></span><span class="sig-name descname"><span class="pre">GetTrackParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Simulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RetArr_i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Additions.html#GetTrackParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Additions.GetTrackParams" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-MagneticFields.Magnetosphere.Dipole">
+<span id="magneticfields-magnetosphere-dipole-module"></span><h2>MagneticFields.Magnetosphere.Dipole module<a class="headerlink" href="#module-MagneticFields.Magnetosphere.Dipole" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Dipole.</span></span><span class="sig-name descname"><span class="pre">Dipole</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SI_nT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Dipole.html#Dipole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield" title="MagneticFields.magnetic_field.AbsBfield"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsBfield</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole.CalcBfield">
+<span class="sig-name descname"><span class="pre">CalcBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Dipole.html#Dipole.CalcBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole.CalcBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole.GetNDaysInMonth">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GetNDaysInMonth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Dipole.html#Dipole.GetNDaysInMonth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole.GetNDaysInMonth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole.Re">
+<span class="sig-name descname"><span class="pre">Re</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6371137.0</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole.Re" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole.ToMeters">
+<span class="sig-name descname"><span class="pre">ToMeters</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378137.1</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole.ToMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Dipole.Dipole.UpdateState">
+<span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Dipole.html#Dipole.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Dipole.Dipole.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MagneticFields.Magnetosphere.Gauss">
+<span id="magneticfields-magnetosphere-gauss-module"></span><h2>MagneticFields.Magnetosphere.Gauss module<a class="headerlink" href="#module-MagneticFields.Magnetosphere.Gauss" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.Gauss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Gauss.</span></span><span class="sig-name descname"><span class="pre">Gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#MagneticFields.Magnetosphere.Gauss.GaussModels" title="MagneticFields.Magnetosphere.Gauss.GaussModels"><span class="pre">GaussModels</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#MagneticFields.Magnetosphere.Gauss.GaussTypes" title="MagneticFields.Magnetosphere.Gauss.GaussTypes"><span class="pre">GaussTypes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#Gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.Gauss" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield" title="MagneticFields.magnetic_field.AbsBfield"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsBfield</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.Gauss.CalcBfield">
+<span class="sig-name descname"><span class="pre">CalcBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#Gauss.CalcBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.Gauss.CalcBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.Gauss.SetFullModelName">
+<span class="sig-name descname"><span class="pre">SetFullModelName</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#Gauss.SetFullModelName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.Gauss.SetFullModelName" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.Gauss.ToMeters">
+<span class="sig-name descname"><span class="pre">ToMeters</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.Gauss.ToMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.Gauss.UpdateState">
+<span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#Gauss.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.Gauss.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Gauss.</span></span><span class="sig-name descname"><span class="pre">GaussModels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#GaussModels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.CHAOS">
+<span class="sig-name descname"><span class="pre">CHAOS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.CHAOS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.CM">
+<span class="sig-name descname"><span class="pre">CM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.CM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.COV_OBS">
+<span class="sig-name descname"><span class="pre">COV_OBS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.COV_OBS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.DIFI">
+<span class="sig-name descname"><span class="pre">DIFI</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.DIFI" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.IGRF">
+<span class="sig-name descname"><span class="pre">IGRF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.IGRF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.LCS">
+<span class="sig-name descname"><span class="pre">LCS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.LCS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussModels.SIFM">
+<span class="sig-name descname"><span class="pre">SIFM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussModels.SIFM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussTypes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Gauss.</span></span><span class="sig-name descname"><span class="pre">GaussTypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Gauss.html#GaussTypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussTypes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussTypes.core">
+<span class="sig-name descname"><span class="pre">core</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussTypes.core" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussTypes.ionosphere">
+<span class="sig-name descname"><span class="pre">ionosphere</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussTypes.ionosphere" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Gauss.GaussTypes.static">
+<span class="sig-name descname"><span class="pre">static</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Gauss.GaussTypes.static" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MagneticFields.Magnetosphere.Summary">
+<span id="magneticfields-magnetosphere-summary-module"></span><h2>MagneticFields.Magnetosphere.Summary module<a class="headerlink" href="#module-MagneticFields.Magnetosphere.Summary" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Summary.Summary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Summary.</span></span><span class="sig-name descname"><span class="pre">Summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Summary.html#Summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Summary.Summary" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield" title="MagneticFields.magnetic_field.AbsBfield"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsBfield</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Summary.Summary.CalcBfield">
+<span class="sig-name descname"><span class="pre">CalcBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Summary.html#Summary.CalcBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Summary.Summary.CalcBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Summary.Summary.ToMeters">
+<span class="sig-name descname"><span class="pre">ToMeters</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378137.1</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Summary.Summary.ToMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Summary.Summary.UpdateState">
+<span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Summary.html#Summary.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Summary.Summary.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MagneticFields.Magnetosphere.Tsyganenko">
+<span id="magneticfields-magnetosphere-tsyganenko-module"></span><h2>MagneticFields.Magnetosphere.Tsyganenko module<a class="headerlink" href="#module-MagneticFields.Magnetosphere.Tsyganenko" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MagneticFields.Magnetosphere.Tsyganenko.</span></span><span class="sig-name descname"><span class="pre">Tsyganenko</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ModCode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">96</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Tsyganenko.html#Tsyganenko"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield" title="MagneticFields.magnetic_field.AbsBfield"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsBfield</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.CalcBfield">
+<span class="sig-name descname"><span class="pre">CalcBfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Tsyganenko.html#Tsyganenko.CalcBfield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.CalcBfield" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetPsi">
+<span class="sig-name descname"><span class="pre">GetPsi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Tsyganenko.html#Tsyganenko.GetPsi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetPsi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetTsyganenkoInd">
+<span class="sig-name descname"><span class="pre">GetTsyganenkoInd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Tsyganenko.html#Tsyganenko.GetTsyganenkoInd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.GetTsyganenkoInd" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.ToMeters">
+<span class="sig-name descname"><span class="pre">ToMeters</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378137.1</span></em><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.ToMeters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.UpdateState">
+<span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Magnetosphere/Tsyganenko.html#Tsyganenko.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MagneticFields.Magnetosphere">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-MagneticFields.Magnetosphere" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="MagneticFields.Heliosphere.html" class="btn btn-neutral float-left" title="MagneticFields.Heliosphere package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Medium.html" class="btn btn-neutral float-right" title="Medium package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CRTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
