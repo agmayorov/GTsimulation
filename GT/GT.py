@@ -572,26 +572,25 @@ class GTSimulator(ABC):
 
     def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r):
         if Gen < GenMax:
-            product = G4Decay(particle.PDG, T / 1e3)
+            secondary = G4Decay(particle.PDG, T / 1e3)
             rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
-            for p in range(len(product) - 1, -1, -1):
-                prod = product[p]
-                v_prod = rotationMatrix @ np.array(prod['v'])
-                r_prod = r / self.ToMeters
-                T_prod = prod['E'] * 1e3
-                name_prod = prod["ParticleName"]
+            for p in secondary:
+                V_p = rotationMatrix @ p['MomentumDirection']
+                r_p = r / self.ToMeters
+                T_p = p['KineticEnergy'] * 1e3
+                name_p = p["Name"]
 
                 params = self.ParamDict.copy()
-                params["Particles"] = ["Monolines", {"Names": name_prod,
-                                                     "T": T_prod,
-                                                     "Center": r_prod,
+                params["Particles"] = ["Monolines", {"Names": name_p,
+                                                     "T": T_p,
+                                                     "Center": r_p,
                                                      "Radius": 0,
-                                                     "V0": v_prod,
+                                                     "V0": V_p,
                                                      "Nevents": 1}]
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
-                new_proc = self.__class__(**params)
-                new_proc.__gen = Gen + 1
-                prod_tracks.append(new_proc.CallOneFile())
+                new_process = self.__class__(**params)
+                new_process.__gen = Gen + 1
+                prod_tracks.append(new_process.CallOneFile())
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
