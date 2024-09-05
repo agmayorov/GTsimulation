@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 
 from numba import jit
 
-from GeantInteraction import G4Decay
+from Interaction import G4Interaction, G4Decay
 from MagneticFields.Magnetosphere import Functions, Additions
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
     BreakMetric, SaveMetric, vecRotMat
@@ -227,6 +227,7 @@ class GTSimulator(ABC):
     def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
         self.UseDecay = UseDecay
         self.InteractNUC = UseInteractNUC
+        self.IntPathDen = 10 # g/cm2
         if self.Verbose:
             print(f"\tDecay: {self.UseDecay}")
             print(f"\tNuclear Interactions: {self.InteractNUC}")
@@ -241,7 +242,7 @@ class GTSimulator(ABC):
                 print(f"\t\t{key}: {self.__brck_arr[self.__brck_index[key]]}")
             print(f"\tBC center: {center}")
         self.__brck_arr[BreakMetric] *= self.ToMeters
-        self.BCcenter = center*self.ToMeters
+        self.BCcenter = center * self.ToMeters
 
     def __SetMedium(self, medium):
         if self.Verbose:
@@ -381,6 +382,7 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
+            LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, 0, 0, 0
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 17))
@@ -447,6 +449,11 @@ class GTSimulator(ABC):
                     Den = self.Medium.get_density() # kg/m3
                     PathDen = (Den * 1e-3) * (PathLen * 1e2) # g/cm2
                     TotPathDen += PathDen # g/cm2
+                    if self.InteractNUC is not None and Den > 0:
+                        LocalDen += Den
+                        # TODO LocalChemComp += self.Medium.
+                        nLocal += 1
+                        LocalPathDen += PathDen
 
                 # Decay
                 if tau:
@@ -454,6 +461,15 @@ class GTSimulator(ABC):
                     if rnd_dec > np.exp(-TotTime/lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
                         IsPrimDecay = True
+
+                # Nuclear Interaction
+                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen:
+                    # Construct Rotation Matrix & Save velosity before possible interaction
+                    rotationMatrix = vecRotMat(np.array([0, 0, 1]), V_normalized)
+                    primary, secondary = G4Interaction(PDG, T / 1e3, LocalPathDen, LocalDen / nLocal, LocalChemComp / nLocal)
+                    # rLocal, vLocal, Tint, status, process, product = G4Interaction(PDG, T / 1e3, LocalPathDen,
+                    #                                                                            LocalDen / nLocal,
+                    #                                                                            LocalChemComp / nLocal)
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,

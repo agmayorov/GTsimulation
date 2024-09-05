@@ -4,56 +4,8 @@ import re
 import numpy as np
 
 
-def G4Decay(PDG, E):
-    res = subprocess.run(f'. /lustre/incos/set_pam_env.sh 10 4.10.06.p03; '
-                         f'/lustre/mFunctions/G4Interaction/DecayGenerator/build/DecayGenerator {PDG} {E}',
-                         shell=True, stdout=subprocess.PIPE)
-    if res.returncode != 0:
-        print(res.stdout)
-        raise Exception("Geant4 program did not work successfully")
-
-    output = res.stdout
-    output = output.decode("utf-8")
-
-    product = []
-
-    # Find all occurrences of the secondary particle information
-    k = [m.start() for m in re.finditer('Information about the secondary particle:', output)]
-
-    if not k:
-        warnings.warn('No decay products were found for the particle you entered')
-        product.append({
-            'ParticleName': PDG,
-            'v': [0, 0, 1],
-            'E': E,
-            'PDG': []
-        })
-    else:
-        for start in k:
-            segment = output[start:]
-            particle_name = re.search(r'Particle name: (.+)', segment).group(1)
-            momentum = re.search(r'Momentum direction: \((.+?),(.+?),(.+?)\)', segment)
-            momentum_direction = [float(momentum.group(1)), float(momentum.group(2)), float(momentum.group(3))]
-            kinetic_energy = float(re.search(r'Kinetic energy: (.+)', segment).group(1)) / 1e3
-            pdg = float(re.search(r'PDG: (.+)', segment).group(1))
-            mass = float(re.search(r'Mass: (.+)', segment).group(1))
-            lifetime = float(re.search(r'Particle LifeTime: (.+)', segment).group(1))
-            charge = float(re.search(r'Charge: (.+)', segment).group(1))
-
-            lifetime_scaled = lifetime * 1e-9 if lifetime > 0 else 0
-
-            product.append({
-                'ParticleName': particle_name,
-                'v': momentum_direction,
-                'E': kinetic_energy,
-                'PDG': [pdg, mass, lifetime_scaled, charge]
-            })
-
-    return product
-
-
 def G4Interaction(PDG, E, m, rho, w):
-    if np.sum(w) < .999:
+    if np.sum(w) < 0.999:
         raise Exception("G4Int: total sum of medium fractions is not equal 1")
 
     if len(w) != 5:  # H He N O Ar
@@ -122,6 +74,54 @@ def G4Interaction(PDG, E, m, rho, w):
                 })
 
     return r, v, E_end, status, process, product
+
+
+def G4Decay(PDG, E):
+    res = subprocess.run(f'. /lustre/incos/set_pam_env.sh 10 4.10.06.p03; '
+                         f'/lustre/mFunctions/G4Interaction/DecayGenerator/build/DecayGenerator {PDG} {E}',
+                         shell=True, stdout=subprocess.PIPE)
+    if res.returncode != 0:
+        print(res.stdout)
+        raise Exception("Geant4 program did not work successfully")
+
+    output = res.stdout
+    output = output.decode("utf-8")
+
+    product = []
+
+    # Find all occurrences of the secondary particle information
+    k = [m.start() for m in re.finditer('Information about the secondary particle:', output)]
+
+    if not k:
+        warnings.warn('No decay products were found for the particle you entered')
+        product.append({
+            'ParticleName': PDG,
+            'v': [0, 0, 1],
+            'E': E,
+            'PDG': []
+        })
+    else:
+        for start in k:
+            segment = output[start:]
+            particle_name = re.search(r'Particle name: (.+)', segment).group(1)
+            momentum = re.search(r'Momentum direction: \((.+?),(.+?),(.+?)\)', segment)
+            momentum_direction = [float(momentum.group(1)), float(momentum.group(2)), float(momentum.group(3))]
+            kinetic_energy = float(re.search(r'Kinetic energy: (.+)', segment).group(1)) / 1e3
+            pdg = float(re.search(r'PDG: (.+)', segment).group(1))
+            mass = float(re.search(r'Mass: (.+)', segment).group(1))
+            lifetime = float(re.search(r'Particle LifeTime: (.+)', segment).group(1))
+            charge = float(re.search(r'Charge: (.+)', segment).group(1))
+
+            lifetime_scaled = lifetime * 1e-9 if lifetime > 0 else 0
+
+            product.append({
+                'ParticleName': particle_name,
+                'v': momentum_direction,
+                'E': kinetic_energy,
+                'PDG': [pdg, mass, lifetime_scaled, charge]
+            })
+
+    return product
 
 
 def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
