@@ -226,6 +226,8 @@ class GTSimulator(ABC):
 
     def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
         self.UseDecay = UseDecay
+        if self.Medium is None and UseInteractNUC is not None:
+            raise ValueError('Nuclear Interaction is enabled but Medium is not set')
         self.InteractNUC = UseInteractNUC
         self.IntPathDen = 10 # g/cm2
         if self.Verbose:
