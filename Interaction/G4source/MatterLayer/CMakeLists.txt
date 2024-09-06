@@ -1,5 +1,5 @@
 # Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.27)
 project(MatterLayer)
 
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -18,4 +18,4 @@ add_executable(MatterLayer MatterLayer.cc ${sources} ${headers})
 target_link_libraries(MatterLayer ${Geant4_LIBRARIES})
 
 # For internal Geant4 use
-add_custom_target(Layer DEPENDS MatterLayer)
+add_custom_target(ML DEPENDS MatterLayer)

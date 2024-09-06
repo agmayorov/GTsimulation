@@ -12,7 +12,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(G4int particlePDG, G4double energ
   fParticleGun = new G4ParticleGun(1);
 
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticleEnergy(fEnergy*GeV);
+  fParticleGun->SetParticleEnergy(fEnergy*MeV);
 }
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()

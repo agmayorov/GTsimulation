@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   }
   // Read values of input variables
   G4int particlePDG = atoi(argv[1]); // PDG code of particle
-  G4double energy   = atof(argv[2]); // GeV
+  G4double energy   = atof(argv[2]); // MeV
   G4double mass     = atof(argv[3]); // g/cm^2
   G4double density  = atof(argv[4]); // g/cm^3
   G4double w_H  = atof(argv[5]);
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
   G4double w_O  = atof(argv[8]);
   G4double w_Ar = atof(argv[9]);
   G4cout << "Input particlePDG: " << particlePDG << "\n"
-         << "Input energy: " << energy << " GeV" << "\n"
+         << "Input energy: " << energy << " MeV" << "\n"
          << "Input mass: " << mass << " g/cm2" << "\n"
          << "Input density: " << density << " g/cm3" << "\n"
          << "Input w_H: "  << w_H  << "\n"

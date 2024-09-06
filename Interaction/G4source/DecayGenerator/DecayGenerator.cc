@@ -17,9 +17,9 @@ int main(int argc, char* argv[]) {
   }
   // Read values of input variables
   G4int particlePDG = atoi(argv[1]); // PDG code of particle
-  G4double energy   = atof(argv[2]); // GeV
+  G4double energy   = atof(argv[2]); // MeV
   G4cout << "Input particlePDG: " << particlePDG << "\n"
-         << "Input energy: " << energy << " GeV" << G4endl;
+         << "Input energy: " << energy << " MeV" << G4endl;
 
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
   auto seed = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

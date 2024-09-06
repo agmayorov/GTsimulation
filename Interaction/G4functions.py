@@ -18,7 +18,7 @@ def G4Interaction(PDG, E, m, rho, w):
 
     Parameters:
         PDG         - int                   - Particle PDG code
-        E           - float                 - Kinetic energy of the particle [GeV]
+        E           - float                 - Kinetic energy of the particle [MeV]
         m           - float                 - Path of a particle in [g/cm^2]
         rho         - float                 - Density of medium [g/cm^3]
         w           - array_like of float   - Medium composition, sum must be equal 1
@@ -29,7 +29,7 @@ def G4Interaction(PDG, E, m, rho, w):
                         PDGcode             - PDG encoding
                         Mass                - Mass [MeV]
                         Charge              - Charge
-                        KineticEnergy       - Kinetic energy of the particle [GeV]
+                        KineticEnergy       - Kinetic energy of the particle [MeV]
                         MomentumDirection   - Direction of the velocity of the particle (unit vector)
                         Position            - Coordinates of the primary particle [m]
                         LastProcess         - Name of the last process in which the primary particle
@@ -63,7 +63,7 @@ def G4Interaction(PDG, E, m, rho, w):
     primary = np.genfromtxt(io.StringIO(output[p:s].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
     # Reading information about the secondary particles
-    secondary = []
+    secondary = np.array([])
     if s != -1:
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8']})
@@ -79,7 +79,7 @@ def G4Decay(PDG, E):
  
     Parameters:
         PDG         - int                   - Particle PDG code
-        E           - float                 - Kinetic energy of the particle [GeV]
+        E           - float                 - Kinetic energy of the particle [MeV]
 
     Returns:
         secondary   - structured ndarray
@@ -87,7 +87,7 @@ def G4Decay(PDG, E):
                         PDGcode             - PDG encoding
                         Mass                - Mass [MeV]
                         Charge              - Charge
-                        KineticEnergy       - Kinetic energy of the particle [GeV]
+                        KineticEnergy       - Kinetic energy of the particle [MeV]
                         MomentumDirection   - Direction of the velocity of the particle (unit vector)
 
     Examples:
@@ -112,7 +112,7 @@ def G4Decay(PDG, E):
     s = output.find('Information about the secondary particles')
 
     # Reading information about the secondary particles
-    secondary = []
+    secondary = np.array([])
     if s != -1:
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'LifeTime', 'KineticEnergy', 'MomentumDirection'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', 'f8', '(3,)f8']})

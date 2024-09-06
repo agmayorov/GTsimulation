@@ -32,7 +32,7 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
               << step->GetTrack()->GetMomentumDirection() << ","
               << step->GetTrack()->GetPosition() << ","
               << step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName() << std::endl;
-    if (step->GetPostStepPoint()->GetStepStatus() != 0)
+    if (step->GetPostStepPoint()->GetStepStatus() != 0 && step->GetNumberOfSecondariesInCurrentStep() > 0)
       std::cout << "\nInformation about the secondary particles:\n"
                 << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection\n";
   }

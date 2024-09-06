@@ -382,7 +382,8 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
-            LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, 0, 0, 0
+            if self.Medium is not None and self.InteractNUC is not None:
+                LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 17))
@@ -390,7 +391,7 @@ class GTSimulator(ABC):
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
             rnd_dec = 0
-            IsPrimDecay = 0
+            IsPrimDecay, IsPrimInteraction = False, False
             prod_tracks = []
             if tau:
                 rnd_dec = np.random.rand()
@@ -412,9 +413,9 @@ class GTSimulator(ABC):
 
             r = np.array(particle.coordinates)
 
-            V_normalized = np.array(particle.velocities)
-            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
-            Vm = V_norm * V_normalized
+            V_normalized = np.array(particle.velocities) # unit vector of velosity (beta vector)
+            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
+            Vm = V_norm * V_normalized # vector of velocity [m/s]
 
             if self.Verbose:
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
@@ -451,7 +452,7 @@ class GTSimulator(ABC):
                     TotPathDen += PathDen # g/cm2
                     if self.InteractNUC is not None and Den > 0:
                         LocalDen += Den
-                        # TODO LocalChemComp += self.Medium.
+                        LocalChemComp += self.Medium.get_chemical_element_abundance()
                         nLocal += 1
                         LocalPathDen += PathDen
 
@@ -463,13 +464,25 @@ class GTSimulator(ABC):
                         IsPrimDecay = True
 
                 # Nuclear Interaction
-                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen:
+                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not IsPrimDecay:
                     # Construct Rotation Matrix & Save velosity before possible interaction
-                    rotationMatrix = vecRotMat(np.array([0, 0, 1]), V_normalized)
-                    primary, secondary = G4Interaction(PDG, T / 1e3, LocalPathDen, LocalDen / nLocal, LocalChemComp / nLocal)
-                    # rLocal, vLocal, Tint, status, process, product = G4Interaction(PDG, T / 1e3, LocalPathDen,
-                    #                                                                            LocalDen / nLocal,
-                    #                                                                            LocalChemComp / nLocal)
+                    rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
+                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, LocalDen / nLocal, LocalChemComp / nLocal)
+                    if primary['KineticEnergy'] > 0:
+                        # Only ionization losses
+                        T = primary['KineticEnergy']
+                        Vm = rotationMatrix @ primary['MomentumDirection']
+                        # Vm *= Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
+                        # V_norm = np.linalg.norm(Vm)
+                        # Vcorr = c * sqrt(1 - (M / (T + M))^2) / V_norm
+                        # Vm *= Vcorr
+                        LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
+                    else:
+                        # Death due to ionization losses or nuclear interaction
+                        # print('CHILDREN:', secondary.size)
+                        # some code here
+                        IsPrimInteraction = True
+                        pass
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
@@ -572,12 +585,12 @@ class GTSimulator(ABC):
 
     def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r):
         if Gen < GenMax:
-            secondary = G4Decay(particle.PDG, T / 1e3)
+            secondary = G4Decay(particle.PDG, T)
             rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
             for p in secondary:
                 V_p = rotationMatrix @ p['MomentumDirection']
                 r_p = r / self.ToMeters
-                T_p = p['KineticEnergy'] * 1e3
+                T_p = p['KineticEnergy']
                 name_p = p["Name"]
 
                 params = self.ParamDict.copy()
