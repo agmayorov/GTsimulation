@@ -50,10 +50,6 @@ class _Magnetosphere(_AbsRegion):
             x, y, z = x/units, y/units, z/units
         return x, y, z
 
-    @staticmethod
-    def load_pamela():
-        pass
-
 
 class Regions(Enum):
     Magnetosphere = _Magnetosphere
