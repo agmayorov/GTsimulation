@@ -39,11 +39,6 @@ class Units:
     T2nT = 1e9
 
 
-class Regions(Enum):
-    Magnetosphere = 1
-    Heliosphere = 2
-    Galaxy = 3
-
 
 class Origins(Enum):
     Galactic = 1

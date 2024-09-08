@@ -2,7 +2,6 @@ questions.txt
 tasks.txt
 test*
 .idea/
-index.html
 __pycache__/
 Interaction/G4source/*/build/*
 Interaction/G4source/AtmosphericColumn/*

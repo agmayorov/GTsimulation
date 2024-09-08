@@ -272,7 +272,15 @@ class GTSimulator(ABC):
         m = importlib.import_module(module_name)
         class_name = flux if not isinstance(flux, list) else flux[0]
         ToMeters = self.ToMeters
+        if isinstance(flux, list):
+            transform = flux[1].pop("Transform", None)
+            if transform is not None:
+                center = flux[1].get("Center", None)
+                assert center is None
+                center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
+                flux[1]["Center"] = center
         params = {"ToMeters": ToMeters, **({} if not isinstance(flux, list) else flux[1])}
+        self.Region.value.transform()
         if hasattr(m, class_name):
             flux = getattr(m, class_name)
             self.Particles = flux(**params)
