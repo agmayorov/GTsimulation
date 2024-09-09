@@ -72,6 +72,7 @@ class Gauss(AbsBfield):
         costheta = np.cos(theta)
         sintheta = np.sin(theta)
         if coord == 0:
+            # TODO: to fix r calculation
             a = 6378.137
             f = 1 / 298.257223563
             b = a * (1 - f)
@@ -85,7 +86,7 @@ class Gauss(AbsBfield):
             costheta = costheta * cd - sintheta * sd
             sintheta = sintheta * cd + oldcos * sd
         else:
-            r = altitude + Rearth_km
+            r = altitude
             cd = 1
             sd = 0
         nmax = np.sqrt(len(gh) + 1) - 1
@@ -160,11 +161,11 @@ class Gauss(AbsBfield):
                        [-np.sin(phi), np.cos(phi), 0.],
                        [0., 0., 1.]])
 
-        # B = np.array([Bx, By, Bz]) @ My @ Mz
-        #
-        # Bx = B[0]
-        # By = B[1]
-        # Bz = B[2]
+        B = np.array([Bx, By, Bz]) @ My @ Mz
+        
+        Bx = B[0]
+        By = B[1]
+        Bz = B[2]
 
         return Bx, By, Bz
 
