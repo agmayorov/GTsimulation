@@ -43,8 +43,8 @@ class _Magnetosphere(_AbsRegion):
             # x = lat, y = long, z = altitude
             # units = Units.RE2m or Units.km2m
             # TODO make more rigorous after units addition in the GT
-            transformer = pyproj.Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
-                                                      {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
+            transformer = pyproj.Transformer.from_crs({"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
+                                                      {"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'})
             # Matlab lla2ecef([lat, long, altitude]) -> python transformer.transform(long, lat, altitude, radians=False)
             x, y, z = transformer.transform(y, x, z, radians=False)
             x, y, z = x/units, y/units, z/units
