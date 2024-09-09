@@ -280,7 +280,6 @@ class GTSimulator(ABC):
                 center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
                 flux[1]["Center"] = center
         params = {"ToMeters": ToMeters, **({} if not isinstance(flux, list) else flux[1])}
-        self.Region.value.transform()
         if hasattr(m, class_name):
             flux = getattr(m, class_name)
             self.Particles = flux(**params)
