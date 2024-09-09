@@ -19,3 +19,9 @@ target_link_libraries(DecayGenerator ${Geant4_LIBRARIES})
 
 # For internal Geant4 use
 add_custom_target(DC DEPENDS DecayGenerator)
+
+# Copy executable 
+add_custom_command(TARGET DecayGenerator
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND}
+                   ARGS -E copy $<TARGET_FILE:DecayGenerator> ${PROJECT_SOURCE_DIR}/../..)

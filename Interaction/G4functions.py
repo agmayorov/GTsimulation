@@ -119,3 +119,56 @@ def G4Decay(PDG, E):
         secondary = np.genfromtxt(io.StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
     return secondary
+
+
+# def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
+#     res = subprocess.run(f". /lustre/incos/set_pam_env.sh 11 4.11.00.p02; "
+#                          f"/lustre/mFunctions/G4Interaction/AtmosphericColumn/build/AtmosphericColumn {PDG} {E} {h} "
+#                          f"{alpha} {doy} {sec} {lat} {lon} {f107A} {f107} {ap}", shell=True, stdout=subprocess.PIPE)
+#     if res.returncode != 0:
+#         print(res.stdout)
+#         raise Exception("Geant4 program did not work successfully")
+
+#     output = res.stdout
+#     output = output.decode("utf-8")
+
+#     k = output.find('Information about the primary particle:')
+#     if k == -1:
+#         raise RuntimeError('Primary particle information not found')
+
+#     segment = output[k:]
+
+#     name_match = re.search(r'Particle name: (.+)', segment)
+#     position_match = re.search(r'Position of interaction: \((.+?),(.+?),(.+?)\)', segment)
+#     process_name_match = re.search(r'Process name: (.+)', segment)
+
+#     if not (position_match and name_match and process_name_match):
+#         raise RuntimeError('Primary particle information format incorrect')
+
+#     r_int = np.array([float(position_match.group(1)), float(position_match.group(2)),
+#                       float(position_match.group(3))]) / 1e6  # [mm] to [km]
+#     ParticleName = name_match.group(1).strip()
+#     process = process_name_match.group(1).strip()
+
+#     albedo = []
+
+#     k = [m.start() for m in re.finditer('Albedo particles:', output)]
+#     if k:
+#         segment_albedo = output[k[0] + 18:]
+#         for seg in segment_albedo.split("\n")[:-1]:
+#             params = seg.split()
+#             particle_name = params[0]
+#             radius = [float(n) / 1e6 for n in params[1][1:-1].split(",")]
+#             momentum_direction = [float(n) for n in params[2][1:-1].split(",")]
+#             kinetic_energy = float(params[3]) / 1e3
+#             pdg, mass, charge = float(params[4]), float(params[5]), float(params[6])
+
+#             albedo.append({
+#                 'ParticleName': particle_name,
+#                 'r': radius,
+#                 'v': momentum_direction,
+#                 'E': kinetic_energy,
+#                 'PDG': [pdg, mass, charge]
+#             })
+
+#     return ParticleName, r_int, process, albedo

@@ -42,12 +42,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   world_mat->AddElement(O,  fW_N *100.*perCent);
   world_mat->AddElement(Ar, fW_Ar*100.*perCent);
 
-  G4double world_sizeR =    fThickness*km;
-  G4double world_sizeZ = 2.*fThickness*km;
+  G4double world_sizeR =    fThickness*m;
+  G4double world_sizeZ = 2.*fThickness*m;
 
   G4Tubs* solidWorld =
     new G4Tubs("World",
-               0.*km,                     // inner radius
+               0.*m,                      // inner radius
                world_sizeR,               // outer radius
                0.5*world_sizeZ,           // hight
                0.*deg,                    // start angle

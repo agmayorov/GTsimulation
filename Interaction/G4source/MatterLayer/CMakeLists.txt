@@ -19,3 +19,9 @@ target_link_libraries(MatterLayer ${Geant4_LIBRARIES})
 
 # For internal Geant4 use
 add_custom_target(ML DEPENDS MatterLayer)
+
+# Copy executable 
+add_custom_command(TARGET MatterLayer
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND}
+                   ARGS -E copy $<TARGET_FILE:MatterLayer> ${PROJECT_SOURCE_DIR}/../..)

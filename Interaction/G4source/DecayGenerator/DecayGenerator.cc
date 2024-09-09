@@ -10,7 +10,7 @@ using namespace DecayGenerator;
 
 int main(int argc, char* argv[]) {
   // Read input
-  // Input example: ./DecayGenerator 15 10
+  // Input example: ./DecayGenerator 15 500
   if (argc != 3) {
     G4cout << "Wrong number of input parameters" << G4endl;
     return 0;

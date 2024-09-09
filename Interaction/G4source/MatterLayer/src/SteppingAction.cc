@@ -20,17 +20,17 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
       std::cout << "The primary particle reached boundary of the layer\n";
     } else {
       std::cout << "The primary particle has interacted\n";
-      fPointOfInteraction = step->GetTrack()->GetPosition();
+      fPointOfInteraction = step->GetTrack()->GetPosition()/m;
     }
     std::cout << "\nInformation about the primary particle:\n"
-              << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[mm],LastProcess\n"
+              << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[m],LastProcess\n"
               << step->GetTrack()->GetParticleDefinition()->GetParticleName() << ","
               << step->GetTrack()->GetParticleDefinition()->GetPDGEncoding() << ","
               << step->GetTrack()->GetParticleDefinition()->GetPDGMass() << ","
               << step->GetTrack()->GetParticleDefinition()->GetPDGCharge() << ","
-              << step->GetTrack()->GetKineticEnergy() << ","
+              << step->GetTrack()->GetKineticEnergy()/MeV << ","
               << step->GetTrack()->GetMomentumDirection() << ","
-              << step->GetTrack()->GetPosition() << ","
+              << step->GetTrack()->GetPosition()/m << ","
               << step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName() << std::endl;
     if (step->GetPostStepPoint()->GetStepStatus() != 0 && step->GetNumberOfSecondariesInCurrentStep() > 0)
       std::cout << "\nInformation about the secondary particles:\n"
@@ -38,7 +38,7 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
   }
 
   if (step->GetTrack()->GetTrackID() != 1) {
-    fDeltaVector = fPointOfInteraction - step->GetPreStepPoint()->GetPosition();
+    fDeltaVector = fPointOfInteraction - step->GetPreStepPoint()->GetPosition()/m;
   }
 
   // Stops the calculation of ionization electrons that occur before the inelastic interaction of the primary particle
@@ -53,7 +53,7 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
                 << step->GetTrack()->GetParticleDefinition()->GetPDGEncoding() << ","
                 << step->GetTrack()->GetParticleDefinition()->GetPDGMass() << ","
                 << step->GetTrack()->GetParticleDefinition()->GetPDGCharge() << ","
-                << step->GetPreStepPoint()-> GetKineticEnergy() << ","
+                << step->GetPreStepPoint()-> GetKineticEnergy()/MeV << ","
                 << step->GetPreStepPoint()-> GetMomentumDirection() << std::endl;
     }
     step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);

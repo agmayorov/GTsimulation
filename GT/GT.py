@@ -400,7 +400,7 @@ class GTSimulator(ABC):
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
             rnd_dec = 0
-            IsPrimDecay, IsPrimInteraction = False, False
+            IsPrimDeath = False
             prod_tracks = []
             if tau:
                 rnd_dec = np.random.rand()
@@ -470,28 +470,31 @@ class GTSimulator(ABC):
                     lifetime = tau * (T/M + 1)
                     if rnd_dec > np.exp(-TotTime/lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
-                        IsPrimDecay = True
+                        IsPrimDeath = True
 
                 # Nuclear Interaction
-                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not IsPrimDecay:
+                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not IsPrimDeath:
                     # Construct Rotation Matrix & Save velosity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, LocalDen / nLocal, LocalChemComp / nLocal)
-                    if primary['KineticEnergy'] > 0:
+                    T = primary['KineticEnergy']
+                    V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
+                    Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
+                    if T > 0:
                         # Only ionization losses
-                        T = primary['KineticEnergy']
-                        Vm = rotationMatrix @ primary['MomentumDirection']
-                        # Vm *= Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
-                        # V_norm = np.linalg.norm(Vm)
-                        # Vcorr = c * sqrt(1 - (M / (T + M))^2) / V_norm
-                        # Vm *= Vcorr
                         LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
                     else:
                         # Death due to ionization losses or nuclear interaction
-                        # print('CHILDREN:', secondary.size)
-                        # some code here
-                        IsPrimInteraction = True
-                        pass
+                        IsPrimDeath = True
+                        if secondary.size > 0:
+                            if Gen < GenMax:
+                                if self.Verbose:
+                                    print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
+                                # Cordinate of point of interaction in XYZ
+                                # cpath = norm(rLocal) * 1e2 * (LocalDen / nLocal)
+                                for p in secondary:
+                                    pass
+                                    # print(p)
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
@@ -516,7 +519,7 @@ class GTSimulator(ABC):
                 # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
-                if brck[0] or IsPrimDecay:
+                if brck[0] or IsPrimDeath:
                     if brk != -1:
                         self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
@@ -530,8 +533,8 @@ class GTSimulator(ABC):
                                       SaveC,
                                       SaveT)
                         i_save += 1
-                    if IsPrimDecay:
-                        brk = self.__brck_index["Decay"]
+                    if IsPrimDeath:
+                        brk = self.__brck_index["Death"]
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
                     status = "DefaultBC_" + f'{self.__index_brck[brk]}'

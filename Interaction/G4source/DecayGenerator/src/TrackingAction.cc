@@ -4,17 +4,13 @@ namespace DecayGenerator
 {
 
 TrackingAction::TrackingAction()
-{
-  // G4cout << "Information about the secondary particles:\n"
-  //        << "Name,PDGcode,Mass[MeV],Charge,LifeTime[ns],KineticEnergy[MeV],MomentumDirection" << G4endl;
-}
+{}
 
 void TrackingAction::PreUserTrackingAction(const G4Track *aTrack)
 {}
 
 void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
 {
-  // std::cout << aTrack->GetStep()->GetNumberOfSecondariesInCurrentStep() << std::endl;
   std::cout.precision(16);
   if (aTrack->GetTrackID() == 1 && aTrack->GetStep()->GetNumberOfSecondariesInCurrentStep() > 0)
   {
