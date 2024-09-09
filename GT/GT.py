@@ -278,7 +278,7 @@ class GTSimulator(ABC):
                 center = flux[1].get("Center", None)
                 assert center is None
                 center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
-                flux[1]["Center"] = center
+                flux[1]["Center"] = np.array(center)
         params = {"ToMeters": ToMeters, **({} if not isinstance(flux, list) else flux[1])}
         if hasattr(m, class_name):
             flux = getattr(m, class_name)
