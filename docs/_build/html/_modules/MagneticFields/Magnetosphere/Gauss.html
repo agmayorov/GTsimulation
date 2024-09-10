@@ -43,6 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">GTsimulation</a></li>
 </ul>
 
@@ -119,6 +120,8 @@
 <span class="k">class</span> <span class="nc">Gauss</span><span class="p">(</span><span class="n">AbsBfield</span><span class="p">):</span>
     <span class="n">ToMeters</span> <span class="o">=</span> <span class="n">Units</span><span class="o">.</span><span class="n">km2m</span>
 
+<div class="viewcode-block" id="Gauss.__init__">
+<a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">GaussModels</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_type</span><span class="p">:</span> <span class="n">GaussTypes</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">coord</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -133,7 +136,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mat_file_loc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npy_file_loc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">SetFullModelName</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gh</span> <span class="o">=</span> <span class="n">LoadGaussCoeffs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npy_file_loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gh</span> <span class="o">=</span> <span class="n">LoadGaussCoeffs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npy_file_loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Date</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="Gauss.CalcBfield">
 <a class="viewcode-back" href="../../../MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss.CalcBfield">[docs]</a>
@@ -156,6 +160,7 @@
         <span class="n">costheta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
         <span class="n">sintheta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">coord</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># TODO: to fix r calculation</span>
             <span class="n">a</span> <span class="o">=</span> <span class="mf">6378.137</span>
             <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">298.257223563</span>
             <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span>
@@ -169,7 +174,7 @@
             <span class="n">costheta</span> <span class="o">=</span> <span class="n">costheta</span> <span class="o">*</span> <span class="n">cd</span> <span class="o">-</span> <span class="n">sintheta</span> <span class="o">*</span> <span class="n">sd</span>
             <span class="n">sintheta</span> <span class="o">=</span> <span class="n">sintheta</span> <span class="o">*</span> <span class="n">cd</span> <span class="o">+</span> <span class="n">oldcos</span> <span class="o">*</span> <span class="n">sd</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="n">altitude</span> <span class="o">+</span> <span class="n">Rearth_km</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">altitude</span>
             <span class="n">cd</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">sd</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">nmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gh</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -244,11 +249,11 @@
                        <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="mf">0.</span><span class="p">],</span>
                        <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
 
-        <span class="c1"># B = np.array([Bx, By, Bz]) @ My @ Mz</span>
-        <span class="c1">#</span>
-        <span class="c1"># Bx = B[0]</span>
-        <span class="c1"># By = B[1]</span>
-        <span class="c1"># Bz = B[2]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span><span class="p">])</span> <span class="o">@</span> <span class="n">My</span> <span class="o">@</span> <span class="n">Mz</span>
+        
+        <span class="n">Bx</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">By</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Bz</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">Bx</span><span class="p">,</span> <span class="n">By</span><span class="p">,</span> <span class="n">Bz</span>
 

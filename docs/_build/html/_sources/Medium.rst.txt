@@ -1,6 +1,15 @@
 Medium package
 ==============
 
+Module contents
+---------------
+
+.. automodule:: Medium
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 Subpackages
 -----------
 
@@ -24,14 +33,6 @@ Medium.vacuum module
 --------------------
 
 .. automodule:: Medium.vacuum
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: Medium
    :members:
    :undoc-members:
    :show-inheritance:

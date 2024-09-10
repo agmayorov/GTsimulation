@@ -1,7 +1,7 @@
-RunGT module
-============
+conf module
+===========
 
-.. automodule:: RunGT
+.. automodule:: conf
    :members:
    :undoc-members:
    :show-inheritance:

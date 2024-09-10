@@ -46,11 +46,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="MagneticFields.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">MagneticFields.Galaxy package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html">MagneticFields.Heliosphere package</a></li>
@@ -59,15 +61,10 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields.magnetic_field">MagneticFields.magnetic_field module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -122,6 +119,21 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="MagneticFields.Galaxy.JF12mod.JF12mod.UpdateState">
 <span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Galaxy/JF12mod.html#JF12mod.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Galaxy.JF12mod.JF12mod.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Galaxy.JF12mod.JF12mod.__calc_b_field">
+<span class="sig-name descname"><span class="pre">__calc_b_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_ring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_arms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sinPitch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosPitch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rXc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tanThetaX0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sinThetaX0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosThetaX0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_int_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_disk_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_disk_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_halo_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_halo_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_halo_turb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_noise</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#MagneticFields.Galaxy.JF12mod.JF12mod.__calc_b_field" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Galaxy.JF12mod.JF12mod.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Galaxy/JF12mod.html#JF12mod.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Galaxy.JF12mod.JF12mod.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Galaxy.JF12mod.JF12mod._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#MagneticFields.Galaxy.JF12mod.JF12mod._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

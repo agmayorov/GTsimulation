@@ -2,7 +2,7 @@ GTsimulation
 ============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    GT
    GeantInteraction
@@ -10,7 +10,3 @@ GTsimulation
    MagneticFields
    Medium
    Particle
-   PlotTrackEarth
-   PlotTrackGalaxy
-   PlotTrackHelio
-   RunGT

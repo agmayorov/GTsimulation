@@ -46,30 +46,30 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Medium package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-Medium">Module contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html">Medium.Magnetosphere package</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#medium-general-medium-module">Medium.general_medium module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Medium.general_medium">Medium.general_medium module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Medium.general_medium.GTGeneralMedium"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-Medium.vacuum">Medium.vacuum module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Medium.vacuum.GTVacuum"><code class="docutils literal notranslate"><span class="pre">GTVacuum</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -101,15 +101,41 @@
              
   <section id="medium-package">
 <h1>Medium package<a class="headerlink" href="#medium-package" title="Link to this heading"></a></h1>
+<section id="module-Medium">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Medium" title="Link to this heading"></a></h2>
+</section>
 <section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Medium.Magnetosphere.html">Medium.Magnetosphere package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#medium-magnetosphere-gtiri2016-module">Medium.Magnetosphere.GTiri2016 module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#medium-magnetosphere-gtnrlmsis-module">Medium.Magnetosphere.GTnrlmsis module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere.GTiri2016">Medium.Magnetosphere.GTiri2016 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016"><code class="docutils literal notranslate"><span class="pre">GTiri2016</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016.__init__"><code class="docutils literal notranslate"><span class="pre">GTiri2016.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTiri2016._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016.calculate_model"><code class="docutils literal notranslate"><span class="pre">GTiri2016.calculate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016.convert_xyz_to_lla"><code class="docutils literal notranslate"><span class="pre">GTiri2016.convert_xyz_to_lla()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016.get_density"><code class="docutils literal notranslate"><span class="pre">GTiri2016.get_density()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016.get_element_abundance"><code class="docutils literal notranslate"><span class="pre">GTiri2016.get_element_abundance()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere.GTnrlmsis">Medium.Magnetosphere.GTnrlmsis module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.__init__"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.calculate_model"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.calculate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.convert_xyz_to_lla"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.convert_xyz_to_lla()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.get_chemical_element_abundance"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.get_chemical_element_abundance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.get_density"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.get_density()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.get_element_abundance"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis.get_element_abundance()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -118,15 +144,56 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="medium-general-medium-module">
-<h2>Medium.general_medium module<a class="headerlink" href="#medium-general-medium-module" title="Link to this heading"></a></h2>
+<section id="module-Medium.general_medium">
+<span id="medium-general-medium-module"></span><h2>Medium.general_medium module<a class="headerlink" href="#module-Medium.general_medium" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Medium.general_medium.</span></span><span class="sig-name descname"><span class="pre">GTGeneralMedium</span></span><a class="reference internal" href="_modules/Medium/general_medium.html#GTGeneralMedium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/general_medium.html#GTGeneralMedium.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium.calculate_model">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_time</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/general_medium.html#GTGeneralMedium.calculate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium.calculate_model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium.get_density">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/general_medium.html#GTGeneralMedium.get_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium.get_density" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Medium.general_medium.GTGeneralMedium.get_element_abundance">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element_abundance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/general_medium.html#GTGeneralMedium.get_element_abundance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.general_medium.GTGeneralMedium.get_element_abundance" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-Medium.vacuum">
 <span id="medium-vacuum-module"></span><h2>Medium.vacuum module<a class="headerlink" href="#module-Medium.vacuum" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="Medium.vacuum.GTVacuum">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Medium.vacuum.</span></span><span class="sig-name descname"><span class="pre">GTVacuum</span></span><a class="reference internal" href="_modules/Medium/vacuum.html#GTVacuum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.vacuum.GTVacuum" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">GTGeneralMedium</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#Medium.general_medium.GTGeneralMedium" title="Medium.general_medium.GTGeneralMedium"><code class="xref py py-class docutils literal notranslate"><span class="pre">GTGeneralMedium</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Medium.vacuum.GTVacuum.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/vacuum.html#GTVacuum.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.vacuum.GTVacuum.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Medium.vacuum.GTVacuum._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#Medium.vacuum.GTVacuum._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="Medium.vacuum.GTVacuum.calculate_model">
 <span class="sig-name descname"><span class="pre">calculate_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_time</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medium/vacuum.html#GTVacuum.calculate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medium.vacuum.GTVacuum.calculate_model" title="Link to this definition"></a></dt>
@@ -144,9 +211,6 @@
 
 </dd></dl>
 
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 </section>
 </section>
 

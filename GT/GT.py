@@ -21,6 +21,107 @@ from Particle import ConvertT2R, GetAntiParticle
 
 
 class GTSimulator(ABC):
+    """
+    Description
+
+    :param Region: The region of the in which the simulation is taken place. The parameter may have values as
+                   `Global.Region.Magnetosphere`, `Global.Region.Heliosphere`, `Global.Region.Galaxy`.
+                   See :py:mod:`Global.regions`.
+    :type Region: Global.Region
+
+    :param Bfield: The name of the magnetic field. It should be inside the package :py:mod:`MagneticFields` in the
+                   corresponding `Region`. To add some parameters use `list` format and pass the parameters as a `dict`.
+                   Example `[NAME, {"param1": value1, "param2", value2}]`
+    :type Bfield: str or list
+
+    :param Efield: Electrical field. Similar to :ref:`Bfield`
+    :type Efield: str or list
+
+    :param Medium: The medium where particles may go into an interaction. Syntax similar to :ref:`Bfield`.
+                   See :py:mod:`Medium`.
+    :type Medium: str or list
+
+    :param Date: Date that is used to initialize the fields
+    :type Date: datetime.datetime
+
+    :param RadLosses: a `bool` flag that turns the calculations of radiation losses of the particles on.
+    :type RadLosses: bool
+
+    :param Particles: The parameter is responsible for the initial particle flux generation. Its value defines the
+                      energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
+                      The structure is similar  to :ref:`Bfield`. The list of available energy spectrums is available
+                      here :py:mod:`Particle.Generators.Spectrums`․ For more information regarding flux also
+                      see :py:mod:`Particle.Flux`. *Note*: that instead of `Center` parameter `Transform` may be passed
+                      its value has the following form `[Name of the coordinate system, [coordinates]]`. Example
+                      `["LLA", [60, 70, 1000]]` (lat [degree], long [degree], alt [meters]).
+                      See :py:mod:`Global.regions._AbsRegion.transform` for available transforms to a given region.
+    :type Particles: str or list
+
+    :param TrackParams:
+    :param ParticleOrigin:
+    :param IsFirstRun:
+    :param ForwardTrck: 1 refers to forward tracing, and -1 to the back tracing
+    :type ForwardTrck: 1 or -1
+
+    :param Save: The number of steps that are saved. If the value is 0, then only staring
+                 and finishing points are saved. The default parameters that are saved are `Coordinates` and
+                 `Velocities`. Other parameters that one needs to save as well, can be turned on by passing a `list`
+                 instead of `int` where the second element is a `dict` that's key is the parameter name and value is
+                 `True`. Example `[10, {"Clock": True}]`. To available parameters are listed in
+                 :py:mod:`Global.codes.SaveCode`.
+    :type Save: int or list
+
+    :param Num: The number of simulation steps
+    :type Num: int
+
+    :param Step: The time step of simulation in seconds
+    :type Step: float
+
+    :param Nfiles: Number of files. If :ref:`Particles` creates a flux of `Nevents` particles then the total number of
+                   particles that are going to be simulated is `Nevents`x`Nfiles`.
+    :type Nfiles: int
+
+    :param Output: If `None` no files are saved. Otherwise, the name of the saved *.npy* file. If :ref:`Nfiles` is
+                   greater than 1. Then the names of the saved files will have the following form `Output`_i.npy
+    :type Output: str or None
+
+    :param Verbose: If `True` logs are printed
+    :type Verbose: bool
+
+    :param BreakCondition: If `None` no break conditions are applied. Otherwise, a `dict` with a key corresponding to
+                           the `BreakCondition` name and value corresponding to its value is passed. Example:
+                           `{"Rmax": 10}`. In the example the maximal radius of the particle is 10 (in :py:mod:
+                           `MagneticFields` distance units). See the full list of break conditions
+                           :py:mod:`Global.codes.BreakCode`.
+    :type BreakCondition: dict or None
+
+    :param BCcenter: A 3d array of point (in :py:mod:`MagneticFields` distance units). It represents the **(0, 0, 0)**
+                     relative to which `Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin` are calculated.
+                     Default `np.array([0, 0, 0])`.
+    :type BCcenter: np.ndarray
+
+    :param UseDecay: If `True` the particles may decay.
+    :type UseDecay:
+
+    :param InteractNUC:
+
+    :return: dict
+    A dictionary is saved. It has the following keys.
+
+    1. Track: The parameters that are saved along the trajectory. See :py:mod:`Global.codes.SaveCode`.
+    2. BC: The parameters regarding the simulation end.
+        2.1. WOut: The code of break. See :py:mod:`Global.codes.BreakIndex`
+        2.2. lon_total:
+        2.3. status
+    3. Particle: Information about the particle
+        3.1. PDG: Its PDG code
+        3.2. M: The mass in MeV
+        3.3. Z: The charge of the particle in e units.
+        3.4. T0: Its initial kinetic energy in MeV
+        3.5. Gen: Its generation
+    4. Additions:
+    5. Child: List of secondary particles. They have the same parameters.
+    """
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
                  RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,

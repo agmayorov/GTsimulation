@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
@@ -92,10 +93,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-Particle">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -136,14 +133,20 @@
 <li class="toctree-l2"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums">Particle.Generators.Spectrums module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines"><code class="docutils literal notranslate"><span class="pre">Monolines</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">Monolines.GenerateEnergySpectrum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines.__init__"><code class="docutils literal notranslate"><span class="pre">Monolines.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines._abc_impl"><code class="docutils literal notranslate"><span class="pre">Monolines._abc_impl</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum.GenerateEnergySpectrum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum.__init__"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum._abc_impl"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum._abc_impl</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform"><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">Uniform.GenerateEnergySpectrum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform.__init__"><code class="docutils literal notranslate"><span class="pre">Uniform.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform._abc_impl"><code class="docutils literal notranslate"><span class="pre">Uniform._abc_impl</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -181,6 +184,16 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="Particle.Flux.Flux.GenerateParticles">
 <span class="sig-name descname"><span class="pre">GenerateParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.GenerateParticles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.GenerateParticles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Flux.Flux.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#Particle.Flux.GeneratorModes" title="Particle.Flux.GeneratorModes"><span class="pre">GeneratorModes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GeneratorModes.Inward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.,</span> <span class="pre">0.,</span> <span class="pre">0.])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nevents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToMeters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Flux.html#Flux.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Flux.Flux.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Particle.Flux.Flux._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#Particle.Flux.Flux._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -258,12 +271,22 @@
 <span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#CRParticle.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.CRParticle.UpdateState" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Particle.CRParticle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([1,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([1,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#CRParticle.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.CRParticle.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="Particle.Particle.Particle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Particle.Particle.</span></span><span class="sig-name descname"><span class="pre">Particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PDG</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#Particle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.Particle" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Particle.Particle.Particle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PDG</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Particle/Particle.html#Particle.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Particle.Particle.Particle.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

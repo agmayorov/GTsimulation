@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="GT package" href="GT.html" />
-    <link rel="prev" title="GTsimulation documentation" href="index.html" /> 
+    <link rel="prev" title="Getting started" href="install.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">GTsimulation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
@@ -53,10 +54,6 @@
 <li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -93,7 +90,10 @@
 <li class="toctree-l2"><a class="reference internal" href="GT.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="GT.Algos.html">GT.Algos package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#module-GT.Algos.BunemanBoris">GT.Algos.BunemanBoris module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#module-GT.Algos.BunemanBoris">GT.Algos.BunemanBoris module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="GT.Algos.html#GT.Algos.BunemanBoris.BunemanBorisSimulator"><code class="docutils literal notranslate"><span class="pre">BunemanBorisSimulator</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#module-GT.Algos">Module contents</a></li>
 </ul>
 </li>
@@ -108,6 +108,15 @@
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.RadLossStep"><code class="docutils literal notranslate"><span class="pre">GTSimulator.RadLossStep()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.SaveStep"><code class="docutils literal notranslate"><span class="pre">GTSimulator.SaveStep()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.Update"><code class="docutils literal notranslate"><span class="pre">GTSimulator.Update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__Decay"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__Decay()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetBrck"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetBrck()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetEMFF"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetEMFF()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetFlux"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetFlux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetMedium"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetMedium()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetNuclearInteractions"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetNuclearInteractions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetSave"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetSave()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__init__"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTSimulator._abc_impl</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.refreshParams"><code class="docutils literal notranslate"><span class="pre">GTSimulator.refreshParams()</span></code></a></li>
 </ul>
 </li>
@@ -123,18 +132,18 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html#module-GeantInteraction.functions">GeantInteraction.functions module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="GeantInteraction.html#GeantInteraction.functions.G4Decay"><code class="docutils literal notranslate"><span class="pre">G4Decay()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="GeantInteraction.html#GeantInteraction.functions.G4Interaction"><code class="docutils literal notranslate"><span class="pre">G4Interaction()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="GeantInteraction.html#GeantInteraction.functions.G4Shower"><code class="docutils literal notranslate"><span class="pre">G4Shower()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html#geantinteraction-functions-module">GeantInteraction.functions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html#module-GeantInteraction">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Global.html">Global package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Global.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global.codes">Global.codes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global.codes">Global.codes module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.codes.BreakCode"><code class="docutils literal notranslate"><span class="pre">BreakCode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.codes.BreakIndex"><code class="docutils literal notranslate"><span class="pre">BreakIndex</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.codes.SaveCode"><code class="docutils literal notranslate"><span class="pre">SaveCode</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global.consts">Global.consts module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.consts.Constants"><code class="docutils literal notranslate"><span class="pre">Constants</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Constants.alpha"><code class="docutils literal notranslate"><span class="pre">Constants.alpha</span></code></a></li>
@@ -157,12 +166,6 @@
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Origins.Unknown"><code class="docutils literal notranslate"><span class="pre">Origins.Unknown</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.consts.Regions"><code class="docutils literal notranslate"><span class="pre">Regions</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Regions.Galaxy"><code class="docutils literal notranslate"><span class="pre">Regions.Galaxy</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Regions.Heliosphere"><code class="docutils literal notranslate"><span class="pre">Regions.Heliosphere</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Regions.Magnetosphere"><code class="docutils literal notranslate"><span class="pre">Regions.Magnetosphere</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.consts.Units"><code class="docutils literal notranslate"><span class="pre">Units</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Units.AU2km"><code class="docutils literal notranslate"><span class="pre">Units.AU2km</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.consts.Units.AU2m"><code class="docutils literal notranslate"><span class="pre">Units.AU2m</span></code></a></li>
@@ -182,33 +185,95 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global.functions">Global.functions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.functions.load_pamela"><code class="docutils literal notranslate"><span class="pre">load_pamela()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.functions.vecRotMat"><code class="docutils literal notranslate"><span class="pre">vecRotMat()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Global.html#module-Global.regions">Global.regions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions.Regions"><code class="docutils literal notranslate"><span class="pre">Regions</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions.Regions.Galaxy"><code class="docutils literal notranslate"><span class="pre">Regions.Galaxy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions.Regions.Heliosphere"><code class="docutils literal notranslate"><span class="pre">Regions.Heliosphere</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions.Regions.Magnetosphere"><code class="docutils literal notranslate"><span class="pre">Regions.Magnetosphere</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._AbsRegion"><code class="docutils literal notranslate"><span class="pre">_AbsRegion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion._abc_impl"><code class="docutils literal notranslate"><span class="pre">_AbsRegion._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.additions"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.additions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.transform"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._Galaxy"><code class="docutils literal notranslate"><span class="pre">_Galaxy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Galaxy._abc_impl"><code class="docutils literal notranslate"><span class="pre">_Galaxy._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Galaxy.additions"><code class="docutils literal notranslate"><span class="pre">_Galaxy.additions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._Heliosphere"><code class="docutils literal notranslate"><span class="pre">_Heliosphere</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere._abc_impl"><code class="docutils literal notranslate"><span class="pre">_Heliosphere._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere.additions"><code class="docutils literal notranslate"><span class="pre">_Heliosphere.additions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere._abc_impl"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.additions"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.additions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.transform"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MagneticFields.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.Galaxy.html">MagneticFields.Galaxy package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#module-MagneticFields.Galaxy.JF12mod">MagneticFields.Galaxy.JF12mod module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#module-MagneticFields.Galaxy.JF12mod">MagneticFields.Galaxy.JF12mod module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Galaxy.html#MagneticFields.Galaxy.JF12mod.JF12mod"><code class="docutils literal notranslate"><span class="pre">JF12mod</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html#module-MagneticFields.Galaxy">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.Heliosphere.html">MagneticFields.Heliosphere package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#module-MagneticFields.Heliosphere.Parker">MagneticFields.Heliosphere.Parker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#module-MagneticFields.Heliosphere.Parker">MagneticFields.Heliosphere.Parker module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Heliosphere.html#MagneticFields.Heliosphere.Parker.Parker"><code class="docutils literal notranslate"><span class="pre">Parker</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Heliosphere.html#module-MagneticFields.Heliosphere">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.Magnetosphere.html">MagneticFields.Magnetosphere package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Additions">MagneticFields.Magnetosphere.Additions module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Dipole">MagneticFields.Magnetosphere.Dipole module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Gauss">MagneticFields.Magnetosphere.Gauss module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Summary">MagneticFields.Magnetosphere.Summary module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Tsyganenko">MagneticFields.Magnetosphere.Tsyganenko module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Additions">MagneticFields.Magnetosphere.Additions module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.AddLon"><code class="docutils literal notranslate"><span class="pre">AddLon()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.AddTrajectory"><code class="docutils literal notranslate"><span class="pre">AddTrajectory()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.FieldLine"><code class="docutils literal notranslate"><span class="pre">FieldLine()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.FindParticleOrigin"><code class="docutils literal notranslate"><span class="pre">FindParticleOrigin()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetBCparams"><code class="docutils literal notranslate"><span class="pre">GetBCparams()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetEarthBfieldLine"><code class="docutils literal notranslate"><span class="pre">GetEarthBfieldLine()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetParticleOrigin"><code class="docutils literal notranslate"><span class="pre">GetParticleOrigin()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Additions.GetTrackParams"><code class="docutils literal notranslate"><span class="pre">GetTrackParams()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Dipole">MagneticFields.Magnetosphere.Dipole module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Dipole.Dipole"><code class="docutils literal notranslate"><span class="pre">Dipole</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Gauss">MagneticFields.Magnetosphere.Gauss module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.Gauss"><code class="docutils literal notranslate"><span class="pre">Gauss</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussModels"><code class="docutils literal notranslate"><span class="pre">GaussModels</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Gauss.GaussTypes"><code class="docutils literal notranslate"><span class="pre">GaussTypes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Summary">MagneticFields.Magnetosphere.Summary module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Summary.Summary"><code class="docutils literal notranslate"><span class="pre">Summary</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere.Tsyganenko">MagneticFields.Magnetosphere.Tsyganenko module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="MagneticFields.Magnetosphere.html#MagneticFields.Magnetosphere.Tsyganenko.Tsyganenko"><code class="docutils literal notranslate"><span class="pre">Tsyganenko</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Magnetosphere.html#module-MagneticFields.Magnetosphere">Module contents</a></li>
 </ul>
 </li>
@@ -223,28 +288,48 @@
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield.ToMeters"><code class="docutils literal notranslate"><span class="pre">AbsBfield.ToMeters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield.ToTesla"><code class="docutils literal notranslate"><span class="pre">AbsBfield.ToTesla()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield.UpdateState"><code class="docutils literal notranslate"><span class="pre">AbsBfield.UpdateState()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield.__init__"><code class="docutils literal notranslate"><span class="pre">AbsBfield.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="MagneticFields.html#MagneticFields.magnetic_field.AbsBfield._abc_impl"><code class="docutils literal notranslate"><span class="pre">AbsBfield._abc_impl</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Medium.html">Medium package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html#module-Medium">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Medium.Magnetosphere.html">Medium.Magnetosphere package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#medium-magnetosphere-gtiri2016-module">Medium.Magnetosphere.GTiri2016 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#medium-magnetosphere-gtnrlmsis-module">Medium.Magnetosphere.GTnrlmsis module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere.GTiri2016">Medium.Magnetosphere.GTiri2016 module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTiri2016.GTiri2016"><code class="docutils literal notranslate"><span class="pre">GTiri2016</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere.GTnrlmsis">Medium.Magnetosphere.GTnrlmsis module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis"><code class="docutils literal notranslate"><span class="pre">GTnrlmsis</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.Magnetosphere.html#module-Medium.Magnetosphere">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Medium.html#medium-general-medium-module">Medium.general_medium module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Medium.html#module-Medium.general_medium">Medium.general_medium module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium.__init__"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium.calculate_model"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium.calculate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium.get_density"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium.get_density()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.general_medium.GTGeneralMedium.get_element_abundance"><code class="docutils literal notranslate"><span class="pre">GTGeneralMedium.get_element_abundance()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html#module-Medium.vacuum">Medium.vacuum module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum"><code class="docutils literal notranslate"><span class="pre">GTVacuum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum.__init__"><code class="docutils literal notranslate"><span class="pre">GTVacuum.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTVacuum._abc_impl</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum.calculate_model"><code class="docutils literal notranslate"><span class="pre">GTVacuum.calculate_model()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum.get_density"><code class="docutils literal notranslate"><span class="pre">GTVacuum.get_density()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Medium.html#Medium.vacuum.GTVacuum.get_element_abundance"><code class="docutils literal notranslate"><span class="pre">GTVacuum.get_element_abundance()</span></code></a></li>
@@ -252,14 +337,18 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="Medium.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Particle.html">Particle package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html">Particle.Generators package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums">Particle.Generators.Spectrums module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums">Particle.Generators.Spectrums module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines"><code class="docutils literal notranslate"><span class="pre">Monolines</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform"><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators">Module contents</a></li>
 </ul>
 </li>
@@ -272,6 +361,8 @@
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.GenerateCoordinates"><code class="docutils literal notranslate"><span class="pre">Flux.GenerateCoordinates()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.GenerateEnergySpectrum"><code class="docutils literal notranslate"><span class="pre">Flux.GenerateEnergySpectrum()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.GenerateParticles"><code class="docutils literal notranslate"><span class="pre">Flux.GenerateParticles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.__init__"><code class="docutils literal notranslate"><span class="pre">Flux.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux._abc_impl"><code class="docutils literal notranslate"><span class="pre">Flux._abc_impl</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Particle.html#Particle.Flux.GeneratorModes"><code class="docutils literal notranslate"><span class="pre">GeneratorModes</span></code></a><ul>
@@ -298,9 +389,13 @@
 <li class="toctree-l2"><a class="reference internal" href="Particle.html#module-Particle.Particle">Particle.Particle module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="Particle.html#Particle.Particle.CRParticle"><code class="docutils literal notranslate"><span class="pre">CRParticle</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Particle.CRParticle.UpdateState"><code class="docutils literal notranslate"><span class="pre">CRParticle.UpdateState()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Particle.CRParticle.__init__"><code class="docutils literal notranslate"><span class="pre">CRParticle.__init__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="Particle.html#Particle.Particle.Particle"><code class="docutils literal notranslate"><span class="pre">Particle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Particle.html#Particle.Particle.Particle"><code class="docutils literal notranslate"><span class="pre">Particle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Particle.Particle.__init__"><code class="docutils literal notranslate"><span class="pre">Particle.__init__()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html#module-Particle.functions">Particle.functions module</a><ul>
@@ -313,10 +408,6 @@
 <li class="toctree-l2"><a class="reference internal" href="Particle.html#module-Particle">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </div>
 </section>
@@ -325,7 +416,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="GTsimulation documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="GT.html" class="btn btn-neutral float-right" title="GT package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

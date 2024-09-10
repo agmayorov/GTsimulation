@@ -46,11 +46,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="GT.html">GT package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="MagneticFields.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="MagneticFields.Galaxy.html">MagneticFields.Galaxy package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">MagneticFields.Heliosphere package</a></li>
@@ -59,15 +61,10 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields.magnetic_field">MagneticFields.magnetic_field module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="MagneticFields.html#module-MagneticFields">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -132,6 +129,36 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker.UpdateState">
 <span class="sig-name descname"><span class="pre">UpdateState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Heliosphere/Parker.html#Parker.UpdateState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker.UpdateState" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">date</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_kmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_kmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.4</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Heliosphere/Parker.html#Parker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker.__set_noise">
+<span class="sig-name descname"><span class="pre">__set_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_kmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_kmax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker.__set_noise" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker.__set_time">
+<span class="sig-name descname"><span class="pre">__set_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">datetime</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker.__set_time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker._abc_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker._calc_noise">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_calc_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_rad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_rad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_rad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_2d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_2d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_2d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Heliosphere/Parker.html#Parker._calc_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker._calc_noise" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MagneticFields.Heliosphere.Parker.Parker._calc_regular">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_calc_regular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_wind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">years11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dalpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hcs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MagneticFields/Heliosphere/Parker.html#Parker._calc_regular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MagneticFields.Heliosphere.Parker.Parker._calc_regular" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

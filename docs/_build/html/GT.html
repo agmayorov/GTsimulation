@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">GTsimulation</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">GT package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
@@ -70,10 +71,6 @@
 <li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Particle.html">Particle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackEarth.html">PlotTrackEarth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackGalaxy.html">PlotTrackGalaxy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotTrackHelio.html">PlotTrackHelio module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RunGT.html">RunGT module</a></li>
 </ul>
 </li>
 </ul>
@@ -114,6 +111,8 @@
 <li class="toctree-l2"><a class="reference internal" href="GT.Algos.html#module-GT.Algos.BunemanBoris">GT.Algos.BunemanBoris module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="GT.Algos.html#GT.Algos.BunemanBoris.BunemanBorisSimulator"><code class="docutils literal notranslate"><span class="pre">BunemanBorisSimulator</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#GT.Algos.BunemanBoris.BunemanBorisSimulator.AlgoStep"><code class="docutils literal notranslate"><span class="pre">BunemanBorisSimulator.AlgoStep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#GT.Algos.BunemanBoris.BunemanBorisSimulator.__algo"><code class="docutils literal notranslate"><span class="pre">BunemanBorisSimulator.__algo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.Algos.html#GT.Algos.BunemanBoris.BunemanBorisSimulator._abc_impl"><code class="docutils literal notranslate"><span class="pre">BunemanBorisSimulator._abc_impl</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -133,6 +132,84 @@
 <dt class="sig sig-object py" id="GT.GT.GTSimulator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GT.GT.</span></span><span class="sig-name descname"><span class="pre">GTSimulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Bfield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Efield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Region</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Regions.Magnetosphere</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2008,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RadLosses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Monolines'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TrackParams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParticleOrigin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IsFirstRun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ForwardTrck</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BreakCondition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCcenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UseDecay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">InteractNUC</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GT/GT.html#GTSimulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GT.GT.GTSimulator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Region</strong> (<em>Global.Region</em>) – The region of the in which the simulation is taken place. The parameter may have values as
+<cite>Global.Region.Magnetosphere</cite>, <cite>Global.Region.Heliosphere</cite>, <cite>Global.Region.Galaxy</cite>.
+See <a class="reference internal" href="Global.html#module-Global.regions" title="Global.regions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.regions</span></code></a>.</p></li>
+<li><p><strong>Bfield</strong> (<em>str</em><em> or </em><em>list</em>) – The name of the magnetic field. It should be inside the package <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> in the
+corresponding <cite>Region</cite>. To add some parameters use <cite>list</cite> format and pass the parameters as a <cite>dict</cite>.
+Example <cite>[NAME, {“param1”: value1, “param2”, value2}]</cite></p></li>
+<li><p><strong>Efield</strong> (<em>str</em><em> or </em><em>list</em>) – Electrical field. Similar to <span class="xref std std-ref">Bfield</span></p></li>
+<li><p><strong>Medium</strong> (<em>str</em><em> or </em><em>list</em>) – The medium where particles may go into an interaction. Syntax similar to <span class="xref std std-ref">Bfield</span>.
+See <a class="reference internal" href="Medium.html#module-Medium" title="Medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Medium</span></code></a>.</p></li>
+<li><p><strong>Date</strong> (<em>datetime.datetime</em>) – Date that is used to initialize the fields</p></li>
+<li><p><strong>RadLosses</strong> (<em>bool</em>) – a <cite>bool</cite> flag that turns the calculations of radiation losses of the particles on.</p></li>
+<li><p><strong>Particles</strong> (<em>str</em><em> or </em><em>list</em>) – The parameter is responsible for the initial particle flux generation. Its value defines the
+energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
+The structure is similar  to <span class="xref std std-ref">Bfield</span>. The list of available energy spectrums is available
+here <a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums" title="Particle.Generators.Spectrums"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Particle.Generators.Spectrums</span></code></a>․ For more information regarding flux also
+see <a class="reference internal" href="Particle.html#module-Particle.Flux" title="Particle.Flux"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Particle.Flux</span></code></a>. <em>Note</em>: that instead of <cite>Center</cite> parameter <cite>Transform</cite> may be passed
+its value has the following form <cite>[Name of the coordinate system, [coordinates]]</cite>. Example
+<cite>[“LLA”, [60, 70, 1000]]</cite> (lat [degree], long [degree], alt [meters]).
+See <a class="reference internal" href="Global.html#Global.regions._AbsRegion.transform" title="Global.regions._AbsRegion.transform"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.regions._AbsRegion.transform</span></code></a> for available transforms to a given region.</p></li>
+<li><p><strong>TrackParams</strong></p></li>
+<li><p><strong>ParticleOrigin</strong></p></li>
+<li><p><strong>IsFirstRun</strong></p></li>
+<li><p><strong>ForwardTrck</strong> (<em>1</em><em> or </em><em>-1</em>) – 1 refers to forward tracing, and -1 to the back tracing</p></li>
+<li><p><strong>Save</strong> (<em>int</em><em> or </em><em>list</em>) – The number of steps that are saved. If the value is 0, then only staring
+and finishing points are saved. The default parameters that are saved are <cite>Coordinates</cite> and
+<cite>Velocities</cite>. Other parameters that one needs to save as well, can be turned on by passing a <cite>list</cite>
+instead of <cite>int</cite> where the second element is a <cite>dict</cite> that’s key is the parameter name and value is
+<cite>True</cite>. Example <cite>[10, {“Clock”: True}]</cite>. To available parameters are listed in
+<a class="reference internal" href="_autosummary/Global.codes.SaveCode.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
+<li><p><strong>Num</strong> (<em>int</em>) – The number of simulation steps</p></li>
+<li><p><strong>Step</strong> (<em>float</em>) – The time step of simulation in seconds</p></li>
+<li><p><strong>Nfiles</strong> (<em>int</em>) – Number of files. If <span class="xref std std-ref">Particles</span> creates a flux of <cite>Nevents</cite> particles then the total number of
+particles that are going to be simulated is <cite>Nevents`x`Nfiles</cite>.</p></li>
+<li><p><strong>Output</strong> (<em>str</em><em> or </em><em>None</em>) – If <cite>None</cite> no files are saved. Otherwise, the name of the saved <em>.npy</em> file. If <span class="xref std std-ref">Nfiles</span> is
+greater than 1. Then the names of the saved files will have the following form <a href="#id1"><span class="problematic" id="id2">`</span></a>Output`_i.npy</p></li>
+<li><p><strong>Verbose</strong> (<em>bool</em>) – If <cite>True</cite> logs are printed</p></li>
+<li><p><strong>BreakCondition</strong> (<em>dict</em><em> or </em><em>None</em>) – If <cite>None</cite> no break conditions are applied. Otherwise, a <cite>dict</cite> with a key corresponding to
+the <cite>BreakCondition</cite> name and value corresponding to its value is passed. Example:
+<cite>{“Rmax”: 10}</cite>. In the example the maximal radius of the particle is 10 (in :py:mod:
+<cite>MagneticFields</cite> distance units). See the full list of break conditions
+<a class="reference internal" href="_autosummary/Global.codes.BreakCode.html#Global.codes.BreakCode" title="Global.codes.BreakCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakCode</span></code></a>.</p></li>
+<li><p><strong>BCcenter</strong> (<em>np.ndarray</em>) – A 3d array of point (in <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> distance units). It represents the <strong>(0, 0, 0)</strong>
+relative to which <cite>Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin</cite> are calculated.
+Default <cite>np.array([0, 0, 0])</cite>.</p></li>
+<li><p><strong>UseDecay</strong> – If <cite>True</cite> the particles may decay.</p></li>
+<li><p><strong>InteractNUC</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+<p>A dictionary is saved. It has the following keys.</p>
+<ol class="arabic simple">
+<li><p>Track: The parameters that are saved along the trajectory. See <a class="reference internal" href="_autosummary/Global.codes.SaveCode.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
+<li><dl class="simple">
+<dt>BC: The parameters regarding the simulation end.</dt><dd><p>2.1. WOut: The code of break. See <a class="reference internal" href="_autosummary/Global.codes.BreakIndex.html#Global.codes.BreakIndex" title="Global.codes.BreakIndex"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakIndex</span></code></a>
+2.2. lon_total:
+2.3. status</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Particle: Information about the particle</dt><dd><p>3.1. PDG: Its PDG code
+3.2. M: The mass in MeV
+3.3. Z: The charge of the particle in e units.
+3.4. T0: Its initial kinetic energy in MeV
+3.5. Gen: Its generation</p>
+</dd>
+</dl>
+</li>
+<li><p>Additions:</p></li>
+<li><p>Child: List of secondary particles. They have the same parameters.</p></li>
+</ol>
 <dl class="py method">
 <dt class="sig sig-object py" id="GT.GT.GTSimulator.AlgoStep">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AlgoStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GT/GT.html#GTSimulator.AlgoStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GT.GT.GTSimulator.AlgoStep" title="Link to this definition"></a></dt>
@@ -161,6 +238,51 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="GT.GT.GTSimulator.Update">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PathLen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TotPathLen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TotTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GT/GT.html#GTSimulator.Update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GT.GT.GTSimulator.Update" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__Decay">
+<span class="sig-name descname"><span class="pre">__Decay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GenMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TotTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod_tracks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__Decay" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetBrck">
+<span class="sig-name descname"><span class="pre">__SetBrck</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Brck</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetBrck" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetEMFF">
+<span class="sig-name descname"><span class="pre">__SetEMFF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Bfield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Efield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetEMFF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetFlux">
+<span class="sig-name descname"><span class="pre">__SetFlux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward_trck</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetFlux" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetMedium">
+<span class="sig-name descname"><span class="pre">__SetMedium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetMedium" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetNuclearInteractions">
+<span class="sig-name descname"><span class="pre">__SetNuclearInteractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">UseDecay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UseInteractNUC</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetNuclearInteractions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetSave">
+<span class="sig-name descname"><span class="pre">__SetSave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Save</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetSave" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Bfield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Efield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Region</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Regions.Magnetosphere</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2008,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RadLosses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Monolines'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TrackParams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParticleOrigin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IsFirstRun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ForwardTrck</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nfiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BreakCondition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCcenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UseDecay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">InteractNUC</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GT/GT.html#GTSimulator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GT.GT.GTSimulator.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator._abc_impl">
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#GT.GT.GTSimulator._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
