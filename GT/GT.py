@@ -31,7 +31,7 @@ class GTSimulator(ABC):
 
     :param Bfield: The name of the magnetic field. It should be inside the package :py:mod:`MagneticFields` in the
                    corresponding `Region`. To add some parameters use `list` format and pass the parameters as a `dict`.
-                   Example `[NAME, {"param1": value1, "param2", value2}]`
+                   Example `[NAME, {"param1": value1, "param2": value2}]`
     :type Bfield: str or list
 
     :param Efield: Electrical field. Similar to :ref:`Bfield`
@@ -51,7 +51,9 @@ class GTSimulator(ABC):
                       energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
                       The structure is similar  to :ref:`Bfield`. The list of available energy spectrums is available
                       here :py:mod:`Particle.Generators.Spectrums`․ For more information regarding flux also
-                      see :py:mod:`Particle.Flux`. *Note*: that instead of `Center` parameter `Transform` may be passed
+                      see :py:mod:`Particle.Flux`.
+
+                      **Note**: that instead of `Center` parameter `Transform` may be passed
                       its value has the following form `[Name of the coordinate system, [coordinates]]`. Example
                       `["LLA", [60, 70, 1000]]` (lat [degree], long [degree], alt [meters]).
                       See :py:mod:`Global.regions._AbsRegion.transform` for available transforms to a given region.
@@ -82,7 +84,7 @@ class GTSimulator(ABC):
     :type Nfiles: int
 
     :param Output: If `None` no files are saved. Otherwise, the name of the saved *.npy* file. If :ref:`Nfiles` is
-                   greater than 1. Then the names of the saved files will have the following form `Output`_i.npy
+                   greater than 1. Then the names of the saved files will have the following form `"Output"_i.npy`
     :type Output: str or None
 
     :param Verbose: If `True` logs are printed
@@ -90,8 +92,8 @@ class GTSimulator(ABC):
 
     :param BreakCondition: If `None` no break conditions are applied. Otherwise, a `dict` with a key corresponding to
                            the `BreakCondition` name and value corresponding to its value is passed. Example:
-                           `{"Rmax": 10}`. In the example the maximal radius of the particle is 10 (in :py:mod:
-                           `MagneticFields` distance units). See the full list of break conditions
+                           `{"Rmax": 10}`. In the example the maximal radius of the particle is 10 (in
+                           :py:mod:`MagneticFields` distance units). See the full list of break conditions
                            :py:mod:`Global.codes.BreakCode`.
     :type BreakCondition: dict or None
 
@@ -100,8 +102,8 @@ class GTSimulator(ABC):
                      Default `np.array([0, 0, 0])`.
     :type BCcenter: np.ndarray
 
-    :param UseDecay: If `True` the particles may decay.
-    :type UseDecay:
+    :param UseDecay: If `True` the particles may decay. Otherwise, not.
+    :type UseDecay: bool
 
     :param InteractNUC:
 
@@ -111,13 +113,19 @@ class GTSimulator(ABC):
     1. Track: The parameters that are saved along the trajectory. See :py:mod:`Global.codes.SaveCode`.
     2. BC: The parameters regarding the simulation end.
         2.1. WOut: The code of break. See :py:mod:`Global.codes.BreakIndex`
+
         2.2. lon_total:
+
         2.3. status
     3. Particle: Information about the particle
         3.1. PDG: Its PDG code
+
         3.2. M: The mass in MeV
+
         3.3. Z: The charge of the particle in e units.
+
         3.4. T0: Its initial kinetic energy in MeV
+
         3.5. Gen: Its generation
     4. Additions:
     5. Child: List of secondary particles. They have the same parameters.

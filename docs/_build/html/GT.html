@@ -141,20 +141,22 @@
 See <a class="reference internal" href="Global.html#module-Global.regions" title="Global.regions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.regions</span></code></a>.</p></li>
 <li><p><strong>Bfield</strong> (<em>str</em><em> or </em><em>list</em>) – The name of the magnetic field. It should be inside the package <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> in the
 corresponding <cite>Region</cite>. To add some parameters use <cite>list</cite> format and pass the parameters as a <cite>dict</cite>.
-Example <cite>[NAME, {“param1”: value1, “param2”, value2}]</cite></p></li>
+Example <cite>[NAME, {“param1”: value1, “param2”: value2}]</cite></p></li>
 <li><p><strong>Efield</strong> (<em>str</em><em> or </em><em>list</em>) – Electrical field. Similar to <span class="xref std std-ref">Bfield</span></p></li>
 <li><p><strong>Medium</strong> (<em>str</em><em> or </em><em>list</em>) – The medium where particles may go into an interaction. Syntax similar to <span class="xref std std-ref">Bfield</span>.
 See <a class="reference internal" href="Medium.html#module-Medium" title="Medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Medium</span></code></a>.</p></li>
 <li><p><strong>Date</strong> (<em>datetime.datetime</em>) – Date that is used to initialize the fields</p></li>
 <li><p><strong>RadLosses</strong> (<em>bool</em>) – a <cite>bool</cite> flag that turns the calculations of radiation losses of the particles on.</p></li>
-<li><p><strong>Particles</strong> (<em>str</em><em> or </em><em>list</em>) – The parameter is responsible for the initial particle flux generation. Its value defines the
+<li><p><strong>Particles</strong> (<em>str</em><em> or </em><em>list</em>) – <p>The parameter is responsible for the initial particle flux generation. Its value defines the
 energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
 The structure is similar  to <span class="xref std std-ref">Bfield</span>. The list of available energy spectrums is available
 here <a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums" title="Particle.Generators.Spectrums"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Particle.Generators.Spectrums</span></code></a>․ For more information regarding flux also
-see <a class="reference internal" href="Particle.html#module-Particle.Flux" title="Particle.Flux"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Particle.Flux</span></code></a>. <em>Note</em>: that instead of <cite>Center</cite> parameter <cite>Transform</cite> may be passed
+see <a class="reference internal" href="Particle.html#module-Particle.Flux" title="Particle.Flux"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Particle.Flux</span></code></a>.</p>
+<p><strong>Note</strong>: that instead of <cite>Center</cite> parameter <cite>Transform</cite> may be passed
 its value has the following form <cite>[Name of the coordinate system, [coordinates]]</cite>. Example
 <cite>[“LLA”, [60, 70, 1000]]</cite> (lat [degree], long [degree], alt [meters]).
-See <a class="reference internal" href="Global.html#Global.regions._AbsRegion.transform" title="Global.regions._AbsRegion.transform"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.regions._AbsRegion.transform</span></code></a> for available transforms to a given region.</p></li>
+See <a class="reference internal" href="Global.html#Global.regions._AbsRegion.transform" title="Global.regions._AbsRegion.transform"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.regions._AbsRegion.transform</span></code></a> for available transforms to a given region.</p>
+</p></li>
 <li><p><strong>TrackParams</strong></p></li>
 <li><p><strong>ParticleOrigin</strong></p></li>
 <li><p><strong>IsFirstRun</strong></p></li>
@@ -170,17 +172,17 @@ instead of <cite>int</cite> where the second element is a <cite>dict</cite> that
 <li><p><strong>Nfiles</strong> (<em>int</em>) – Number of files. If <span class="xref std std-ref">Particles</span> creates a flux of <cite>Nevents</cite> particles then the total number of
 particles that are going to be simulated is <cite>Nevents`x`Nfiles</cite>.</p></li>
 <li><p><strong>Output</strong> (<em>str</em><em> or </em><em>None</em>) – If <cite>None</cite> no files are saved. Otherwise, the name of the saved <em>.npy</em> file. If <span class="xref std std-ref">Nfiles</span> is
-greater than 1. Then the names of the saved files will have the following form <a href="#id1"><span class="problematic" id="id2">`</span></a>Output`_i.npy</p></li>
+greater than 1. Then the names of the saved files will have the following form <cite>“Output”_i.npy</cite></p></li>
 <li><p><strong>Verbose</strong> (<em>bool</em>) – If <cite>True</cite> logs are printed</p></li>
 <li><p><strong>BreakCondition</strong> (<em>dict</em><em> or </em><em>None</em>) – If <cite>None</cite> no break conditions are applied. Otherwise, a <cite>dict</cite> with a key corresponding to
 the <cite>BreakCondition</cite> name and value corresponding to its value is passed. Example:
-<cite>{“Rmax”: 10}</cite>. In the example the maximal radius of the particle is 10 (in :py:mod:
-<cite>MagneticFields</cite> distance units). See the full list of break conditions
+<cite>{“Rmax”: 10}</cite>. In the example the maximal radius of the particle is 10 (in
+<a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> distance units). See the full list of break conditions
 <a class="reference internal" href="_autosummary/Global.codes.BreakCode.html#Global.codes.BreakCode" title="Global.codes.BreakCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakCode</span></code></a>.</p></li>
 <li><p><strong>BCcenter</strong> (<em>np.ndarray</em>) – A 3d array of point (in <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> distance units). It represents the <strong>(0, 0, 0)</strong>
 relative to which <cite>Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin</cite> are calculated.
 Default <cite>np.array([0, 0, 0])</cite>.</p></li>
-<li><p><strong>UseDecay</strong> – If <cite>True</cite> the particles may decay.</p></li>
+<li><p><strong>UseDecay</strong> (<em>bool</em>) – If <cite>True</cite> the particles may decay. Otherwise, not.</p></li>
 <li><p><strong>InteractNUC</strong></p></li>
 </ul>
 </dd>
@@ -189,21 +191,21 @@ Default <cite>np.array([0, 0, 0])</cite>.</p></li>
 </dd>
 </dl>
 <p>A dictionary is saved. It has the following keys.</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p>Track: The parameters that are saved along the trajectory. See <a class="reference internal" href="_autosummary/Global.codes.SaveCode.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
-<li><dl class="simple">
-<dt>BC: The parameters regarding the simulation end.</dt><dd><p>2.1. WOut: The code of break. See <a class="reference internal" href="_autosummary/Global.codes.BreakIndex.html#Global.codes.BreakIndex" title="Global.codes.BreakIndex"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakIndex</span></code></a>
-2.2. lon_total:
-2.3. status</p>
+<li><dl>
+<dt>BC: The parameters regarding the simulation end.</dt><dd><p>2.1. WOut: The code of break. See <a class="reference internal" href="_autosummary/Global.codes.BreakIndex.html#Global.codes.BreakIndex" title="Global.codes.BreakIndex"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakIndex</span></code></a></p>
+<p>2.2. lon_total:</p>
+<p>2.3. status</p>
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
-<dt>Particle: Information about the particle</dt><dd><p>3.1. PDG: Its PDG code
-3.2. M: The mass in MeV
-3.3. Z: The charge of the particle in e units.
-3.4. T0: Its initial kinetic energy in MeV
-3.5. Gen: Its generation</p>
+<li><dl>
+<dt>Particle: Information about the particle</dt><dd><p>3.1. PDG: Its PDG code</p>
+<p>3.2. M: The mass in MeV</p>
+<p>3.3. Z: The charge of the particle in e units.</p>
+<p>3.4. T0: Its initial kinetic energy in MeV</p>
+<p>3.5. Gen: Its generation</p>
 </dd>
 </dl>
 </li>
