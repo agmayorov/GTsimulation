@@ -46,7 +46,7 @@ class _Magnetosphere(_AbsRegion):
             transformer = pyproj.Transformer.from_crs({"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
                                                       {"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'})
             # Matlab lla2ecef([lat, long, altitude]) -> python transformer.transform(long, lat, altitude, radians=False)
-            x, y, z = transformer.transform(y, x, z, radians=False)
+            x, y, z = transformer.transform(y, x, z*1000, radians=False)
             x, y, z = x/units, y/units, z/units
         return x, y, z
 
