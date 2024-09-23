@@ -166,24 +166,29 @@ class GTSimulator(ABC):
             print(f"\tRadiation Losses: {self.UseRadLosses}")
             print()
 
-        self.ParticleOrigin = ParticleOrigin
-        self.ParticleOriginIsOn = False
-        self.TrackParamsIsOn = False
-        if self.ParticleOrigin:
-            self.ParticleOriginIsOn = True
-            self.TrackParams = True
-            self.TrackParamsIsOn = True
-        else:
-            self.TrackParams = TrackParams
-        if self.TrackParams:
-            self.TrackParamsIsOn = True
-        self.IsFirstRun = IsFirstRun
-
         self.Region = Region
-
         if self.Verbose:
             print(f"\tRegion: {self.Region.name}")
             print()
+
+        self.ParticleOrigin = ParticleOrigin
+        self.ParticleOriginIsOn = False
+        self.TrackParamsIsOn = False
+        self.TrackParams = self.Region.value.SaveAdd
+        if self.ParticleOrigin:
+            self.ParticleOriginIsOn = True
+            # TODO modify
+            TrackParams = True
+
+        self.__SetAdditions(TrackParams)
+
+        if self.TrackParamsIsOn:
+            if not isinstance(Save, list):
+                Save = [Save, {"Bfield": True}]
+            elif "Bfield" not in Save[1]:
+                Save[1] = Save[1] | {"Bfield": True}
+
+        self.IsFirstRun = IsFirstRun
 
         self.ToMeters = 1
         self.Bfield = None
@@ -247,81 +252,86 @@ class GTSimulator(ABC):
         del self.__names, self.__vals
 
         self.Verbose = Verbose
-        # if self.Verbose:
-        #     print("Creating simulator object...")
+        if self.Verbose:
+            print("Creating simulator object...")
 
         self.Date = Date
-        # if self.Verbose:
-        #     print(f"\tDate: {self.Date}")
-        #     print()
+        if self.Verbose:
+            print(f"\tDate: {self.Date}")
+            print()
 
         self.Step = Step
         self.Num = int(Num)
 
-        # if self.Verbose:
-        #     print(f"\tTime step: {self.Step}")
-        #     print(f"\tNumber of steps: {self.Num}")
-        #     print()
+        if self.Verbose:
+            print(f"\tTime step: {self.Step}")
+            print(f"\tNumber of steps: {self.Num}")
+            print()
 
         self.UseRadLosses = RadLosses
-        # if self.Verbose:
-        #     print(f"\tRadiation Losses: {self.UseRadLosses}")
-        #     print()
+        if self.Verbose:
+            print(f"\tRadiation Losses: {self.UseRadLosses}")
+            print()
+
+        self.Region = Region
+        if self.Verbose:
+            print(f"\tRegion: {self.Region.name}")
+            print()
 
         self.ParticleOrigin = ParticleOrigin
         self.ParticleOriginIsOn = False
         self.TrackParamsIsOn = False
+        self.TrackParams = self.Region.value.SaveAdd
         if self.ParticleOrigin:
             self.ParticleOriginIsOn = True
-            self.TrackParams = True
-            self.TrackParamsIsOn = True
-        else:
-            self.TrackParams = TrackParams
-        if self.TrackParams:
-            self.TrackParamsIsOn = True
+            # TODO modify
+            TrackParams = True
+
+        self.__SetAdditions(TrackParams)
+
+        if self.TrackParamsIsOn:
+            if not isinstance(Save, list):
+                Save = [Save, {"Bfield": True}]
+            elif "Bfield" not in Save[1]:
+                Save[1] = Save[1] | {"Bfield": True}
+
         self.IsFirstRun = IsFirstRun
-
-        self.Region = Region
-
-        # if self.Verbose:
-        #     print(f"\tRegion: {self.Region.name}")
-        #     print()
 
         self.ToMeters = 1
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
-        # if self.Verbose:
-        #     print()
+        if self.Verbose:
+            print()
 
         self.Medium = None
         self.__SetMedium(Medium)
-        # if self.Verbose:
-        #     print()
+        if self.Verbose:
+            print()
 
         self.UseDecay = False
         self.InteractNUC = None
         self.__gen = 1
         self.__SetNuclearInteractions(UseDecay, InteractNUC)
-        # if self.Verbose:
-        #     print()
+        if self.Verbose:
+            print()
 
         self.Particles = None
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
-        # if self.Verbose:
-        #     print()
+        if self.Verbose:
+            print()
 
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
         self.Output = Output
         self.Npts = 2
         self.Save = SaveDef.copy()
-        # if self.Verbose:
-        #     print(f"\tNumber of files: {self.Nfiles}")
-        #     print(f"\tOutput file name: {self.Output}_file_num.npy")
+        if self.Verbose:
+            print(f"\tNumber of files: {self.Nfiles}")
+            print(f"\tOutput file name: {self.Output}_file_num.npy")
         self.__SetSave(Save)
-        # if self.Verbose:
-        #     print()
+        if self.Verbose:
+            print()
 
         self.__brck_index = BreakCode.copy()
         self.__brck_index.pop("Loop")
@@ -330,8 +340,21 @@ class GTSimulator(ABC):
         self.__SetBrck(BreakCondition, BCcenter)
 
         self.index = 0
-        # if self.Verbose:
-        #     print("Simulator created!\n")
+        if self.Verbose:
+            print("Simulator created!\n")
+
+    def __SetAdditions(self, TrackParams):
+        if not isinstance(TrackParams, list):
+            self.TrackParamsIsOn = TrackParams
+            if self.TrackParamsIsOn:
+                self.TrackParams.update((key, True) for key in self.TrackParams)
+        else:
+            self.TrackParamsIsOn = TrackParams[0]
+            if self.TrackParamsIsOn:
+                self.TrackParams.update((key, True) for key in self.TrackParams)
+            for add in TrackParams[1].keys():
+                assert add in self.TrackParams.keys(), f'No such option as "{add}" is allowed'
+                self.TrackParams[add] = TrackParams[1][add]
 
     def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
         self.UseDecay = UseDecay
@@ -436,6 +459,11 @@ class GTSimulator(ABC):
 
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
+
+        # TODO modify
+        Nsave_check = (self.TrackParamsIsOn * self.IsFirstRun * self.TrackParams["GuidingCentre"] * (Nsave != 1))
+        assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
+
         self.Npts = math.ceil(self.Num / Nsave) if Nsave != 0 else 1
         self.Nsave = Nsave
         if self.Verbose:
@@ -620,6 +648,7 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
+                # TODO reduce time of the calculation
                 # Full revolution
                 if self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
                     a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.ParamDict["Date"])
@@ -679,28 +708,31 @@ class GTSimulator(ABC):
                 track["Density"] = Saves[:, SaveCode["Density"]]
 
             RetArr.append({"Track": track,
-                           "BC": {"WOut": brk, "lon_total": lon_total, "Status": status},
+                           "BC": {"WOut": brk, "lon_total": lon_total},
                            "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T, "Gen": Gen},
                            "Child": prod_tracks})
 
-            # Particles in magnetosphere (Part 1)
-            if self.TrackParamsIsOn:
-                if self.Verbose:
-                    print("\t\t\tGet trajectory parameters ...", end=' ')
-                TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
-                RetArr[self.index]["Additions"] = TrackParams_i
-                if self.Verbose:
-                    print("Done")
+            # TODO refactor
+            if self.Region == Regions.Magnetosphere:
+                # Particles in magnetosphere (Part 1)
+                if self.TrackParamsIsOn:
+                    if self.Verbose:
+                        print("\t\t\tGet trajectory parameters ...", end=' ')
+                    TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
+                    RetArr[self.index]["Additions"] = TrackParams_i
+                    if self.Verbose:
+                        print("Done")
 
-            # Particles in magnetosphere (Part 2)
-            if self.ParticleOriginIsOn and self.IsFirstRun:
-                if self.Verbose:
-                    print("\t\t\tGet particle origin ...", end=' ')
-                origin = Additions.FindParticleOrigin(self, RetArr[self.index])
-                RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
-                if self.Verbose:
-                    print(origin.name)
-                    print()
+                # TODO find differences with MATLAB
+                # Particles in magnetosphere (Part 2)
+                if self.ParticleOriginIsOn and self.IsFirstRun:
+                    if self.Verbose:
+                        print("\t\t\tGet particle origin ...", end=' ')
+                    origin = Additions.FindParticleOrigin(self, RetArr[self.index])
+                    RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
+                    if self.Verbose:
+                        print(origin.name)
+                        print()
 
         return RetArr
 

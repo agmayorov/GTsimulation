@@ -31,6 +31,8 @@ class _Galaxy(_AbsRegion):
 
 
 class _Magnetosphere(_AbsRegion):
+    SaveAdd = {"Invariants": False, "PitchAngles": False, "MirrorPoints": False, "Lshell": False,
+               "GuidingCentre": False}
 
     @staticmethod
     def additions(*args, **kwargs):

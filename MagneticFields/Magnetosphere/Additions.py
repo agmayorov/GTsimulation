@@ -58,16 +58,73 @@ def GetEarthBfieldLine(simulator, rinp):
 
     return rline, bline
 
+def GetLarmorRadius(T0, Hn, Z, M, pitch):
+    M /= Units.MeV2kg
+
+    # Magnetic field line of Guiding Centre
+    gamma = (T0 + M) / M
+    omega = np.abs(Z) * Constants.e * Hn / (gamma * M * Units.MeV2kg)
+
+    # Larmor Radius
+    LR = np.sin(np.deg2rad(pitch)) * np.sqrt(1 - 1 / gamma ** 2) * Constants.c / omega
+
+    return LR
+
+def GetLshell(I2, Hm):
+    RE = Units.RE2m
+    k0 = 31100 * 1e-5  # Gauss * RE^3
+    k0 *= 1e-4 * RE ** 3  # Tesla * m^3
+
+    a_new = (np.array([
+        [3.0062102e-1, 6.2337691e-1, 6.228644e-1, 6.222355e-1, 2.0007187, -3.0460681],
+        [3.33338e-1, 4.3432642e-1, 4.3352788e-1, 4.3510529e-1, -1.8461796e-1, 1],
+        [0, 1.5017245e-2, 1.4492441e-2, 1.2817956e-2, 1.2038224e-1, 0],
+        [0, 1.3714667e-3, 1.1784234e-3, 2.1680398e-3, -6.7310339e-3, 0],
+        [0, 8.2711096e-5, 3.8379917e-5, -3.2077032e-4, 2.170224e-4, 0],
+        [0, 3.2916354e-6, -3.3408822e-6, 7.9451313e-5, -3.8049276e-6, 0],
+        [0, 8.1048663e-8, -5.3977642e-7, -1.2531932e-5, 2.8212095e-8, 0],
+        [0, 1.0066362e-9, -2.1997983e-8, 9.9766148e-7, 0, 0],
+        [0, 8.3232531e-13, 2.3028767e-9, -3.958306e-8, 0, 0],
+        [0, -8.1537735e-14, 2.6047023e-10, 6.3271665e-10, 0, 0]
+    ]))
+
+    I = np.mean(I2)
+    Bm = np.mean(Hm)
+    X = np.log(I ** 3 * Bm / k0)
+
+    conditions = [
+        (X < -22),
+        (-22 < X) & (X < -3),
+        (-3 < X) & (X < 3),
+        (3 < X) & (X < 11.7),
+        (11.7 < X) & (X < 23),
+        (X > 23)
+    ]
+
+    # Use broadcasting to apply conditions
+    an = np.select(conditions, [a_new[:, i] for i in range(a_new.shape[1])])
+
+    Y = np.sum(an * X ** np.arange(10))
+    Lshell = (k0 / RE ** 3 / Bm * (1 + np.exp(Y))) ** (1 / 3)
+
+    return Lshell
+
+# TODO finish save option
 def GetTrackParams(Simulator, RetArr_i):
     R = RetArr_i["Track"]["Coordinates"] * Units.RE2m
-    H = RetArr_i["Track"]["Bfield"][1:, :]
-    M = RetArr_i["Particle"]["M"] * Units.MeV2kg
+    H = RetArr_i["Track"]["Bfield"]
+    M = RetArr_i["Particle"]["M"]
     T0 = RetArr_i["Particle"]["T0"]
     Z = RetArr_i["Particle"]["Ze"]
 
-    V = (R[1:, :] - R[:-1, :]) / Simulator.Step
-    Vn = np.linalg.norm(V, axis=1)
-    R = R[1:, :]
+    E = T0 + M
+    Vn = Constants.c * np.sqrt(E ** 2 - M ** 2) / E
+    V_normalized = RetArr_i["Track"]["Velocities"]
+    V = Vn * V_normalized
+    Vn = np.array([Vn] * len(V_normalized))
+
+    M *= Units.MeV2kg
+
     Hn = np.linalg.norm(H, axis=1)
     Y = 1 / np.sqrt((1 - Vn ** 2 / Constants.c ** 2))
     VdotH = np.sum(V * H, axis=1)
@@ -155,11 +212,10 @@ def GetTrackParams(Simulator, RetArr_i):
                               R[:, 1][num_mirror[i]:num_mirror[i + 1]],
                               R[:, 2][num_mirror[i]:num_mirror[i + 1]]])
 
-            I2[i] = np.sum(
-                np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
-                                                      S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
-                                                      S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]]) /
-                                                     H_coil))
+            I2[i] = np.sum(np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
+                                                                 S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
+                                                                 S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]])
+                                                                / H_coil))
 
         if I2.size == 0:
             I2 = None
@@ -169,97 +225,84 @@ def GetTrackParams(Simulator, RetArr_i):
     if I2 is not None and I2.size == 0:
         I2 = None
 
-    # L-shell and Guiding Centre
-    RE = Units.RE2m
-    k0 = 31100 * 1e-5  # Gauss * RE^3
-    k0 *= 1e-4 * RE ** 3  # Tesla * m^3
+    # Lshell
+    Lshell = None
+    if I2 is not None:
+        Lshell = GetLshell(I2, Hm)
 
-    a_new = np.array([
-        [3.0062102e-1, 6.2337691e-1, 6.228644e-1, 6.222355e-1, 2.0007187, -3.0460681],
-        [3.33338e-1, 4.3432642e-1, 4.3352788e-1, 4.3510529e-1, -1.8461796e-1, 1],
-        [0, 1.5017245e-2, 1.4492441e-2, 1.2817956e-2, 1.2038224e-1, 0],
-        [0, 1.3714667e-3, 1.1784234e-3, 2.1680398e-3, -6.7310339e-3, 0],
-        [0, 8.2711096e-5, 3.8379917e-5, -3.2077032e-4, 2.170224e-4, 0],
-        [0, 3.2916354e-6, -3.3408822e-6, 7.9451313e-5, -3.8049276e-6, 0],
-        [0, 8.1048663e-8, -5.3977642e-7, -1.2531932e-5, 2.8212095e-8, 0],
-        [0, 1.0066362e-9, -2.1997983e-8, 9.9766148e-7, 0, 0],
-        [0, 8.3232531e-13, 2.3028767e-9, -3.958306e-8, 0, 0],
-        [0, -8.1537735e-14, 2.6047023e-10, 6.3271665e-10, 0, 0]
-    ])
-
-    L_shell = None
+    # Guiding centre
     GuidingCentre = {}
-    LR = None
-    LRNit = None
-    parReq = None
-    parBeq = None
-    parBBo = None
-    Req = None
-    Beq = None
-    BBo = None
-    Rline = None
-    Bline = None
 
-    if Simulator.IsFirstRun:
-        if I2 is not None:
-            I = np.mean(I2)
-            Bm = np.mean(Hm)
-            X = np.log(I ** 3 * Bm / k0)
+    if Simulator.IsFirstRun and Simulator.TrackParams["GuidingCentre"]:
+        L = None
+        parReq = None
+        parBeq = None
+        parBBo = None
+        parL = None
+        Req = None
+        Beq = None
+        BBo = None
+        Rline = None
+        Bline = None
 
-            an = (a_new[:, 0] * (X < -22) + a_new[:, 1] * (-22 < X < 3) + a_new[:, 2] * (-3 < X < 3) + a_new[:,
-                                                                                                       3] * (
-                          3 < X < 11.7)
-                  + a_new[:, 4] * (11.7 < X < 23)) + a_new[:, 5] * (X > 23)
+        LR = GetLarmorRadius(T0, Hn[0], Z, M, pitch[0])
+        LRNit = 2 * np.pi * LR / (Vn[0] * Simulator.Step)
+        GuidingCentre["LR"] = LR
+        GuidingCentre["LRNit"] = LRNit
 
-            Y = np.sum(an * X ** np.arange(10))
-            L_shell = (k0 / RE ** 3 / Bm * (1 + np.exp(Y))) ** (1 / 3)
-            M /= Units.MeV2kg
-
-            # Magnetic field line of Guiding Centre
-            gamma = (T0 + M) / M
-            omega = np.abs(Z) * Constants.e * Hn[0] / (gamma * M * Units.MeV2kg)
-
-            # Larmor Radius
-            LR = np.sin(np.deg2rad(pitch[0])) * np.sqrt(1 - 1 / gamma ** 2) * Constants.c / omega
-            LRNit = 2 * np.pi * LR / (Vn[0] * Simulator.Step)
-
+        if LRNit is not None:
             Nit = min(LRNit + 1, len(R))
-            Nit = np.floor(np.arange(0, Nit, Nit / 3 - 1)).astype(int)
-            Rmin = np.zeros((Nit.size, 3))
+        else:
+            Nit = len(R)
 
-            for i in range(Nit.size):
-                Rline, Bline = GetEarthBfieldLine(Simulator, R[Nit[i], :])
-                Bn = np.linalg.norm(Bline, axis=1)
-                e = np.argmin(Bn)
-                Rmin[i, :] = Rline[e, :]
-                if i == 0:
-                    parReq = Rline[e, :]
-                    parBeq = Bline[e, :]
-                    parBBo = np.linalg.norm(H[0, :]) / np.linalg.norm(parBeq)
+        Nit = np.floor(np.arange(0, Nit, Nit / 3 - 1)).astype(int)
+        Rmin = np.zeros((Nit.size, 3))
 
-            Rline, Bline = GetEarthBfieldLine(Simulator, np.mean(Rmin, axis=0))
+        for i in range(Nit.size):
+            Rline, Bline = GetEarthBfieldLine(Simulator, R[Nit[i], :])
             Bn = np.linalg.norm(Bline, axis=1)
             e = np.argmin(Bn)
-            Req = Rline[e, :]
-            Beq = Bline[e, :]
-            BBo = np.linalg.norm(H[0, :]) / np.linalg.norm(Beq)
+            Rmin[i, :] = Rline[e, :]
+            if i == 0:
+                parReq = Rline[e, :]
+                parBeq = Bline[e, :]
+                parBBo = np.linalg.norm(H[0, :]) / np.linalg.norm(parBeq)
 
-            parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1, Simulator.ParamDict["Date"])
-            GuidingCentre["parL"] = np.linalg.norm(parReqNew) / Units.RE2m
+        Rline, Bline = GetEarthBfieldLine(Simulator, np.mean(Rmin, axis=0))
+        Bn = np.linalg.norm(Bline, axis=1)
 
+        e = np.argmin(Bn)
+        Req = Rline[e, :]
+        Beq = Bline[e, :]
+        BBo = np.linalg.norm(H[0, :]) / np.linalg.norm(Beq)
+
+        GuidingCentre["parReq"] = parReq
+        GuidingCentre["parBeq"] = parBeq
+        GuidingCentre["parBB0"] = parBBo
+
+        parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1,
+                                                      Simulator.ParamDict["Date"])
+        parL = np.linalg.norm(parReqNew) / Units.RE2m
+
+        GuidingCentre["parL"] = parL
+        GuidingCentre["Req"] = Req
+        GuidingCentre["Beq"] = Beq
+        GuidingCentre["BB0"] = BBo
+
+        if Bn.size > 0:
             ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, Simulator.ParamDict["Date"])
-            GuidingCentre["L"] = np.linalg.norm(ReqNew) / Units.RE2m
+            L = np.linalg.norm(ReqNew) / Units.RE2m
+        GuidingCentre["L"] = L
 
-            parReq = parReq / Units.RE2m
-            Req = Req / Units.RE2m
-            Rline = Rline / Units.RE2m
+        GuidingCentre = GuidingCentre | {"Rline": Rline, "Bline": Bline}
 
-    GuidingCentre = GuidingCentre | {"LR": LR, "LRNit": LRNit, "parReq": parReq, "parBeq": parBeq, "parBBo": parBBo,
-                                     "Req": Req, "Beq": Beq, "BBo": BBo, "Rline": Rline, "Bline": Bline}
+    if len(GuidingCentre) == 0:
+        GuidingCentre = None
 
     TrackParams_i = {"Invariants": {"I1": I1, "I2": I2},
                      "PitchAngles": {"Pitch": pitch, "PitchEq": pitch_eq},
                      "MirrorPoints": NumMirror,
+                     "Lshell": Lshell,
                      "GuidingCentre": GuidingCentre}
 
     return TrackParams_i
@@ -296,7 +339,7 @@ def GetParticleOrigin(TrackParams_i):
                 origin = Origins.Albedo
             if 1 <= num_mirror.size <= 2:
                 if first_invariant_disp < first_invariant_disp_tol_2:
-                    origin = Origins.Presipitated
+                    origin = Origins.Precipitated
                 else:
                     origin = Origins.Albedo
             if num_mirror.size > 2:
@@ -314,32 +357,29 @@ def GetParticleOrigin(TrackParams_i):
             else:
                 origin = Origins.Albedo
         return origin
+
     if isFullRevolution:
         if InitEndFlag[0] == 1 or InitEndFlag[1] == 1:
-            if first_invariant_disp is not None:
-                if first_invariant_disp < first_invariant_disp_tol_2:
-                    origin = Origins.Albedo
-                else:
-                    origin = Origins.QuasiTrapped
-            else:
+            if first_invariant_disp < first_invariant_disp_tol_2:
                 origin = Origins.QuasiTrapped
-            return origin
-        if first_invariant_disp is not None and second_invariant_disp is not None:
-            if (first_invariant_disp < first_invariant_disp_tol) and (
-                    second_invariant_disp < second_invariant_disp_tol) or (isFullRevolution >= full_revolution_tol):
-                origin = Origins.Trapped
             else:
-                origin = Origins.Unknown
+                origin = Origins.Albedo
+            return origin
+
+        if ((first_invariant_disp < first_invariant_disp_tol) and (second_invariant_disp < second_invariant_disp_tol)
+                or (isFullRevolution >= full_revolution_tol)):
+            origin = Origins.Trapped
         else:
             origin = Origins.Unknown
+
     return origin
 
 def GetBCparams(RetArr_i):
-    if RetArr_i["BC"]["Status"] == "DefaultBC_Rmin":
+    if RetArr_i["BC"]["WOut"] == 3:
         u = 1
-    elif RetArr_i["BC"]["Status"] == "DefaultBC_Rmax":
+    elif RetArr_i["BC"]["WOut"] == 8:
         u = 2
-    elif RetArr_i["BC"]["Status"] in ["UserBCfunction", "Done"]:
+    elif RetArr_i["BC"]["WOut"] == -1:
         u = 3
     else:
         u = 0
@@ -440,12 +480,13 @@ def FindParticleOrigin(Simulator, RetArr_i):
                 Particles[1]["V0"] = Vf
             fGTsim = copy.deepcopy(Simulator)
             fGTsim.refreshParams(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step,
-                                 Save=Save, BreakCondition=BreakCondition, TrackParams=True, IsFirstRun=False,
-                                 UseDecay=UseDecay, InteractNUC=InteractNUC)
+                                 Save=Save, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
+                                 IsFirstRun=False, UseDecay=UseDecay, InteractNUC=InteractNUC)
             fGTtrack = fGTsim()
 
-            Rf, Vf = GetLastPoints(fGTtrack[0][0], s)
+            Rf, Vf = GetLastPoints(fGTtrack[0][0], 1)
             f, lon = GetBCparams(fGTtrack[0][0])
+            GTtrack = fGTtrack
         else:
             if b == 3:
                 s = -1
@@ -460,12 +501,13 @@ def FindParticleOrigin(Simulator, RetArr_i):
                                      IsFirstRun=False, ForwardTrck=-1, UseDecay=UseDecay, InteractNUC=InteractNUC)
                 bGTtrack = bGTsim()
 
-                Rb, Vb = GetLastPoints(bGTtrack[0][0], s)
+                Rb, Vb = GetLastPoints(bGTtrack[0][0], -1)
                 b, lon = GetBCparams(bGTtrack[0][0])
+                GTtrack = bGTtrack
             else:
                 break
 
-        addTrackParams = AddTrajectory(f, b, lon_total, lon, bGTtrack[0][0]["Additions"], Nm, I1, I2, -1)
+        addTrackParams = AddTrajectory(f, b, lon_total, lon, GTtrack[0][0]["Additions"], Nm, I1, I2, s)
 
         origin = GetParticleOrigin(addTrackParams)
 

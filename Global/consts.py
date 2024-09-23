@@ -44,6 +44,6 @@ class Origins(Enum):
     Galactic = 1
     Albedo = 2
     QuasiTrapped = 3
-    Presipitated = 4
+    Precipitated = 4
     Trapped = 5
     Unknown = 6
