@@ -530,6 +530,8 @@ class GTSimulator(ABC):
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.InteractNUC is not None:
                 LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
+                LocalPathDenVector = np.empty(0)
+                LocalCoordinate = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
             Saves = np.zeros((self.Npts + 1, 17))
@@ -601,6 +603,8 @@ class GTSimulator(ABC):
                         LocalChemComp += self.Medium.get_chemical_element_abundance()
                         nLocal += 1
                         LocalPathDen += PathDen
+                        LocalPathDenVector = np.append(LocalPathDenVector, LocalPathDen)
+                        LocalCoordinate = np.append(LocalCoordinate, r[None, :], axis=0)
 
                 # Decay
                 if tau:
@@ -613,13 +617,15 @@ class GTSimulator(ABC):
                 if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not IsPrimDeath:
                     # Construct Rotation Matrix & Save velosity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
-                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, LocalDen / nLocal, LocalChemComp / nLocal)
+                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal, LocalChemComp / nLocal)
                     T = primary['KineticEnergy']
                     V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
                     if T > 0:
                         # Only ionization losses
                         LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
+                        LocalPathDenVector = np.empty(0)
+                        LocalCoordinate = np.empty([0, 3])
                     else:
                         # Death due to ionization losses or nuclear interaction
                         IsPrimDeath = True
@@ -627,11 +633,25 @@ class GTSimulator(ABC):
                             if Gen < GenMax:
                                 if self.Verbose:
                                     print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
-                                # Cordinate of point of interaction in XYZ
-                                # cpath = norm(rLocal) * 1e2 * (LocalDen / nLocal)
+                                # Cordinates of interaction point in XYZ
+                                path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
+                                r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
+                                # Parameters for recursive call of GT
+                                params = self.ParamDict.copy()
+                                params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                                 for p in secondary:
-                                    pass
-                                    # print(p)
+                                    V_p = rotationMatrix @ p['MomentumDirection']
+                                    T_p = p['KineticEnergy']
+                                    name_p = p["Name"]
+                                    params["Particles"] = ["Monolines", {"Names": name_p,
+                                                                         "T": T_p,
+                                                                         "Center": r_interaction,
+                                                                         "Radius": 0,
+                                                                         "V0": V_p,
+                                                                         "Nevents": 1}]
+                                    new_process = self.__class__(**params)
+                                    new_process.__gen = Gen + 1
+                                    prod_tracks.append(new_process.CallOneFile())
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
