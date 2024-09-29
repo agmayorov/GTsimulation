@@ -44,6 +44,9 @@ def G4Interaction(PDG, E, m, rho, w):
     # Fractions of H, He, N, O, Ar
     if len(w) != 5:
         raise ValueError('G4Int: wrong number of fractions (atmosphere)')
+    # TEMPORARY PATCH
+    if E == 0:
+        E = 1
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
