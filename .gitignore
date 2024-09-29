@@ -4,4 +4,3 @@ test*
 .idea/
 __pycache__/
 Interaction/G4source/*/build/*
-Interaction/G4source/AtmosphericColumn/*

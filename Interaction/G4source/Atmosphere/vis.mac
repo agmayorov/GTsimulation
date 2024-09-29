@@ -1,0 +1,60 @@
+# Macro file for the visualization setting in the initialization phase 
+
+# Use this open statement to create an OpenGL view
+/vis/open OGL 1280x720-0+0
+
+# Set limit: 1000000 primitives
+/vis/ogl/set/displayListLimit 1000000
+
+# Disable auto refresh and quieten vis messages whilst scene and
+# trajectories are established
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+
+# Draw geometry
+/vis/drawVolume
+
+# Draw smooth trajectories at end of event
+/vis/scene/add/trajectories smooth
+
+# # Specify style (wireframe, auxiliary edges,...)
+/vis/viewer/set/style wireframe
+# /vis/viewer/set/auxiliaryEdge true
+# /vis/viewer/set/lineSegmentsPerCircle 100
+
+# Draw hits at end of event
+# /vis/scene/add/hits
+
+# To draw only gammas
+# /vis/filtering/trajectories/create/particleFilter
+# /vis/filtering/trajectories/particleFilter-0/add gamma
+
+# To select colour by particle ID
+# /vis/modeling/trajectories/create/drawByParticleID
+# /vis/modeling/trajectories/drawByParticleID-0/set e+ yellow
+
+# To superimpose all of the events from a given run
+/vis/scene/endOfEventAction accumulate
+
+# Axes, eventID
+/vis/scene/add/axes 0 0 0 10 km
+/vis/scene/add/eventID
+
+# Frame
+# /vis/set/colour red
+# /vis/set/lineWidth 2
+# /vis/scene/add/frame   # Simple frame around the view
+# /vis/set/colour        # Revert to default colour (white)
+# /vis/set/lineWidth     # Revert to default line width (1.)
+
+# Make the "World" and "Surface" boxes invisible
+/vis/geometry/set/visibility World 0 false
+
+# Specify view angle
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 80 20
+# /vis/viewer/set/viewpointThetaPhi 0 0
+/vis/viewer/centreOn AtmosphericLayer
+
+# Re-establish auto refreshing
+/vis/viewer/set/autoRefresh true
