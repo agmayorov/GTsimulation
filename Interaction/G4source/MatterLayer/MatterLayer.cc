@@ -4,7 +4,7 @@
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
 
-// #include "G4UImanager.hh"
+#include "G4UImanager.hh"
 
 // #include "G4UIExecutive.hh"
 // #include "G4VisExecutive.hh"
@@ -55,12 +55,9 @@ int main(int argc, char* argv[])
   runManager->Initialize();
 
   // Get the pointer to the User Interface manager
-  // G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  // UImanager->ApplyCommand("/tracking/verbose 0");
-  // UImanager->ApplyCommand("/process/verbose 0");
-  // UImanager->ApplyCommand("/process/had/verbose 0");
-  // UImanager->ApplyCommand("/process/inactivate nKiller");
-  // UImanager->ApplyCommand("/process/list");
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  // UImanager->ApplyCommand("/tracking/verbose 1");
+  UImanager->ApplyCommand("/process/inactivate nKiller");
 
   // // Visualization
   // G4VisManager* visManager = new G4VisExecutive;
