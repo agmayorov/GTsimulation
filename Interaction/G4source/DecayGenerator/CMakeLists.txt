@@ -18,7 +18,7 @@ add_executable(DecayGenerator DecayGenerator.cc ${sources} ${headers})
 target_link_libraries(DecayGenerator ${Geant4_LIBRARIES})
 
 # For internal Geant4 use
-add_custom_target(DC DEPENDS DecayGenerator)
+add_custom_target(DG DEPENDS DecayGenerator)
 
 # Copy executable 
 add_custom_command(TARGET DecayGenerator

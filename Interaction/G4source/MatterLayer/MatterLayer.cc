@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  // UImanager->ApplyCommand("/tracking/verbose 1");
   UImanager->ApplyCommand("/process/inactivate nKiller");
+  // UImanager->ApplyCommand("/tracking/verbose 1");
 
   // // Visualization
   // G4VisManager* visManager = new G4VisExecutive;

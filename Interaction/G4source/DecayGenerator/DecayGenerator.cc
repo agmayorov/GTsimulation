@@ -8,7 +8,8 @@
 
 using namespace DecayGenerator;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   // Read input
   // Input example: ./DecayGenerator 15 500
   if (argc != 3) {

@@ -17,7 +17,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
     PrimaryGeneratorAction(G4int particlePDG, G4double energy);
-    ~PrimaryGeneratorAction();
+    ~PrimaryGeneratorAction() override;
     virtual void GeneratePrimaries(G4Event *anEvent) override;
 
   private:
