@@ -33,7 +33,11 @@ class Flux(Sequence, ABC):
         self.GenerateParticles(self.Names)
         self.GenerateEnergySpectrum()
         for i in range(self.Nevents):
-            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
+            if self.ParticleNames[i].startswith("PDG_"):
+                self.particles.append(
+                    CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], PDG=int(self.ParticleNames[i][4:])))
+            else:
+                self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
 
     @abstractmethod
     def GenerateEnergySpectrum(self, *args, **kwargs):
