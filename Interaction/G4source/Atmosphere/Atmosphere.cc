@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
   // Preliminary calculations
   alpha = alpha/180.*CLHEP::pi;
-  G4double Rm = 200.; // % km
+  G4double Rm = 200.; // km
   G4double R = Rm/cos(alpha) + height*tan(alpha);
 
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);

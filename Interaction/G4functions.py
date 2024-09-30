@@ -1,7 +1,7 @@
 import subprocess
 import os
-import io
 import numpy as np
+from io import StringIO
 from .settings import path_geant4
 
 
@@ -63,14 +63,14 @@ def G4Interaction(PDG, E, m, rho, w):
     # Reading information about the primary particle
     dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position', 'LastProcess'],
                       'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8', 'U32']})
-    primary = np.genfromtxt(io.StringIO(output[p:s].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
+    primary = np.genfromtxt(StringIO(output[p:s].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
     # Reading information about the secondary particles
     secondary = np.array([])
     if s != -1:
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8']})
-        secondary = np.genfromtxt(io.StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
+        secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
     return primary, secondary
 
@@ -119,59 +119,78 @@ def G4Decay(PDG, E):
     if s != -1:
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'LifeTime', 'KineticEnergy', 'MomentumDirection'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', 'f8', '(3,)f8']})
-        secondary = np.genfromtxt(io.StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
+        secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
     return secondary
 
 
-# def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
-#     res = subprocess.run(f". /lustre/incos/set_pam_env.sh 11 4.11.00.p02; "
-#                          f"/lustre/mFunctions/G4Interaction/AtmosphericColumn/build/AtmosphericColumn {PDG} {E} {h} "
-#                          f"{alpha} {doy} {sec} {lat} {lon} {f107A} {f107} {ap}", shell=True, stdout=subprocess.PIPE)
-#     if res.returncode != 0:
-#         print(res.stdout)
-#         raise Exception("Geant4 program did not work successfully")
+def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
+    """
+    The function calls executable binary program that calculates interaction of the charged particle
+    with atmospheric column of height h and outputs information about secondary (albedo) particles.
 
-#     output = res.stdout
-#     output = output.decode("utf-8")
+    The program creates a cylindrical column of air, which is divided into layers layers of 1 km thick.
+    The air density for each layer is assumed to be constant and is calculated from the
+    atmospheric model NRLMSISE-00. When a particle enters the atmosphere at an angle, the horizontal
+    velocity component is directed along the X axis in the coordinate system of the cylinder.
 
-#     k = output.find('Information about the primary particle:')
-#     if k == -1:
-#         raise RuntimeError('Primary particle information not found')
+    Parameters:
+        PDG         - int                   - Particle PDG code
+        E           - float                 - Kinetic energy of the particle [MeV]
+        h           - float                 - Initial altitude above ground [km] (less than 100 km)
+        alpha       - float                 - Angle between the vertical and the velocity vector of the particle [degrees]
+        doy         - float                 - Day of year
+        sec         - float                 - Seconds in day [sec]
+        lat         - float                 - Geodetic latitude [degrees]
+        lon         - float                 - Geodetic longitude [degrees]
+        f107A       - float                 - 81 day average of F10.7 flux (centered on doy)
+        f107        - float                 - daily F10.7 flux for previous day
+        ap          - float                 - magnetic index (daily) [nT]
 
-#     segment = output[k:]
+    Returns:
+        primary     - structured ndarray
+                        Name                - Name
+                        PDGcode             - PDG encoding
+                        Mass                - Mass [MeV]
+                        Charge              - Charge
+                        PositionInteraction - Coordinates of the interaction of the primary particle [m]
+                        LastProcess         - Name of the last process in which the primary particle participated
+        secondary   - structured ndarray
+                        Name                - Name
+                        PDGcode             - PDG encoding
+                        Mass                - Mass [MeV]
+                        Charge              - Charge
+                        KineticEnergy       - Kinetic energy of the particle [MeV]
+                        MomentumDirection   - Direction of the velocity of the particle (unit vector)
+                        Position            - Coordinates of the secondary (albedo) particle [m]
 
-#     name_match = re.search(r'Particle name: (.+)', segment)
-#     position_match = re.search(r'Position of interaction: \((.+?),(.+?),(.+?)\)', segment)
-#     process_name_match = re.search(r'Process name: (.+)', segment)
+    Examples:
+        primary, secondary = G4Shower(2212, 10e3, 95, 10, 1, 0, 0, 0, 150, 150, 4)
+        primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)
+    """
 
-#     if not (position_match and name_match and process_name_match):
-#         raise RuntimeError('Primary particle information format incorrect')
+    # Calling an executable binary program
+    path = os.path.dirname(__file__)
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/Atmosphere {PDG} {E} {h} {alpha} "
+                            f"{doy} {sec} {lat} {lon} {f107A} {f107} {ap}", shell=True, stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        print(result.stderr)
+        raise RuntimeError('Geant4 program did not work successfully')
+    output = result.stdout.decode("utf-8")
 
-#     r_int = np.array([float(position_match.group(1)), float(position_match.group(2)),
-#                       float(position_match.group(3))]) / 1e6  # [mm] to [km]
-#     ParticleName = name_match.group(1).strip()
-#     process = process_name_match.group(1).strip()
+    p = output.find('Information about the primary particle')
+    s = output.find('Information about the secondary particles')
 
-#     albedo = []
+    # Reading information about the primary particle
+    dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'PositionInteraction', 'LastProcess'],
+                      'formats': ['U32', 'i4', 'f8', 'i4', '(3,)f8', 'U32']})
+    primary = np.genfromtxt(StringIO(output[p:s].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
-#     k = [m.start() for m in re.finditer('Albedo particles:', output)]
-#     if k:
-#         segment_albedo = output[k[0] + 18:]
-#         for seg in segment_albedo.split("\n")[:-1]:
-#             params = seg.split()
-#             particle_name = params[0]
-#             radius = [float(n) / 1e6 for n in params[1][1:-1].split(",")]
-#             momentum_direction = [float(n) for n in params[2][1:-1].split(",")]
-#             kinetic_energy = float(params[3]) / 1e3
-#             pdg, mass, charge = float(params[4]), float(params[5]), float(params[6])
+    # Reading information about the secondary particles
+    secondary = np.array([])
+    if s != -1 and len(output[s:]) > 117:
+        dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
+                          'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
+        secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
 
-#             albedo.append({
-#                 'ParticleName': particle_name,
-#                 'r': radius,
-#                 'v': momentum_direction,
-#                 'E': kinetic_energy,
-#                 'PDG': [pdg, mass, charge]
-#             })
-
-#     return ParticleName, r_int, process, albedo
+    return primary, secondary
