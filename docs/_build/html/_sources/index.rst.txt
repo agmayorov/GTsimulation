@@ -5,7 +5,9 @@
 
 GTsimulation documentation
 ==========================
+Download package from  `GitHub`_.
 
+.. _GitHub: https://github.com/agmayorov/GTsimulation
 
 .. toctree::
    :maxdepth: 3

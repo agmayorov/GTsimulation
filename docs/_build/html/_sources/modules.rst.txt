@@ -5,7 +5,7 @@ GTsimulation
    :maxdepth: 5
 
    GT
-   GeantInteraction
+   Interaction
    Global
    MagneticFields
    Medium

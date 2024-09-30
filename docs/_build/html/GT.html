@@ -66,7 +66,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-GT">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="GeantInteraction.html">GeantInteraction package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Interaction.html">Interaction package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Global.html">Global package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MagneticFields.html">MagneticFields package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Medium.html">Medium package</a></li>
@@ -166,7 +166,7 @@ and finishing points are saved. The default parameters that are saved are <cite>
 <cite>Velocities</cite>. Other parameters that one needs to save as well, can be turned on by passing a <cite>list</cite>
 instead of <cite>int</cite> where the second element is a <cite>dict</cite> that’s key is the parameter name and value is
 <cite>True</cite>. Example <cite>[10, {“Clock”: True}]</cite>. To available parameters are listed in
-<a class="reference internal" href="_autosummary/Global.codes.SaveCode.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
+<a class="reference internal" href="Global.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
 <li><p><strong>Num</strong> (<em>int</em>) – The number of simulation steps</p></li>
 <li><p><strong>Step</strong> (<em>float</em>) – The time step of simulation in seconds</p></li>
 <li><p><strong>Nfiles</strong> (<em>int</em>) – Number of files. If <span class="xref std std-ref">Particles</span> creates a flux of <cite>Nevents</cite> particles then the total number of
@@ -178,7 +178,7 @@ greater than 1. Then the names of the saved files will have the following form <
 the <cite>BreakCondition</cite> name and value corresponding to its value is passed. Example:
 <cite>{“Rmax”: 10}</cite>. In the example the maximal radius of the particle is 10 (in
 <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> distance units). See the full list of break conditions
-<a class="reference internal" href="_autosummary/Global.codes.BreakCode.html#Global.codes.BreakCode" title="Global.codes.BreakCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakCode</span></code></a>.</p></li>
+<a class="reference internal" href="Global.html#Global.codes.BreakCode" title="Global.codes.BreakCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakCode</span></code></a>.</p></li>
 <li><p><strong>BCcenter</strong> (<em>np.ndarray</em>) – A 3d array of point (in <a class="reference internal" href="MagneticFields.html#module-MagneticFields" title="MagneticFields"><code class="xref py py-mod docutils literal notranslate"><span class="pre">MagneticFields</span></code></a> distance units). It represents the <strong>(0, 0, 0)</strong>
 relative to which <cite>Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin</cite> are calculated.
 Default <cite>np.array([0, 0, 0])</cite>.</p></li>
@@ -192,9 +192,9 @@ Default <cite>np.array([0, 0, 0])</cite>.</p></li>
 </dl>
 <p>A dictionary is saved. It has the following keys.</p>
 <ol class="arabic">
-<li><p>Track: The parameters that are saved along the trajectory. See <a class="reference internal" href="_autosummary/Global.codes.SaveCode.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
+<li><p>Track: The parameters that are saved along the trajectory. See <a class="reference internal" href="Global.html#Global.codes.SaveCode" title="Global.codes.SaveCode"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.SaveCode</span></code></a>.</p></li>
 <li><dl>
-<dt>BC: The parameters regarding the simulation end.</dt><dd><p>2.1. WOut: The code of break. See <a class="reference internal" href="_autosummary/Global.codes.BreakIndex.html#Global.codes.BreakIndex" title="Global.codes.BreakIndex"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakIndex</span></code></a></p>
+<dt>BC: The parameters regarding the simulation end.</dt><dd><p>2.1. WOut: The code of break. See <a class="reference internal" href="Global.html#Global.codes.BreakIndex" title="Global.codes.BreakIndex"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Global.codes.BreakIndex</span></code></a></p>
 <p>2.2. lon_total:</p>
 <p>2.3. status</p>
 </dd>
@@ -245,6 +245,11 @@ Default <cite>np.array([0, 0, 0])</cite>.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="GT.GT.GTSimulator.__Decay">
 <span class="sig-name descname"><span class="pre">__Decay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GenMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TotTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod_tracks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__Decay" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GT.GT.GTSimulator.__SetAdditions">
+<span class="sig-name descname"><span class="pre">__SetAdditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">TrackParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GT.GT.GTSimulator.__SetAdditions" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

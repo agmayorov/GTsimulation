@@ -74,8 +74,8 @@
   <h1>Source code for Interaction.G4functions</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span> <span class="nn">.settings</span> <span class="kn">import</span> <span class="n">path_geant4</span>
 
 
@@ -120,6 +120,9 @@
     <span class="c1"># Fractions of H, He, N, O, Ar</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;G4Int: wrong number of fractions (atmosphere)&#39;</span><span class="p">)</span>
+    <span class="c1"># TEMPORARY PATCH</span>
+    <span class="k">if</span> <span class="n">E</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="c1"># Calling an executable binary program</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
@@ -136,14 +139,14 @@
     <span class="c1"># Reading information about the primary particle</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PDGcode&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;KineticEnergy&#39;</span><span class="p">,</span> <span class="s1">&#39;MomentumDirection&#39;</span><span class="p">,</span> <span class="s1">&#39;Position&#39;</span><span class="p">,</span> <span class="s1">&#39;LastProcess&#39;</span><span class="p">],</span>
                       <span class="s1">&#39;formats&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;U32&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">,</span> <span class="s1">&#39;U32&#39;</span><span class="p">]})</span>
-    <span class="n">primary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">primary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># Reading information about the secondary particles</span>
     <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
     <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PDGcode&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;KineticEnergy&#39;</span><span class="p">,</span> <span class="s1">&#39;MomentumDirection&#39;</span><span class="p">],</span>
                           <span class="s1">&#39;formats&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;U32&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">]})</span>
-        <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">primary</span><span class="p">,</span> <span class="n">secondary</span></div>
 
@@ -195,63 +198,85 @@
     <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PDGcode&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;LifeTime&#39;</span><span class="p">,</span> <span class="s1">&#39;KineticEnergy&#39;</span><span class="p">,</span> <span class="s1">&#39;MomentumDirection&#39;</span><span class="p">],</span>
                           <span class="s1">&#39;formats&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;U32&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">]})</span>
-        <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">secondary</span></div>
 
 
 
-<span class="c1"># def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):</span>
-<span class="c1">#     res = subprocess.run(f&quot;. /lustre/incos/set_pam_env.sh 11 4.11.00.p02; &quot;</span>
-<span class="c1">#                          f&quot;/lustre/mFunctions/G4Interaction/AtmosphericColumn/build/AtmosphericColumn {PDG} {E} {h} &quot;</span>
-<span class="c1">#                          f&quot;{alpha} {doy} {sec} {lat} {lon} {f107A} {f107} {ap}&quot;, shell=True, stdout=subprocess.PIPE)</span>
-<span class="c1">#     if res.returncode != 0:</span>
-<span class="c1">#         print(res.stdout)</span>
-<span class="c1">#         raise Exception(&quot;Geant4 program did not work successfully&quot;)</span>
+<div class="viewcode-block" id="G4Shower">
+<a class="viewcode-back" href="../../Interaction.html#Interaction.G4functions.G4Shower">[docs]</a>
+<span class="k">def</span> <span class="nf">G4Shower</span><span class="p">(</span><span class="n">PDG</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">doy</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">f107A</span><span class="p">,</span> <span class="n">f107</span><span class="p">,</span> <span class="n">ap</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The function calls executable binary program that calculates interaction of the charged particle</span>
+<span class="sd">    with atmospheric column of height h and outputs information about secondary (albedo) particles.</span>
 
-<span class="c1">#     output = res.stdout</span>
-<span class="c1">#     output = output.decode(&quot;utf-8&quot;)</span>
+<span class="sd">    The program creates a cylindrical column of air, which is divided into layers layers of 1 km thick.</span>
+<span class="sd">    The air density for each layer is assumed to be constant and is calculated from the</span>
+<span class="sd">    atmospheric model NRLMSISE-00. When a particle enters the atmosphere at an angle, the horizontal</span>
+<span class="sd">    velocity component is directed along the X axis in the coordinate system of the cylinder.</span>
 
-<span class="c1">#     k = output.find(&#39;Information about the primary particle:&#39;)</span>
-<span class="c1">#     if k == -1:</span>
-<span class="c1">#         raise RuntimeError(&#39;Primary particle information not found&#39;)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        PDG         - int                   - Particle PDG code</span>
+<span class="sd">        E           - float                 - Kinetic energy of the particle [MeV]</span>
+<span class="sd">        h           - float                 - Initial altitude above ground [km] (less than 100 km)</span>
+<span class="sd">        alpha       - float                 - Angle between the vertical and the velocity vector of the particle [degrees]</span>
+<span class="sd">        doy         - float                 - Day of year</span>
+<span class="sd">        sec         - float                 - Seconds in day [sec]</span>
+<span class="sd">        lat         - float                 - Geodetic latitude [degrees]</span>
+<span class="sd">        lon         - float                 - Geodetic longitude [degrees]</span>
+<span class="sd">        f107A       - float                 - 81 day average of F10.7 flux (centered on doy)</span>
+<span class="sd">        f107        - float                 - daily F10.7 flux for previous day</span>
+<span class="sd">        ap          - float                 - magnetic index (daily) [nT]</span>
 
-<span class="c1">#     segment = output[k:]</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        primary     - structured ndarray</span>
+<span class="sd">                        Name                - Name</span>
+<span class="sd">                        PDGcode             - PDG encoding</span>
+<span class="sd">                        Mass                - Mass [MeV]</span>
+<span class="sd">                        Charge              - Charge</span>
+<span class="sd">                        PositionInteraction - Coordinates of the interaction of the primary particle [m]</span>
+<span class="sd">                        LastProcess         - Name of the last process in which the primary particle participated</span>
+<span class="sd">        secondary   - structured ndarray</span>
+<span class="sd">                        Name                - Name</span>
+<span class="sd">                        PDGcode             - PDG encoding</span>
+<span class="sd">                        Mass                - Mass [MeV]</span>
+<span class="sd">                        Charge              - Charge</span>
+<span class="sd">                        KineticEnergy       - Kinetic energy of the particle [MeV]</span>
+<span class="sd">                        MomentumDirection   - Direction of the velocity of the particle (unit vector)</span>
+<span class="sd">                        Position            - Coordinates of the secondary (albedo) particle [m]</span>
 
-<span class="c1">#     name_match = re.search(r&#39;Particle name: (.+)&#39;, segment)</span>
-<span class="c1">#     position_match = re.search(r&#39;Position of interaction: \((.+?),(.+?),(.+?)\)&#39;, segment)</span>
-<span class="c1">#     process_name_match = re.search(r&#39;Process name: (.+)&#39;, segment)</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        primary, secondary = G4Shower(2212, 10e3, 95, 10, 1, 0, 0, 0, 150, 150, 4)</span>
+<span class="sd">        primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="c1">#     if not (position_match and name_match and process_name_match):</span>
-<span class="c1">#         raise RuntimeError(&#39;Primary particle information format incorrect&#39;)</span>
+    <span class="c1"># Calling an executable binary program</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;bash </span><span class="si">{</span><span class="n">path_geant4</span><span class="si">}</span><span class="s2">/bin/geant4.sh; </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/Atmosphere </span><span class="si">{</span><span class="n">PDG</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">E</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">alpha</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">doy</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sec</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">lat</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">lon</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">f107A</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">f107</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ap</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Geant4 program did not work successfully&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-<span class="c1">#     r_int = np.array([float(position_match.group(1)), float(position_match.group(2)),</span>
-<span class="c1">#                       float(position_match.group(3))]) / 1e6  # [mm] to [km]</span>
-<span class="c1">#     ParticleName = name_match.group(1).strip()</span>
-<span class="c1">#     process = process_name_match.group(1).strip()</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Information about the primary particle&#39;</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Information about the secondary particles&#39;</span><span class="p">)</span>
 
-<span class="c1">#     albedo = []</span>
+    <span class="c1"># Reading information about the primary particle</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PDGcode&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;PositionInteraction&#39;</span><span class="p">,</span> <span class="s1">&#39;LastProcess&#39;</span><span class="p">],</span>
+                      <span class="s1">&#39;formats&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;U32&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">,</span> <span class="s1">&#39;U32&#39;</span><span class="p">]})</span>
+    <span class="n">primary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="c1">#     k = [m.start() for m in re.finditer(&#39;Albedo particles:&#39;, output)]</span>
-<span class="c1">#     if k:</span>
-<span class="c1">#         segment_albedo = output[k[0] + 18:]</span>
-<span class="c1">#         for seg in segment_albedo.split(&quot;\n&quot;)[:-1]:</span>
-<span class="c1">#             params = seg.split()</span>
-<span class="c1">#             particle_name = params[0]</span>
-<span class="c1">#             radius = [float(n) / 1e6 for n in params[1][1:-1].split(&quot;,&quot;)]</span>
-<span class="c1">#             momentum_direction = [float(n) for n in params[2][1:-1].split(&quot;,&quot;)]</span>
-<span class="c1">#             kinetic_energy = float(params[3]) / 1e3</span>
-<span class="c1">#             pdg, mass, charge = float(params[4]), float(params[5]), float(params[6])</span>
+    <span class="c1"># Reading information about the secondary particles</span>
+    <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:])</span> <span class="o">&gt;</span> <span class="mi">117</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;PDGcode&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;KineticEnergy&#39;</span><span class="p">,</span> <span class="s1">&#39;MomentumDirection&#39;</span><span class="p">,</span> <span class="s1">&#39;Position&#39;</span><span class="p">],</span>
+                          <span class="s1">&#39;formats&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;U32&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">,</span> <span class="s1">&#39;(3,)f8&#39;</span><span class="p">]})</span>
+        <span class="n">secondary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="c1">#             albedo.append({</span>
-<span class="c1">#                 &#39;ParticleName&#39;: particle_name,</span>
-<span class="c1">#                 &#39;r&#39;: radius,</span>
-<span class="c1">#                 &#39;v&#39;: momentum_direction,</span>
-<span class="c1">#                 &#39;E&#39;: kinetic_energy,</span>
-<span class="c1">#                 &#39;PDG&#39;: [pdg, mass, charge]</span>
-<span class="c1">#             })</span>
+    <span class="k">return</span> <span class="n">primary</span><span class="p">,</span> <span class="n">secondary</span></div>
 
-<span class="c1">#     return ParticleName, r_int, process, albedo</span>
 </pre></div>
 
            </div>
