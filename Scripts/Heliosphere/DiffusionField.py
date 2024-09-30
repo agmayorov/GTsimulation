@@ -85,7 +85,7 @@ for r in tqdm(np.logspace(-1, 2, 30)):
     l_par = k * B**(5/3)/bs2 * (P/c)**(1/3) * l_slab**(2/3)
 
     D_par = l_par * v/3
-    D_Par.append(bz2/b2d2)
+    D_Par.append(D_par)
     a = np.sqrt(3)
     Cs = 1 / 5
     C2 = (5 / 3 - 1) * (5 / 3 + 1) / np.pi
@@ -104,7 +104,7 @@ for r in tqdm(np.logspace(-1, 2, 30)):
 
 plt.figure()
 plt.plot(np.logspace(-1, 2, 30), D_Par, label="$\kappa_{\parallel}$")
-# plt.plot(np.logspace(-1, 2, 30), D_Perp, label="$\kappa_{\perp}$")
+plt.plot(np.logspace(-1, 2, 30), D_Perp, label="$\kappa_{\perp}$")
 plt.yscale("log")
 plt.xscale("log")
 plt.xlabel("R [au]")
