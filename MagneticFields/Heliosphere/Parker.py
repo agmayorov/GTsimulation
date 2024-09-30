@@ -17,7 +17,8 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_hcs=True, use_cir=False,
-                 polarity=-1, use_noise=False, noise_num=256, log_kmin=0, log_kmax=6, coeff2d=1.4, **kwargs):
+                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff2d=1.4, use_slab=True,
+                 use_2d=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
@@ -28,6 +29,8 @@ class Parker(AbsBfield):
         self.polarity = polarity
         self.use_reg = use_reg
         self.coeff2d = coeff2d
+        self.use_slab = use_slab
+        self.use_2d = use_2d
         self.__set_time(date)
         self.__set_noise(use_noise, noise_num, log_kmin, log_kmax)
 
@@ -110,7 +113,7 @@ class Parker(AbsBfield):
                                             A_rad, alpha_rad, delta_rad,
                                             A_azimuth, alpha_azimuth, delta_azimuth,
                                             A_2D, alpha_2D, delta_2D,
-                                            rs, k, dk)
+                                            rs, k, dk, self.use_slab, self.use_2d)
 
         Bx += self.magnitude * self.coeff2d * Bx_n
         By += self.magnitude * self.coeff2d * By_n
@@ -217,7 +220,7 @@ class Parker(AbsBfield):
                     A_rad, alpha_rad, delta_rad,
                     A_azimuth, alpha_azimuth, delta_azimuth,
                     A_2d, alpha_2d, delta_2d,
-                    rs, k, dk):
+                    rs, k, dk, use_slab, use_2d):
         """
         doi.org/10.3847/1538-4357/aca892/meta
         """
@@ -227,10 +230,10 @@ class Parker(AbsBfield):
         gamma = 3
 
         cospsi = 1. / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
-        sinpsi = -((r - rs) * np.sin(theta) / a) / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
+        sinpsi = ((r - rs) * np.sin(theta) / a) / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
 
         cospsi_ = 1. / np.sqrt(1 + ((r - rs) / a) ** 2)
-        sinpsi_ = -((r - rs) / a) / np.sqrt(1 + ((r - rs) / a) ** 2)
+        sinpsi_ = ((r - rs) / a) / np.sqrt(1 + ((r - rs) / a) ** 2)
 
         lam_2d = 0.04 * (r / (rs / 5)) ** 0.8 * (rs / 5)
         dlamd_2d = 0.032 * (rs / (5 * r)) ** 0.2
@@ -298,17 +301,15 @@ class Parker(AbsBfield):
             # Azimuthal field
 
             Br_az = -deltaB_azimuth * sinpsi_ * np.cos(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
-            Btheta_az = -deltaB_azimuth * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
-            Bphi_az = -deltaB_azimuth * np.cos(theta) * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.sin(
-                phase_azimuth) / k[mod, 0] - np.sin(theta) * np.sin(phase_azimuth) * np.cos(alpha_azimuth[mod, 0] *
-                                                                                            cospsi_) / \
-                      (k[mod, 0] * a) * (
-                              (r - rs) * ddeltaB_azimtuth + deltaB_azimuth * (r * cospsi_ ** 2 + 2 * (r - rs)))
+            Btheta_az = deltaB_azimuth * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
+            Bphi_az = 1/k[mod, 0] * (np.sin(theta) * np.sin(phase_azimuth) * np.cos(alpha_azimuth[mod, 0]) *
+                                     (2*deltaB_azimuth*sinpsi_ + r/a * deltaB_azimuth * cospsi_ + r * sinpsi_ * ddeltaB_azimtuth) -
+                                     np.cos(theta)*deltaB_azimuth*np.sin(phase_azimuth)*sinpsi_*np.sin(alpha_azimuth[mod, 0]))
 
             # 2d field
-            Br_2d = deltaB_2d / (a * k[mod, 0]) * (
-                    k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.sin(theta) * cospsi * np.cos(phase_2d)
-                    + np.cos(theta * (1 + 1 / (cospsi ** 2)) * np.sin(phase_2d)))
+            Br_2d = -deltaB_2d / (r * k[mod, 0] ) * (np.sin(phase_2d)*sinpsi*np.tan(theta)**(-1) +
+                                                     k[mod, 0]*np.cos(alpha_2d[mod, 0])*np.cos(phase_2d)*sinpsi +
+                                                     np.sin(phase_2d)*sinpsi*cospsi**2*np.tan(theta)**(-1))
             Btheta_2d = deltaB_2d / (r * np.sin(theta)) * cospsi * np.sin(alpha_2d[mod, 0] * np.cos(phase_2d)) \
                         - np.sin(theta) * cospsi / (a * r * k[mod, 0]) * (ddeltaB_2d * r * (r - rs) * np.sin(phase_2d) +
                                                                           deltaB_2d * np.sin(phase_2d) * (
@@ -316,15 +317,21 @@ class Parker(AbsBfield):
                                                                           k[mod, 0] * r * (r - rs) / a * np.sin(
                         alpha_2d[mod, 0] * np.cos(phase_2d) * deltaB_2d))
 
-            Bphi_2d = -deltaB_2d / (r * k[mod, 0]) * (cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) +
-                                                      np.cos(theta) * np.sin(phase_2d) * cospsi ** 3)
+            Bphi_2d = -deltaB_2d / (r * k[mod, 0]) * (cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
+                                                      (np.tan(theta))**(-1) * np.sin(phase_2d) * cospsi * sinpsi**2)
 
             # Total field
-            coeff_slab = 1 / 2
+            coeff_slab = 0
+            coeff_2d = 0
+            if use_slab:
+                coeff_slab = 1 / 2
 
-            Br += Br_2d + coeff_slab * (Br_az + Br_rad)
-            Btheta += Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad)
-            Bphi += Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad)
+            if use_2d:
+                coeff_2d = 1
+
+            Br += coeff_2d*Br_2d + coeff_slab * (Br_az + Br_rad)
+            Btheta += coeff_2d*Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad)
+            Bphi += coeff_2d*Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad)
 
         # B = np.zeros((3, *Br_2d.shape))
         # B[0] = Br_2d + coeff_slab * (Br_az + Br_rad)
@@ -355,7 +362,9 @@ class Parker(AbsBfield):
             Min wave length: {self.log_kmin}
             Max wave length: {self.log_kmax}
             Number of waves: {self.noise_num}
-            Coeff_2d: {self.coeff2d}"""
+            Coeff_2d: {self.coeff2d}
+            Using Slab: {self.use_slab}
+            Using 2D: {self.use_2d}"""
 
         return s
 
