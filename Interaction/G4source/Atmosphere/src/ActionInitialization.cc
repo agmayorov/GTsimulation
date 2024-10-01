@@ -17,7 +17,6 @@ void ActionInitialization::Build() const
 {
   SetUserAction(new PrimaryGeneratorAction(fParticlePDG, fEnergy, fHeight, fAlpha));
   SetUserAction(new TrackingAction());
-  // SetUserAction(new SteppingAction());
 }
 
 }

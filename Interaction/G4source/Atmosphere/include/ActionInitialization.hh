@@ -5,7 +5,6 @@
 
 #include "PrimaryGeneratorAction.hh"
 #include "TrackingAction.hh"
-#include "SteppingAction.hh"
 
 namespace Atmosphere
 {
