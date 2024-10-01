@@ -17,7 +17,7 @@ from Interaction import G4Interaction, G4Decay
 from MagneticFields.Magnetosphere import Functions, Additions
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
     BreakMetric, SaveMetric, vecRotMat
-from Particle import ConvertT2R, GetAntiParticle
+from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
 
 
 class GTSimulator(ABC):
@@ -131,7 +131,7 @@ class GTSimulator(ABC):
     5. Child: List of secondary particles. They have the same parameters.
     """
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
+                 RadLosses=False, Particles=dict(), TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
@@ -402,21 +402,30 @@ class GTSimulator(ABC):
             print("\tFlux: ", end='')
         module_name = f"Particle.Generators"
         m = importlib.import_module(module_name)
-        class_name = flux if not isinstance(flux, list) else flux[0]
         ToMeters = self.ToMeters
-        if isinstance(flux, list):
-            transform = flux[1].pop("Transform", None)
-            if transform is not None:
-                center = flux[1].get("Center", None)
-                assert center is None
-                center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
-                flux[1]["Center"] = np.array(center)
-        params = {"ToMeters": ToMeters, **({} if not isinstance(flux, list) else flux[1])}
-        if hasattr(m, class_name):
-            flux = getattr(m, class_name)
-            self.Particles = flux(**params)
-        else:
-            raise Exception("No spectrum")
+        spectrum = flux.pop("Spectrum", None)
+        if spectrum is not None:
+            if hasattr(m, spectrum):
+                spectrum = getattr(m, spectrum)
+                flux["Spectrum"] = spectrum
+            else:
+                raise Exception("No spectrum")
+
+        distribution = flux.pop("Distribution", None)
+        if distribution is not None:
+            if hasattr(m, distribution):
+                distribution = getattr(m, distribution)
+                flux["Distribution"] = distribution
+            else:
+                raise Exception("No Distribution")
+        transform = flux.pop("Transform", None)
+        if transform is not None:
+            center = flux.get("Center", None)
+            assert center is None
+            center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
+            flux["Center"] = np.array(center)
+        params = {"ToMeters": ToMeters, **flux}
+        self.Particles = Flux(**params)
 
         if self.Verbose:
             print(str(self.Particles))
@@ -645,7 +654,7 @@ class GTSimulator(ABC):
                                     V_p = rotationMatrix @ p['MomentumDirection']
                                     T_p = p['KineticEnergy']
                                     PDGcode_p = p["PDGcode"]
-                                    params["Particles"] = ["Monolines", {"Names": Particle(PDG=PDGcode_p, Name=None).Name,
+                                    params["Particles"] = ["Monolines", {"Names": CRParticle(PDG=PDGcode_p, Name=None).Name,
                                                                          "T": T_p,
                                                                          "Center": r_interaction / self.ToMeters,
                                                                          "Radius": 0,

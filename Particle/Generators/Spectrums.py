@@ -1,31 +1,41 @@
 import numpy as np
 
-from Particle.Flux import Flux
+from abc import ABC, abstractmethod
+
 from Particle.functions import ConvertUnits
 from Particle.GetNucleiProp import GetNucleiProp
 
 
-class Monolines(Flux):
+class AbsSpectrum(ABC):
+    def __init__(self, FluxObj=None, *args, **kwargs):
+        self.flux = FluxObj
+
+    @abstractmethod
+    def GenerateEnergySpectrum(self, *args, **kwargs):
+        return []
+
+
+class Monolines(AbsSpectrum):
     def __init__(self, T=1, *args, **kwargs):
         self.T = T
         super().__init__(*args, **kwargs)
 
     def GenerateEnergySpectrum(self):
+        assert isinstance(self.T, (int, float)) or isinstance(self.T, (list, np.ndarray))
         if isinstance(self.T, (int, float)):
-            self.KinEnergy = np.ones(self.Nevents) * self.T
-        elif isinstance(self.T, (list, np.ndarray)):
-            self.KinEnergy = np.concatenate(
-                (np.tile(self.T, self.Nevents // len(self.T)), self.T[:self.Nevents % len(self.T)]))
+            KinEnergy = np.ones(self.flux.Nevents) * self.T
+            return KinEnergy
+        KinEnergy = np.concatenate((np.tile(self.T, self.flux.Nevents // len(self.T)), self.T[:self.flux.Nevents % len(self.T)]))
+        return KinEnergy
 
     def __str__(self):
         s = f"""Monolines
         Energy: {self.T}"""
-        s1 = super().__str__()
 
-        return s + s1
+        return s
 
 
-class PowerSpectrum(Flux):
+class PowerSpectrum(AbsSpectrum):
     def __init__(self, EnergyMin=1, EnergyMax=10, RangeUnits='T', Base='T', SpectrumIndex=1., *args, **kwargs):
         self.EnergyMin = EnergyMin
         self.EnergyMax = EnergyMax
@@ -35,9 +45,9 @@ class PowerSpectrum(Flux):
         super().__init__(*args, **kwargs)
 
     def GenerateEnergySpectrum(self):
-        self.KinEnergy = np.zeros(self.Nevents)
-        for s in range(self.Nevents):
-            A, Z, M, *_ = GetNucleiProp(self.ParticleNames[s])
+        KinEnergy = np.zeros(self.flux.Nevents)
+        for s in range(self.flux.Nevents):
+            A, Z, M, *_ = GetNucleiProp(self.flux.ParticleNames[s])
             M = M / 1e3  # MeV/c2 -> GeVA, /c2
 
             EnergyRange = np.array([self.EnergyMin, self.EnergyMax])
@@ -47,24 +57,24 @@ class PowerSpectrum(Flux):
                 EnergyRangeS = EnergyRange
             ksi = np.random.rand()
             if self.SpectrumIndex == -1:
-                self.KinEnergy[s] = EnergyRangeS[0] * np.power((EnergyRangeS[1] / EnergyRangeS[0]), ksi)
+                KinEnergy[s] = EnergyRangeS[0] * np.power((EnergyRangeS[1] / EnergyRangeS[0]), ksi)
             else:
                 g = self.SpectrumIndex + 1.
-                self.KinEnergy[s] = np.power(np.power(EnergyRangeS[0], g) +
+                KinEnergy[s] = np.power(np.power(EnergyRangeS[0], g) +
                                              ksi * (np.power(EnergyRangeS[1], g) - np.power(EnergyRangeS[0], g)),
                                              (1 / g))
 
             if self.RangeUnits != self.Base:
-                self.KinEnergy[s] = ConvertUnits(self.KinEnergy[s], self.Base, self.RangeUnits, M, A, Z)
+                KinEnergy[s] = ConvertUnits(KinEnergy[s], self.Base, self.RangeUnits, M, A, Z)
+        return KinEnergy
 
     def __str__(self):
         s = f"""PowerSpectrum
         Minimal Energy: {self.EnergyMin}
         Maximal Energy: {self.EnergyMax}
         Spectrum Index: {self.SpectrumIndex}"""
-        s1 = super().__str__()
 
-        return s + s1
+        return s
 
 
 #
@@ -79,14 +89,14 @@ class PowerSpectrum(Flux):
 #             M = M / 1e3  # MeV/c2 -> GeVA, /c2
 
 
-class Uniform(Flux):
+class Uniform(AbsSpectrum):
     def __init__(self, MinT=1, MaxT=10, *args, **kwargs):
         self.MinT = MinT
         self.MaxT = MaxT
         super().__init__(*args, **kwargs)
 
     def GenerateEnergySpectrum(self):
-        self.KinEnergy = np.random.rand(self.Nevents) * (self.MaxT - self.MinT) + self.MinT
+        return np.random.rand(self.flux.Nevents) * (self.MaxT - self.MinT) + self.MinT
 
     def __str__(self):
         s = f"""Uniform

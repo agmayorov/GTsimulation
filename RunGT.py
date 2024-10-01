@@ -33,16 +33,9 @@ Medium = None
 # Medium = 'GTnrlmsis'
 
 
-# Flux = ["Uniform",
-#         {"MinT": 0.1*1e3, "MaxT": 20*1e3, "Center": np.array([0, 0, 0]), "Radius": 30, "Nevents": 100}]
-# Flux = ["Monolines", {"T": 1000000000000 * np.linspace(0.1, 5, 10),  "Center": np.array([-8.5, 0, 0]), "Radius": 0, "V0": np.array([0, 0, 1]),
-#                       "Nevents": 1}]
-# Flux = ["PowerSpectrum", {"EnergyMin": 0.1, "EnergyMax": 0.5, "RangeUnits": 'T', "Base": 'R', "SpectrumIndex":
-# -2.7, "Radius": 5, "Nevents": 5}]
-# Flux = "PowerSpectrum"
-Flux = ["Monolines", {"Names": 'neutron', "Nevents": 2, "T": 5000, "Center": np.array([1.5, 0, 0])}]
+Flux = {"Distribution": "Disk", "Nevents": 10000, "T": 200, "Radius": 14, "Width": 0.2}
 UseDecay = True
-NuclearInteraction = {"GenMax": 3}
+NuclearInteraction = None
 
 Nfiles = 1
 # Output = f"{folder}" + os.sep + "Uniform0.1_20"
