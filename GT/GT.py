@@ -633,6 +633,7 @@ class GTSimulator(ABC):
                             if Gen < GenMax:
                                 if self.Verbose:
                                     print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
+                                    print(secondary)
                                 # Cordinates of interaction point in XYZ
                                 path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
                                 r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
@@ -642,10 +643,10 @@ class GTSimulator(ABC):
                                 for p in secondary:
                                     V_p = rotationMatrix @ p['MomentumDirection']
                                     T_p = p['KineticEnergy']
-                                    name_p = p["Name"]
-                                    params["Particles"] = ["Monolines", {"Names": name_p,
+                                    PDGcode_p = p["PDGcode"]
+                                    params["Particles"] = ["Monolines", {"Names": Particle(PDG=PDGcode_p, Name=None).Name,
                                                                          "T": T_p,
-                                                                         "Center": r_interaction,
+                                                                         "Center": r_interaction / self.ToMeters,
                                                                          "Radius": 0,
                                                                          "V0": V_p,
                                                                          "Nevents": 1}]
