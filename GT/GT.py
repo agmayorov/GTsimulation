@@ -460,9 +460,10 @@ class GTSimulator(ABC):
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
 
-        # TODO modify
-        Nsave_check = (self.TrackParamsIsOn * self.IsFirstRun * self.TrackParams["GuidingCentre"] * (Nsave != 1))
-        assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
+        if self.Region == Regions.Magnetosphere:
+            # TODO modify
+            Nsave_check = (self.TrackParamsIsOn * self.IsFirstRun * self.TrackParams["GuidingCentre"] * (Nsave != 1))
+            assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
 
         self.Npts = math.ceil(self.Num / Nsave) if Nsave != 0 else 1
         self.Nsave = Nsave

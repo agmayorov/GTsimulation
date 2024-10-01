@@ -5,7 +5,7 @@ import pyproj
 
 
 class _AbsRegion(ABC):
-
+    SaveAdd = dict()
     @staticmethod
     def transform(x, y, z, name, units):
         return x, y, z
