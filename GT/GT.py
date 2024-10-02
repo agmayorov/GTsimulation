@@ -8,12 +8,14 @@ import numpy as np
 import importlib
 import datetime
 import copy
+import warnings
+warnings.simplefilter("always")
 
 from abc import ABC, abstractmethod
 
 from numba import jit
 
-from Interaction import G4Interaction, G4Decay
+from Interaction import G4Interaction, G4Decay, G4Shower
 from MagneticFields.Magnetosphere import Functions, Additions
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
     BreakMetric, SaveMetric, vecRotMat
@@ -50,7 +52,7 @@ class GTSimulator(ABC):
     :param Particles: The parameter is responsible for the initial particle flux generation. Its value defines the
                       energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
                       The structure is similar  to :ref:`Bfield`. The list of available energy spectrums is available
-                      here :py:mod:`Particle.Generators.Spectrums`․ For more information regarding flux also
+                      here :py:mod:`Particle.Generators.Spectrums`. For more information regarding flux also
                       see :py:mod:`Particle.Flux`.
 
                       **Note**: that instead of `Center` parameter `Transform` may be passed
@@ -569,11 +571,27 @@ class GTSimulator(ABC):
             E = particle.E
             T = particle.T
 
+            if M == 0 and Q == 0:   # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+                self.Step *= 1e2    # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+
             r = np.array(particle.coordinates)
 
             V_normalized = np.array(particle.velocities) # unit vector of velosity (beta vector)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
             Vm = V_norm * V_normalized # vector of velocity [m/s]
+
+            # Тут можно всё ниженаписанное обернуть в метод region по типу self.check_before_stepping(self)
+            # Внутри метода будут проверки для данного региона
+            # Если регион - магнитосфера, то нужно проверить, не выполняются ли условия для симуляции ШАЛ,
+            # и если да - то запуск G4Shower, рекурсивный вызов GT с альбедо, если таковые будут
+            # и IsPrimDeath = True, либо break
+            # Start modeling EAS if secondary particle has borned in atmosphere and go down
+            if self.Region == Regions.Magnetosphere and self.InteractNUC is not None and Gen > 1:
+                altitude = np.linalg.norm(r) - Units.RE2m # altitude in [km]
+                angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
+                if altitude < 80e3 and angle < 70:
+                    # primary, secondary = G4Shower(PDGcode_p, T_p, r_interaction, V_p, self.Date)
+                    break
 
             if self.Verbose:
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
@@ -631,7 +649,7 @@ class GTSimulator(ABC):
                     T = primary['KineticEnergy']
                     V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
-                    if T > 0:
+                    if T > 0 and T > 0.1:
                         # Only ionization losses
                         LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
                         LocalPathDenVector = np.empty(0)
@@ -639,30 +657,34 @@ class GTSimulator(ABC):
                     else:
                         # Death due to ionization losses or nuclear interaction
                         IsPrimDeath = True
-                        if secondary.size > 0:
-                            if Gen < GenMax:
-                                if self.Verbose:
-                                    print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
-                                    print(secondary)
-                                # Cordinates of interaction point in XYZ
-                                path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
-                                r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
-                                # Parameters for recursive call of GT
-                                params = self.ParamDict.copy()
-                                params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
-                                for p in secondary:
-                                    V_p = rotationMatrix @ p['MomentumDirection']
-                                    T_p = p['KineticEnergy']
-                                    PDGcode_p = p["PDGcode"]
-                                    params["Particles"] = ["Monolines", {"Names": CRParticle(PDG=PDGcode_p, Name=None).Name,
-                                                                         "T": T_p,
-                                                                         "Center": r_interaction / self.ToMeters,
-                                                                         "Radius": 0,
-                                                                         "V0": V_p,
-                                                                         "Nevents": 1}]
-                                    new_process = self.__class__(**params)
-                                    new_process.__gen = Gen + 1
-                                    prod_tracks.append(new_process.CallOneFile())
+                        if secondary.size > 0 and Gen < GenMax:
+                            if self.Verbose:
+                                print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
+                                print(secondary)
+                            # Cordinates of interaction point in XYZ
+                            path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
+                            r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
+                            # Parameters for recursive call of GT
+                            params = self.ParamDict.copy()
+                            params["Date"] += datetime.timedelta(seconds=TotTime)
+                            for p in secondary:
+                                V_p = rotationMatrix @ p['MomentumDirection']
+                                T_p = p['KineticEnergy']
+                                PDGcode_p = p["PDGcode"]
+                                # Try to find a particle (REMOVE IN THE FUTURE)
+                                try:
+                                    name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
+                                except:
+                                    warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
+                                    continue
+                                params["Particles"] = {"Names": name_p,
+                                                       "T": T_p,
+                                                       "Center": r_interaction / self.ToMeters,
+                                                       "Radius": 0,
+                                                       "V0": V_p}
+                                new_process = self.__class__(**params)
+                                new_process.__gen = Gen + 1
+                                prod_tracks.append(new_process.CallOneFile())
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
@@ -778,12 +800,11 @@ class GTSimulator(ABC):
                 name_p = p["Name"]
 
                 params = self.ParamDict.copy()
-                params["Particles"] = ["Monolines", {"Names": name_p,
-                                                     "T": T_p,
-                                                     "Center": r_p,
-                                                     "Radius": 0,
-                                                     "V0": V_p,
-                                                     "Nevents": 1}]
+                params["Particles"] = {"Names": name_p,
+                                       "T": T_p,
+                                       "Center": r_p,
+                                       "Radius": 0,
+                                       "V0": V_p}
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                 new_process = self.__class__(**params)
                 new_process.__gen = Gen + 1

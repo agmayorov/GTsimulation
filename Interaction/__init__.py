@@ -1,1 +1,1 @@
-from .G4functions import G4Interaction, G4Decay
+from .G4functions import *

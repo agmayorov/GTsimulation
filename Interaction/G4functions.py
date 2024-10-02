@@ -2,6 +2,8 @@ import subprocess
 import os
 import numpy as np
 from io import StringIO
+from pymsis import msis
+from pyproj import Transformer
 from .settings import path_geant4
 
 
@@ -124,7 +126,7 @@ def G4Decay(PDG, E):
     return secondary
 
 
-def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
+def G4Shower(PDG, E, r, v, date):
     """
     The function calls executable binary program that calculates interaction of the charged particle
     with atmospheric column of height h and outputs information about secondary (albedo) particles.
@@ -169,10 +171,19 @@ def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
         primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)
     """
 
+    # Get additional data
+    geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
+                                      {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
+    lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
+    angle = np.arccos(np.dot(-v, r / np.linalg.norm(r))) / np.pi * 180
+    doy = date.timetuple().tm_yday
+    sec = (date - date.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    f107, f107a, ap = msis.get_f107_ap(date)
+
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/Atmosphere {PDG} {E} {h} {alpha} "
-                            f"{doy} {sec} {lat} {lon} {f107A} {f107} {ap}", shell=True, stdout=subprocess.PIPE)
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/Atmosphere {PDG} {E} {alt} {angle} "
+                            f"{doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print(result.stderr)
         raise RuntimeError('Geant4 program did not work successfully')
@@ -192,5 +203,7 @@ def G4Shower(PDG, E, h, alpha, doy, sec, lat, lon, f107A, f107, ap):
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
+        if secondary.size > 0 and secondary.ndim == 0:
+            secondary = [secondary]
 
     return primary, secondary
