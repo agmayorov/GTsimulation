@@ -110,8 +110,8 @@ def GetLshell(I2, Hm):
     return Lshell
 
 # TODO finish save option
-def GetTrackParams(Simulator, RetArr_i):
-    R = RetArr_i["Track"]["Coordinates"] * Units.RE2m
+def GetTrackParams(Simulator, RetArr_i, ToMeters):
+    R = RetArr_i["Track"]["Coordinates"] * ToMeters
     H = RetArr_i["Track"]["Bfield"]
     M = RetArr_i["Particle"]["M"]
     T0 = RetArr_i["Particle"]["T0"]
