@@ -14,7 +14,7 @@ ActionInitialization::~ActionInitialization()
 void ActionInitialization::Build() const
 {
   SetUserAction(new PrimaryGeneratorAction(fParticlePDG, fEnergy));
-  SetUserAction(new SteppingAction());
+  SetUserAction(new TrackingAction());
 }
 
 }

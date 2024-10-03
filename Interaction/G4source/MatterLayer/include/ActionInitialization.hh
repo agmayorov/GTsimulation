@@ -4,7 +4,7 @@
 #include "G4VUserActionInitialization.hh"
 
 #include "PrimaryGeneratorAction.hh"
-#include "SteppingAction.hh"
+#include "TrackingAction.hh"
 
 namespace MatterLayer
 {
