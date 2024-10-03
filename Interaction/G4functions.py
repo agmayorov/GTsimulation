@@ -73,6 +73,8 @@ def G4Interaction(PDG, E, m, rho, w):
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
+        if secondary.size > 0 and secondary.ndim == 0:
+            secondary = np.array([secondary])
 
     return primary, secondary
 
@@ -199,11 +201,11 @@ def G4Shower(PDG, E, r, v, date):
 
     # Reading information about the secondary particles
     secondary = np.array([])
-    if s != -1 and len(output[s:]) > 117:
+    if s != -1:
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
         if secondary.size > 0 and secondary.ndim == 0:
-            secondary = [secondary]
+            secondary = np.array([secondary])
 
     return primary, secondary

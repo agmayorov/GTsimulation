@@ -15,9 +15,11 @@ class TrackingAction : public G4UserTrackingAction
   public:  
     TrackingAction();
    ~TrackingAction() override = default;
-   
     void  PreUserTrackingAction(const G4Track *aTrack) override;
     void PostUserTrackingAction(const G4Track *aTrack) override;
+
+  private:
+    G4bool fFirstSecondaryParticle;
 };
 
 }

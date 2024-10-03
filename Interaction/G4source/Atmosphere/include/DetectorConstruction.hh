@@ -32,7 +32,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double fF107A;
     G4double fF107;
     G4double fAp;
-    G4double fMaxHeight = 100.; // km
+    G4double fMaxHeight = 80.; // km
     G4double fThicknessOfOneLayer = 1.; // km
 };
 

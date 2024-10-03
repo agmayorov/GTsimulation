@@ -4,6 +4,7 @@ namespace Atmosphere
 {
 
 TrackingAction::TrackingAction()
+: fFirstSecondaryParticle(true)
 {}
 
 void TrackingAction::PreUserTrackingAction(const G4Track *aTrack)
@@ -22,13 +23,16 @@ void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
               << aTrack->GetParticleDefinition()->GetPDGCharge() << ","
               << aTrack->GetPosition()/m << ","
               << aTrack->GetStep()->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName() << std::endl;
-    G4cout << "\nInformation about the secondary particles:\n"
-           << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[m]" << G4endl;
   }
 
   if (aTrack->GetTrackID() != 1 && aTrack->GetKineticEnergy() > 1. &&
       aTrack->GetStep()->GetPostStepPoint()->GetStepStatus() == fWorldBoundary &&
-      aTrack->GetMomentumDirection().z() > 0.) {
+      aTrack->GetMomentumDirection().z() > 0. && aTrack->GetPosition().z() > 0.) {
+    if (fFirstSecondaryParticle) {
+      G4cout << "\nInformation about the secondary particles:\n"
+             << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[m]" << G4endl;
+      fFirstSecondaryParticle = false;
+    }
     std::cout << aTrack->GetParticleDefinition()->GetParticleName() << ","
               << aTrack->GetParticleDefinition()->GetPDGEncoding() << ","
               << aTrack->GetParticleDefinition()->GetPDGMass() << ","
