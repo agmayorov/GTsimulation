@@ -136,7 +136,7 @@ class GTSimulator(ABC):
                  RadLosses=False, Particles=dict(), TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
-                 BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
+                 BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None): #TODO: merge BreakCondition and BCcenter
 
         self.__names = self.__init__.__code__.co_varnames[1:]
         self.__vals = []
@@ -571,6 +571,7 @@ class GTSimulator(ABC):
             E = particle.E
             T = particle.T
 
+            # TODO: optimize calculation of neutral particles
             if M == 0 and Q == 0:   # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
                 self.Step *= 1e2    # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
 
@@ -590,8 +591,29 @@ class GTSimulator(ABC):
                 altitude = np.linalg.norm(r) - Units.RE2m # altitude in [km]
                 angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
                 if altitude < 80e3 and angle < 70:
-                    # primary, secondary = G4Shower(PDGcode_p, T_p, r_interaction, V_p, self.Date)
-                    break
+                    primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, self.Date)
+                    IsPrimDeath = True
+                    if secondary.size > 0 and Gen < GenMax:
+                        if self.Verbose:
+                            print(f"EAS ~ {secondary.size} secondaries")
+                            print(secondary)
+                        params = self.ParamDict.copy()
+                        for p in secondary:
+                            PDGcode_p = p["PDGcode"]
+                            # Try to find a particle (REMOVE IN THE FUTURE)
+                            try:
+                                name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
+                            except:
+                                warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
+                                continue
+                            params["Particles"] = {"Names": name_p,
+                                                   "T": p['KineticEnergy'],
+                                                   "Center": p['Position'] / self.ToMeters,
+                                                   "Radius": 0,
+                                                   "V0": p['MomentumDirection']}
+                            new_process = self.__class__(**params)
+                            new_process.__gen = Gen + 1
+                            prod_tracks.append(new_process.CallOneFile())
 
             if self.Verbose:
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
@@ -649,7 +671,7 @@ class GTSimulator(ABC):
                     T = primary['KineticEnergy']
                     V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
-                    if T > 0 and T > 0.1:
+                    if T > 0 and T > 1: # Cut particles with T < 1 MeV
                         # Only ionization losses
                         LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
                         LocalPathDenVector = np.empty(0)
@@ -669,6 +691,8 @@ class GTSimulator(ABC):
                             params["Date"] += datetime.timedelta(seconds=TotTime)
                             for p in secondary:
                                 V_p = rotationMatrix @ p['MomentumDirection']
+                                # TODO: possible wrong using of rotation matrix for secondary particles
+                                # because this rotation matrix do not correspond to r_interaction point
                                 T_p = p['KineticEnergy']
                                 PDGcode_p = p["PDGcode"]
                                 # Try to find a particle (REMOVE IN THE FUTURE)

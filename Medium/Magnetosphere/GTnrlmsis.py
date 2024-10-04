@@ -1,6 +1,6 @@
 import numpy as np
 import datetime
-import pyproj
+from pyproj import Transformer
 from pymsis import msis
 
 from Global import Regions
@@ -9,7 +9,7 @@ from Medium import GTGeneralMedium
 
 class GTnrlmsis(GTGeneralMedium):
 
-    def __init__(self, date: datetime.datetime, version=2.1):
+    def __init__(self, date: datetime.datetime, version=0):
         super().__init__()
         self.region = Regions.Magnetosphere
         self.model = "NRLMSIS"
@@ -21,8 +21,8 @@ class GTnrlmsis(GTGeneralMedium):
         self.f107 = f107
         self.f107a = f107a
         self.ap = ap
-        self.transformer = pyproj.Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
-                                                       {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
+        self.transformer = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
+                                                {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
 
     def calculate_model(self, x, y, z, **kwargs):
         lon, lat, alt = self.convert_xyz_to_lla(x, y, z)

@@ -4,6 +4,8 @@ import numpy as np
 from io import StringIO
 from pymsis import msis
 from pyproj import Transformer
+
+from Global import vecRotMat
 from .settings import path_geant4
 
 
@@ -32,7 +34,7 @@ def G4Interaction(PDG, E, m, rho, w):
                         Mass                - Mass [MeV]
                         Charge              - Charge
                         KineticEnergy       - Kinetic energy of the particle [MeV]
-                        MomentumDirection   - Direction of the velocity of the particle (unit vector)
+                        MomentumDirection   - Direction of the velocity of the particle [unit vector]
                         Position            - Coordinates of the primary particle [m]
                         LastProcess         - Name of the last process in which the primary particle
                                               participated (usually 'Transportation' or '...Inelastic')
@@ -95,7 +97,7 @@ def G4Decay(PDG, E):
                         Mass                - Mass [MeV]
                         Charge              - Charge
                         KineticEnergy       - Kinetic energy of the particle [MeV]
-                        MomentumDirection   - Direction of the velocity of the particle (unit vector)
+                        MomentumDirection   - Direction of the velocity of the particle [unit vector]
 
     Examples:
         secondary = G4Decay(2112, 1)        # n -> p + e- + anti_nu_e
@@ -141,15 +143,9 @@ def G4Shower(PDG, E, r, v, date):
     Parameters:
         PDG         - int                   - Particle PDG code
         E           - float                 - Kinetic energy of the particle [MeV]
-        h           - float                 - Initial altitude above ground [km] (less than 100 km)
-        alpha       - float                 - Angle between the vertical and the velocity vector of the particle [degrees]
-        doy         - float                 - Day of year
-        sec         - float                 - Seconds in day [sec]
-        lat         - float                 - Geodetic latitude [degrees]
-        lon         - float                 - Geodetic longitude [degrees]
-        f107A       - float                 - 81 day average of F10.7 flux (centered on doy)
-        f107        - float                 - daily F10.7 flux for previous day
-        ap          - float                 - magnetic index (daily) [nT]
+        r           - float                 - Coordinates of the primary particle in GEO [m]
+        v           - float                 - Velocity of the primary particle in GEO [unit vector]
+        date        - datetime              - Current datetime
 
     Returns:
         primary     - structured ndarray
@@ -165,22 +161,31 @@ def G4Shower(PDG, E, r, v, date):
                         Mass                - Mass [MeV]
                         Charge              - Charge
                         KineticEnergy       - Kinetic energy of the particle [MeV]
-                        MomentumDirection   - Direction of the velocity of the particle (unit vector)
-                        Position            - Coordinates of the secondary (albedo) particle [m]
+                        MomentumDirection   - Direction of the velocity of the particle in GEO [unit vector]
+                        Position            - Coordinates of the secondary (albedo) particle in GEO [m]
 
     Examples:
         primary, secondary = G4Shower(2212, 10e3, 95, 10, 1, 0, 0, 0, 150, 150, 4)
         primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)
     """
 
-    # Get additional data
+    # Calculating input parameters
     geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
                                       {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
     lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
+    alt *= 1e-3 # m -> km
+    # angle between the vertical line and the velocity vector of the particle [degrees]
     angle = np.arccos(np.dot(-v, r / np.linalg.norm(r))) / np.pi * 180
+    # day of year (from 1 to 365 or 366)
     doy = date.timetuple().tm_yday
+    # seconds in day
     sec = (date - date.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     f107, f107a, ap = msis.get_f107_ap(date)
+
+    # Calculating transformations of coordinates
+    phi = 2 * np.pi * np.random.rand()
+    v_local = [np.sin(angle) * np.cos(angle), np.sin(angle) * np.sin(angle), np.cos(angle)]
+    rotationMatrix = vecRotMat(v_local, v)
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
@@ -205,7 +210,11 @@ def G4Shower(PDG, E, r, v, date):
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
-        if secondary.size > 0 and secondary.ndim == 0:
-            secondary = np.array([secondary])
+        if secondary.size > 0:
+            if secondary.ndim == 0:
+                secondary = np.array([secondary])
+            for i, p in enumerate(secondary):
+                secondary[i]['MomentumDirection'] = rotationMatrix @ p['MomentumDirection']
+                secondary[i]['Position'] = r * (1 + (80.5 - alt) * 1e3 / np.linalg.norm(r))
 
     return primary, secondary
