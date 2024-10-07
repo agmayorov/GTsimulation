@@ -1,10 +1,14 @@
+import numpy as np
+import warnings
+warnings.simplefilter("always")
+
 from enum import Enum
 from abc import ABC, abstractmethod
-import numpy as np
-
-import pyproj
 from numba import jit
+from pyproj import Transformer
 
+from Particle import CRParticle
+from Interaction import G4Shower
 
 class _AbsRegion(ABC):
     SaveAdd = dict()
@@ -93,8 +97,8 @@ class _Magnetosphere(_AbsRegion):
             # x = lat, y = long, z = altitude
             # units = Units.RE2m or Units.km2m
             # TODO make more rigorous after units addition in the GT
-            transformer = pyproj.Transformer.from_crs({"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
-                                                      {"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'})
+            transformer = Transformer.from_crs({"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
+                                               {"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'})
             # Matlab lla2ecef([lat, long, altitude]) -> python transformer.transform(long, lat, altitude, radians=False)
             x, y, z = transformer.transform(y, x, z*1000, radians=False)
             x, y, z = x/units, y/units, z/units
@@ -104,6 +108,42 @@ class _Magnetosphere(_AbsRegion):
     def checkSave(Simulator, Nsave):
         Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCentre"] * (Nsave != 1))
         assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
+
+    @staticmethod
+    def do_before_loop(simulator, gen, prod_tracks):
+        if simulator.InteractNUC is not None and gen > 1:
+            particle = simulator.Particles[simulator.index]
+            r = np.array(particle.coordinates)
+            V_normalized = np.array(particle.velocities)
+            T = particle.T
+            geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
+                                              {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
+            lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
+            angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
+            if alt < 80e3 and angle < 70:
+                primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, simulator.Date)
+                simulator.IsPrimDeath = True
+                if secondary.size > 0 and gen < simulator.InteractNUC['GenMax']:
+                    if simulator.Verbose:
+                        print(f"EAS ~ {secondary.size} secondaries")
+                        print(secondary)
+                    params = simulator.ParamDict.copy()
+                    for p in secondary:
+                        PDGcode_p = p["PDGcode"]
+                        # Try to find a particle (TODO: REMOVE IN THE FUTURE)
+                        try:
+                            name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
+                        except:
+                            warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
+                            continue
+                        params["Particles"] = {"Names": name_p,
+                                               "T": p['KineticEnergy'],
+                                               "Center": p['Position'] / simulator.ToMeters,
+                                               "Radius": 0,
+                                               "V0": p['MomentumDirection']}
+                        new_process = simulator.__class__(**params)
+                        new_process.__gen = gen + 1
+                        prod_tracks.append(new_process.CallOneFile()[0])
 
 
 class Regions(Enum):

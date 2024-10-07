@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 
 from numba import jit
 
-from Interaction import G4Interaction, G4Decay, G4Shower
+from Interaction import G4Interaction, G4Decay
 from MagneticFields.Magnetosphere import Functions, Additions
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
     BreakMetric, SaveMetric, vecRotMat
@@ -624,7 +624,7 @@ class GTSimulator(ABC):
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
             rnd_dec = 0
-            IsPrimDeath = False
+            self.IsPrimDeath = False
             prod_tracks = []
             if tau:
                 rnd_dec = np.random.rand()
@@ -645,7 +645,7 @@ class GTSimulator(ABC):
             T = particle.T
 
             # TODO: optimize calculation of neutral particles
-            if M == 0 and Q == 0:   # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+            if Q == 0:              # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
                 self.Step *= 1e2    # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
 
             r = np.array(particle.coordinates)
@@ -653,40 +653,6 @@ class GTSimulator(ABC):
             V_normalized = np.array(particle.velocities) # unit vector of velosity (beta vector)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
             Vm = V_norm * V_normalized  # vector of velocity [m/s]
-
-            # Тут можно всё ниженаписанное обернуть в метод region по типу self.check_before_stepping(self)
-            # Внутри метода будут проверки для данного региона
-            # Если регион - магнитосфера, то нужно проверить, не выполняются ли условия для симуляции ШАЛ,
-            # и если да - то запуск G4Shower, рекурсивный вызов GT с альбедо, если таковые будут
-            # и IsPrimDeath = True, либо break
-            # Start modeling EAS if secondary particle has borned in atmosphere and go down
-            if self.Region == Regions.Magnetosphere and self.InteractNUC is not None and Gen > 1:
-                altitude = np.linalg.norm(r) - Units.RE2m # altitude in [km]
-                angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
-                if altitude < 80e3 and angle < 70:
-                    primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, self.Date)
-                    IsPrimDeath = True
-                    if secondary.size > 0 and Gen < GenMax:
-                        if self.Verbose:
-                            print(f"EAS ~ {secondary.size} secondaries")
-                            print(secondary)
-                        params = self.ParamDict.copy()
-                        for p in secondary:
-                            PDGcode_p = p["PDGcode"]
-                            # Try to find a particle (REMOVE IN THE FUTURE)
-                            try:
-                                name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
-                            except:
-                                warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
-                                continue
-                            params["Particles"] = {"Names": name_p,
-                                                   "T": p['KineticEnergy'],
-                                                   "Center": p['Position'] / self.ToMeters,
-                                                   "Radius": 0,
-                                                   "V0": p['MomentumDirection']}
-                            new_process = self.__class__(**params)
-                            new_process.__gen = Gen + 1
-                            prod_tracks.append(new_process.CallOneFile())
 
             if self.Verbose:
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
@@ -698,6 +664,9 @@ class GTSimulator(ABC):
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
                 print(f"\t\t\tbeta*dt: {V_norm * self.Step / 1000} [km] / "
                       f"{V_norm * self.Step / self.ToMeters} [{self.Bfield.Units}]")
+
+            # Calculation of EAS for magnetosphere
+            self.Region.value.do_before_loop(self, Gen, prod_tracks)
 
             q = self.Step * Q / 2 / (M * Units.MeV2kg) if M != 0 else 0
             brk = BreakCode["Loop"]
@@ -738,10 +707,10 @@ class GTSimulator(ABC):
                     lifetime = tau * (T/M + 1)
                     if rnd_dec > np.exp(-TotTime/lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
-                        IsPrimDeath = True
+                        self.IsPrimDeath = True
 
                 # Nuclear Interaction
-                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not IsPrimDeath:
+                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not self.IsPrimDeath:
                     # Construct Rotation Matrix & Save velosity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal, LocalChemComp / nLocal)
@@ -755,7 +724,7 @@ class GTSimulator(ABC):
                         LocalCoordinate = np.empty([0, 3])
                     else:
                         # Death due to ionization losses or nuclear interaction
-                        IsPrimDeath = True
+                        self.IsPrimDeath = True
                         if secondary.size > 0 and Gen < GenMax:
                             if self.Verbose:
                                 print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
@@ -772,7 +741,7 @@ class GTSimulator(ABC):
                                 # because this rotation matrix do not correspond to r_interaction point
                                 T_p = p['KineticEnergy']
                                 PDGcode_p = p["PDGcode"]
-                                # Try to find a particle (REMOVE IN THE FUTURE)
+                                # Try to find a particle (TODO: REMOVE IN THE FUTURE)
                                 try:
                                     name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
                                 except:
@@ -785,7 +754,7 @@ class GTSimulator(ABC):
                                                        "V0": V_p}
                                 new_process = self.__class__(**params)
                                 new_process.__gen = Gen + 1
-                                prod_tracks.append(new_process.CallOneFile())
+                                prod_tracks.append(new_process.CallOneFile()[0])
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
@@ -811,7 +780,7 @@ class GTSimulator(ABC):
                 # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
-                if brck[0] or IsPrimDeath:
+                if brck[0] or self.IsPrimDeath:
                     if brk != -1:
                         self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
@@ -825,7 +794,7 @@ class GTSimulator(ABC):
                                       SaveC,
                                       SaveT)
                         i_save += 1
-                    if IsPrimDeath:
+                    if self.IsPrimDeath:
                         brk = self.__brck_index["Death"]
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
@@ -909,7 +878,7 @@ class GTSimulator(ABC):
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                 new_process = self.__class__(**params)
                 new_process.__gen = Gen + 1
-                prod_tracks.append(new_process.CallOneFile())
+                prod_tracks.append(new_process.CallOneFile()[0])
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
@@ -991,16 +960,3 @@ class GTSimulator(ABC):
     @abstractmethod
     def AlgoStep(self, T, M, q, Vm, r):
         pass
-
-# if self.Save is None:
-#     ax = plt.figure().add_subplot(projection='3d')
-#     ax.plot(0, 0, 0, '*')
-#     print(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2])
-#     print(TotPathLen / 1000)
-#     ax.plot(Trajectory[0, 0], Trajectory[0, 1], Trajectory[0, 2], 'o')
-#     ax.plot(Trajectory[-1, 0], Trajectory[-1, 1], Trajectory[-1, 2], 'o')
-#     ax.plot(Trajectory[:, 0], Trajectory[:, 1], Trajectory[:, 2])
-#     ax.set_xlim([-1, 1.5])
-#     ax.set_ylim([-1, 1])
-#     ax.set_zlim([-1, 1])
-#     plt.show()
