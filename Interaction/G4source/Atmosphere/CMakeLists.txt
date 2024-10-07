@@ -13,6 +13,13 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
+# Visualization option
+option(USE_VISUALIZATION "Use visualization code" OFF)
+if (USE_VISUALIZATION)
+  add_definitions(-DUSE_VISUALIZATION)
+  file(COPY ${PROJECT_SOURCE_DIR}/../vis.mac DESTINATION ${PROJECT_BINARY_DIR})
+endif()
+
 # Add the executable, and link it to the Geant4 libraries
 add_executable(Atmosphere Atmosphere.cc ${sources} ${headers})
 target_link_libraries(Atmosphere ${Geant4_LIBRARIES})

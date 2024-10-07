@@ -5,10 +5,12 @@
 #include "ActionInitialization.hh"
 
 #include "G4UImanager.hh"
-
-// #include "G4UIExecutive.hh"
-// #include "G4VisExecutive.hh"
 #include <chrono>
+
+#ifdef USE_VISUALIZATION
+  #include "G4UIExecutive.hh"
+  #include "G4VisExecutive.hh"
+#endif
 
 using namespace MatterLayer;
 
@@ -59,16 +61,18 @@ int main(int argc, char* argv[])
   UImanager->ApplyCommand("/process/inactivate nKiller");
   // UImanager->ApplyCommand("/tracking/verbose 1");
 
-  // // Visualization
-  // G4VisManager* visManager = new G4VisExecutive;
-  // visManager->Initialize();
-  // G4UIExecutive* UI = new G4UIExecutive(argc, argv);
-  // UImanager->ApplyCommand("/control/execute vis.mac");
-  // UI->SessionStart();
-  // delete UI;
-
-  // Run 1 particle
-  runManager->BeamOn(1);
+  #ifdef USE_VISUALIZATION
+    // Get the pointer to the visualization mmnager
+    G4VisManager *visManager = new G4VisExecutive();
+    visManager->Initialize();
+    G4UIExecutive *UI = new G4UIExecutive(argc, argv);
+    UImanager->ApplyCommand("/control/execute vis.mac");
+    UI->SessionStart();
+    delete UI;
+  #else
+    // Run 1 particle
+    runManager->BeamOn(1);
+  #endif
 
   // Job termination
   delete runManager;

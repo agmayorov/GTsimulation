@@ -1,0 +1,13 @@
+# Macro file for the visualization setting in the initialization phase
+
+# Create an OpenGL view and draw geometry
+/vis/open OGLI
+/vis/drawVolume
+
+# Draw smooth trajectories at end of event
+/vis/viewer/set/autoRefresh true
+/vis/scene/add/trajectories smooth
+
+# Specify view angle
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 80 20
