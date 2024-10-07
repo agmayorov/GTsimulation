@@ -28,8 +28,11 @@ class GTSimulator(ABC):
 
     :param Region: The region of the in which the simulation is taken place. The parameter may have values as
                    `Global.Region.Magnetosphere`, `Global.Region.Heliosphere`, `Global.Region.Galaxy`.
-                   See :py:mod:`Global.regions`.
-    :type Region: Global.Region
+                   See :py:mod:`Global.regions`. If list the second element defines region specific parameters. See
+                   :py:mod:`Global.regions._AbsRegion.set_params`. Example: for the heliosphere one may pass
+                   `{"CalcAdditionalEnergy": True}` which will take into account the adibatic energy losses of the
+                   particles.
+    :type Region: Global.Region or list
 
     :param Bfield: The name of the magnetic field. It should be inside the package :py:mod:`MagneticFields` in the
                    corresponding `Region`. To add some parameters use `list` format and pass the parameters as a `dict`.
@@ -196,10 +199,10 @@ class GTSimulator(ABC):
 
     5. Child: List of secondary particles. They have the same parameters.
     """
-    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles=dict(), TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
-                 ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
-                 Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
+    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium: None | dict = None,
+                 Date=datetime.datetime(2008, 1, 1), RadLosses=False, Particles: None | dict = None, TrackParams=False,
+                 ParticleOrigin=False, IsFirstRun=True, ForwardTrck=None, Save: int | list = 1, Num: int = 1e6, Step=1,
+                 Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
                  BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None): #TODO: merge BreakCondition and BCcenter
 
         self.__names = self.__init__.__code__.co_varnames[1:]
@@ -232,10 +235,7 @@ class GTSimulator(ABC):
             print(f"\tRadiation Losses: {self.UseRadLosses}")
             print()
 
-        self.Region = Region
-        if self.Verbose:
-            print(f"\tRegion: {self.Region.name}")
-            print()
+        self.__SetRegion(Region)
 
         self.ParticleOrigin = ParticleOrigin
         self.ParticleOriginIsOn = False
@@ -309,6 +309,8 @@ class GTSimulator(ABC):
                  BCcenter=np.array([0, 0, 0]), UseDecay=False,
                  InteractNUC: None | dict = None):  # TODO: merge BreakCondition and BCcenter
 
+        if Particles is None:
+            Particles = {}
         self.__names = self.__init__.__code__.co_varnames[1:]
         self.__vals = []
         for self.__v in self.__names:
@@ -339,10 +341,7 @@ class GTSimulator(ABC):
             print(f"\tRadiation Losses: {self.UseRadLosses}")
             print()
 
-        self.Region = Region
-        if self.Verbose:
-            print(f"\tRegion: {self.Region.name}")
-            print()
+        self.__SetRegion(Region)
 
         self.ParticleOrigin = ParticleOrigin
         self.ParticleOriginIsOn = False
@@ -531,6 +530,18 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print(None)
 
+    def __SetRegion(self, Region):
+        if not isinstance(Region, list):
+            self.Region = Region
+        else:
+            self.Region = Region[0]
+            self.Region.value.set_params(**Region[1])
+
+        if self.Verbose:
+            print(f"\tRegion: {self.Region.name}")
+            print(self.Region.value.ret_str())
+            print()
+
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
 
@@ -596,6 +607,8 @@ class GTSimulator(ABC):
         Gen = self.__gen
         GenMax = 1 if self.InteractNUC is None else self.InteractNUC.get("GenMax", 1)
 
+        UseAdditionalEnergyLosses = self.Region.value.CalcAdditional()
+
         for self.index in range(len(self.Particles)):
             if self.Verbose:
                 print("\t\tStarting event...")
@@ -639,7 +652,7 @@ class GTSimulator(ABC):
 
             V_normalized = np.array(particle.velocities) # unit vector of velosity (beta vector)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
-            Vm = V_norm * V_normalized # vector of velocity [m/s]
+            Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
             # Тут можно всё ниженаписанное обернуть в метод region по типу self.check_before_stepping(self)
             # Внутри метода будут проверки для данного региона
@@ -699,7 +712,11 @@ class GTSimulator(ABC):
                 PathLen = V_norm * Step
 
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
-                Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q)
+                Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q, self.UseRadLosses, Step, self.ForwardTracing,
+                                         Constants.c, Constants.e)
+                if UseAdditionalEnergyLosses:
+                    Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
+                                                                     Constants.c, self.ToMeters)
 
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 
@@ -945,24 +962,26 @@ class GTSimulator(ABC):
         if SaveT:
             Saves[i_save, EnCode] = T
 
-    def RadLossStep(self, Vp, Vm, Yp, Ya, M, Q):
-        if not self.UseRadLosses:
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def RadLossStep(Vp, Vm, Yp, Ya, M, Q, UseRadLosses, Step, ForwardTracing, c, e):
+        if not UseRadLosses:
             T = M * (Yp - 1)
             return Vp, T
 
-        acc = (Vp - Vm) / self.Step
+        acc = (Vp - Vm) / Step
         Vn = np.linalg.norm(Vp + Vm)
         Vinter = (Vp + Vm) / Vn
 
         acc_par = np.dot(acc, Vinter)
         acc_per = np.sqrt(np.linalg.norm(acc) ** 2 - acc_par ** 2)
 
-        dE = self.Step * ((2 / (3 * 4 * np.pi * 8.854187e-12) * Q ** 2 * Ya ** 4 / Constants.c ** 3) *
-                          (acc_per ** 2 + acc_par ** 2 * Ya ** 2) / Constants.e / 1e6)
+        dE = Step * ((2 / (3 * 4 * np.pi * 8.854187e-12) * Q ** 2 * Ya ** 4 / c ** 3) *
+                          (acc_per ** 2 + acc_par ** 2 * Ya ** 2) / e / 1e6)
 
-        T = M * (Yp - 1) - self.ForwardTracing * np.abs(dE)
+        T = M * (Yp - 1) - ForwardTracing * np.abs(dE)
 
-        V = Constants.c * np.sqrt((T + M) ** 2 - M ** 2) / (T + M)
+        V = c * np.sqrt((T + M) ** 2 - M ** 2) / (T + M)
         Vn = np.linalg.norm(Vp)
 
         Vm = V * Vp / Vn

@@ -1,14 +1,22 @@
 from enum import Enum
 from abc import ABC, abstractmethod
+import numpy as np
 
 import pyproj
+from numba import jit
 
 
 class _AbsRegion(ABC):
     SaveAdd = dict()
+    calc_additional = False
+
     @staticmethod
     def transform(x, y, z, name, units):
         return x, y, z
+
+    @classmethod
+    def set_params(cls, CalcAdditionalEnergy=False):
+        cls.calc_additional = CalcAdditionalEnergy
 
     @staticmethod
     @abstractmethod
@@ -20,12 +28,47 @@ class _AbsRegion(ABC):
     def checkSave(*args, **kwargs):
         pass
 
+    @classmethod
+    def CalcAdditional(cls):
+        return False
+
+    @staticmethod
+    def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c, ToMeters):
+        return v, T
+
+    @classmethod
+    def ret_str(cls):
+        return "\t\tAdditional Energy Losses: False"
+
+
 
 class _Heliosphere(_AbsRegion):
-
     @staticmethod
     def additions(*args, **kwargs):
         pass
+
+    @classmethod
+    def CalcAdditional(cls):
+        return cls.calc_additional
+
+    @staticmethod
+    @jit(fastmath=True, nopython=True)
+    def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c, ToMeters):
+        r = r/ToMeters
+        R = np.sqrt(r[0]**2 + r[1]**2 + r[2]**2)
+        theta = np.arccos(r[2] / R)
+        div_wind = 2/R * (300 + 475 * (1 - np.sin(theta) ** 8))/149.597870700e6
+        dE = dt * T/3 * div_wind * (T+2*M)/(T+M)
+        T -= frwd_tracing*dE
+
+        V = c * np.sqrt((T + M) ** 2 - M ** 2) / (T + M)
+        Vn = np.linalg.norm(v)
+        v *= V / Vn
+        return v, T
+
+    @classmethod
+    def ret_str(cls):
+        return f"\t\tAdditional Energy Losses: {cls.calc_additional}"
 
 
 class _Galaxy(_AbsRegion):

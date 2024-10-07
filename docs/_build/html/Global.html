@@ -358,6 +358,21 @@
 <dt class="sig sig-object py" id="Global.regions._AbsRegion">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.regions.</span></span><span class="sig-name descname"><span class="pre">_AbsRegion</span></span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.AdditionalEnergyLosses">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AdditionalEnergyLosses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frwd_tracing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToMeters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.AdditionalEnergyLosses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.AdditionalEnergyLosses" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.CalcAdditional">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CalcAdditional</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.CalcAdditional"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.CalcAdditional" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.SaveAdd">
+<span class="sig-name descname"><span class="pre">SaveAdd</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#Global.regions._AbsRegion.SaveAdd" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Global.regions._AbsRegion._abc_impl">
 <span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#Global.regions._AbsRegion._abc_impl" title="Link to this definition"></a></dt>
@@ -366,6 +381,26 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="Global.regions._AbsRegion.additions">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">additions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.additions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.additions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.calc_additional">
+<span class="sig-name descname"><span class="pre">calc_additional</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#Global.regions._AbsRegion.calc_additional" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.checkSave">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkSave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.checkSave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.checkSave" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.ret_str">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ret_str</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.ret_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.ret_str" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._AbsRegion.set_params">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CalcAdditionalEnergy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_AbsRegion.set_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._AbsRegion.set_params" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -395,6 +430,16 @@
 <dt class="sig sig-object py" id="Global.regions._Heliosphere">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Global.regions.</span></span><span class="sig-name descname"><span class="pre">_Heliosphere</span></span><a class="reference internal" href="_modules/Global/regions.html#_Heliosphere"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Heliosphere" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#Global.regions._AbsRegion" title="Global.regions._AbsRegion"><code class="xref py py-class docutils literal notranslate"><span class="pre">_AbsRegion</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._Heliosphere.AdditionalEnergyLosses">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AdditionalEnergyLosses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frwd_tracing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToMeters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Heliosphere.AdditionalEnergyLosses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Heliosphere.AdditionalEnergyLosses" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._Heliosphere.CalcAdditional">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CalcAdditional</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Heliosphere.CalcAdditional"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Heliosphere.CalcAdditional" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Global.regions._Heliosphere._abc_impl">
 <span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#Global.regions._Heliosphere._abc_impl" title="Link to this definition"></a></dt>
@@ -403,6 +448,11 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="Global.regions._Heliosphere.additions">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">additions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Heliosphere.additions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Heliosphere.additions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._Heliosphere.ret_str">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ret_str</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Heliosphere.ret_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Heliosphere.ret_str" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -424,6 +474,11 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="Global.regions._Magnetosphere.additions">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">additions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Magnetosphere.additions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Magnetosphere.additions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Global.regions._Magnetosphere.checkSave">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkSave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Simulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nsave</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Global/regions.html#_Magnetosphere.checkSave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Global.regions._Magnetosphere.checkSave" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

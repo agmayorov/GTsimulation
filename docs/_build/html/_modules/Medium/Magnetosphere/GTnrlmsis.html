@@ -74,7 +74,7 @@
   <h1>Source code for Medium.Magnetosphere.GTnrlmsis</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">from</span> <span class="nn">pyproj</span> <span class="kn">import</span> <span class="n">Transformer</span>
 <span class="kn">from</span> <span class="nn">pymsis</span> <span class="kn">import</span> <span class="n">msis</span>
 
 <span class="kn">from</span> <span class="nn">Global</span> <span class="kn">import</span> <span class="n">Regions</span>
@@ -87,7 +87,7 @@
 
 <div class="viewcode-block" id="GTnrlmsis.__init__">
 <a class="viewcode-back" href="../../../Medium.Magnetosphere.html#Medium.Magnetosphere.GTnrlmsis.GTnrlmsis.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mf">2.1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">Regions</span><span class="o">.</span><span class="n">Magnetosphere</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;NRLMSIS&quot;</span>
@@ -99,8 +99,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">f107</span> <span class="o">=</span> <span class="n">f107</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f107a</span> <span class="o">=</span> <span class="n">f107a</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ap</span> <span class="o">=</span> <span class="n">ap</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_crs</span><span class="p">({</span><span class="s2">&quot;proj&quot;</span><span class="p">:</span><span class="s1">&#39;geocent&#39;</span><span class="p">,</span> <span class="s2">&quot;ellps&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s2">&quot;datum&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">},</span>
-                                                       <span class="p">{</span><span class="s2">&quot;proj&quot;</span><span class="p">:</span><span class="s1">&#39;latlong&#39;</span><span class="p">,</span> <span class="s2">&quot;ellps&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s2">&quot;datum&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">})</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">Transformer</span><span class="o">.</span><span class="n">from_crs</span><span class="p">({</span><span class="s2">&quot;proj&quot;</span><span class="p">:</span><span class="s1">&#39;geocent&#39;</span><span class="p">,</span> <span class="s2">&quot;ellps&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s2">&quot;datum&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">},</span>
+                                                <span class="p">{</span><span class="s2">&quot;proj&quot;</span><span class="p">:</span><span class="s1">&#39;latlong&#39;</span><span class="p">,</span> <span class="s2">&quot;ellps&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s2">&quot;datum&quot;</span><span class="p">:</span><span class="s1">&#39;WGS84&#39;</span><span class="p">})</span></div>
 
 
 <div class="viewcode-block" id="GTnrlmsis.calculate_model">

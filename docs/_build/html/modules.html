@@ -115,6 +115,7 @@
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetFlux"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetFlux()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetMedium"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetMedium()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetNuclearInteractions"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetNuclearInteractions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetRegion"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetRegion()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__SetSave"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__SetSave()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator.__init__"><code class="docutils literal notranslate"><span class="pre">GTSimulator.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="GT.html#GT.GT.GTSimulator._abc_impl"><code class="docutils literal notranslate"><span class="pre">GTSimulator._abc_impl</span></code></a></li>
@@ -205,8 +206,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._AbsRegion"><code class="docutils literal notranslate"><span class="pre">_AbsRegion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.AdditionalEnergyLosses"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.AdditionalEnergyLosses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.CalcAdditional"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.CalcAdditional()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.SaveAdd"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.SaveAdd</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion._abc_impl"><code class="docutils literal notranslate"><span class="pre">_AbsRegion._abc_impl</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.additions"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.additions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.calc_additional"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.calc_additional</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.checkSave"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.checkSave()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.ret_str"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.ret_str()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.set_params"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.set_params()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._AbsRegion.transform"><code class="docutils literal notranslate"><span class="pre">_AbsRegion.transform()</span></code></a></li>
 </ul>
 </li>
@@ -216,14 +224,18 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._Heliosphere"><code class="docutils literal notranslate"><span class="pre">_Heliosphere</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere.AdditionalEnergyLosses"><code class="docutils literal notranslate"><span class="pre">_Heliosphere.AdditionalEnergyLosses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere.CalcAdditional"><code class="docutils literal notranslate"><span class="pre">_Heliosphere.CalcAdditional()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere._abc_impl"><code class="docutils literal notranslate"><span class="pre">_Heliosphere._abc_impl</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere.additions"><code class="docutils literal notranslate"><span class="pre">_Heliosphere.additions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Heliosphere.ret_str"><code class="docutils literal notranslate"><span class="pre">_Heliosphere.ret_str()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.SaveAdd"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.SaveAdd</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere._abc_impl"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere._abc_impl</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.additions"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.additions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.checkSave"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.checkSave()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Global.html#Global.regions._Magnetosphere.transform"><code class="docutils literal notranslate"><span class="pre">_Magnetosphere.transform()</span></code></a></li>
 </ul>
 </li>
@@ -355,6 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Particle.Generators.html">Particle.Generators package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.Generators.html#module-Particle.Generators.Spectrums">Particle.Generators.Spectrums module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.AbsSpectrum"><code class="docutils literal notranslate"><span class="pre">AbsSpectrum</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Monolines"><code class="docutils literal notranslate"><span class="pre">Monolines</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.PowerSpectrum"><code class="docutils literal notranslate"><span class="pre">PowerSpectrum</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="Particle.Generators.html#Particle.Generators.Spectrums.Uniform"><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></a></li>
@@ -374,11 +387,6 @@
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.GenerateParticles"><code class="docutils literal notranslate"><span class="pre">Flux.GenerateParticles()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux.__init__"><code class="docutils literal notranslate"><span class="pre">Flux.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.Flux._abc_impl"><code class="docutils literal notranslate"><span class="pre">Flux._abc_impl</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="Particle.html#Particle.Flux.GeneratorModes"><code class="docutils literal notranslate"><span class="pre">GeneratorModes</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.GeneratorModes.Inward"><code class="docutils literal notranslate"><span class="pre">GeneratorModes.Inward</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="Particle.html#Particle.Flux.GeneratorModes.Outward"><code class="docutils literal notranslate"><span class="pre">GeneratorModes.Outward</span></code></a></li>
 </ul>
 </li>
 </ul>

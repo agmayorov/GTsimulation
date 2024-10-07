@@ -74,13 +74,17 @@
   <h1>Source code for Global.regions</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">jit</span>
 
 
 <div class="viewcode-block" id="_AbsRegion">
 <a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion">[docs]</a>
 <span class="k">class</span> <span class="nc">_AbsRegion</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="n">SaveAdd</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">calc_additional</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="_AbsRegion.transform">
 <a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.transform">[docs]</a>
@@ -89,25 +93,93 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span></div>
 
 
+<div class="viewcode-block" id="_AbsRegion.set_params">
+<a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.set_params">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">CalcAdditionalEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">calc_additional</span> <span class="o">=</span> <span class="n">CalcAdditionalEnergy</span></div>
+
+
 <div class="viewcode-block" id="_AbsRegion.additions">
 <a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.additions">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">additions</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="_AbsRegion.checkSave">
+<a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.checkSave">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">checkSave</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="_AbsRegion.CalcAdditional">
+<a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.CalcAdditional">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">CalcAdditional</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="_AbsRegion.AdditionalEnergyLosses">
+<a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.AdditionalEnergyLosses">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">AdditionalEnergyLosses</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">frwd_tracing</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">ToMeters</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="_AbsRegion.ret_str">
+<a class="viewcode-back" href="../../Global.html#Global.regions._AbsRegion.ret_str">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ret_str</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Additional Energy Losses: False&quot;</span></div>
 </div>
+
 
 
 
 <div class="viewcode-block" id="_Heliosphere">
 <a class="viewcode-back" href="../../Global.html#Global.regions._Heliosphere">[docs]</a>
 <span class="k">class</span> <span class="nc">_Heliosphere</span><span class="p">(</span><span class="n">_AbsRegion</span><span class="p">):</span>
-
 <div class="viewcode-block" id="_Heliosphere.additions">
 <a class="viewcode-back" href="../../Global.html#Global.regions._Heliosphere.additions">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">additions</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="_Heliosphere.CalcAdditional">
+<a class="viewcode-back" href="../../Global.html#Global.regions._Heliosphere.CalcAdditional">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">CalcAdditional</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">calc_additional</span></div>
+
+
+<div class="viewcode-block" id="_Heliosphere.AdditionalEnergyLosses">
+<a class="viewcode-back" href="../../Global.html#Global.regions._Heliosphere.AdditionalEnergyLosses">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@jit</span><span class="p">(</span><span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">AdditionalEnergyLosses</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">frwd_tracing</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">ToMeters</span><span class="p">):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="o">/</span><span class="n">ToMeters</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">R</span><span class="p">)</span>
+        <span class="n">div_wind</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="n">R</span> <span class="o">*</span> <span class="p">(</span><span class="mi">300</span> <span class="o">+</span> <span class="mi">475</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">**</span> <span class="mi">8</span><span class="p">))</span><span class="o">/</span><span class="mf">149.597870700e6</span>
+        <span class="n">dE</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">T</span><span class="o">/</span><span class="mi">3</span> <span class="o">*</span> <span class="n">div_wind</span> <span class="o">*</span> <span class="p">(</span><span class="n">T</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">M</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T</span><span class="o">+</span><span class="n">M</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">-=</span> <span class="n">frwd_tracing</span><span class="o">*</span><span class="n">dE</span>
+
+        <span class="n">V</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">T</span> <span class="o">+</span> <span class="n">M</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">M</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="n">M</span><span class="p">)</span>
+        <span class="n">Vn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">*=</span> <span class="n">V</span> <span class="o">/</span> <span class="n">Vn</span>
+        <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="_Heliosphere.ret_str">
+<a class="viewcode-back" href="../../Global.html#Global.regions._Heliosphere.ret_str">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ret_str</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Additional Energy Losses: </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">calc_additional</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </div>
 
 
@@ -153,6 +225,14 @@
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="n">radians</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">units</span><span class="p">,</span> <span class="n">y</span><span class="o">/</span><span class="n">units</span><span class="p">,</span> <span class="n">z</span><span class="o">/</span><span class="n">units</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="_Magnetosphere.checkSave">
+<a class="viewcode-back" href="../../Global.html#Global.regions._Magnetosphere.checkSave">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">checkSave</span><span class="p">(</span><span class="n">Simulator</span><span class="p">,</span> <span class="n">Nsave</span><span class="p">):</span>
+        <span class="n">Nsave_check</span> <span class="o">=</span> <span class="p">(</span><span class="n">Simulator</span><span class="o">.</span><span class="n">TrackParamsIsOn</span> <span class="o">*</span> <span class="n">Simulator</span><span class="o">.</span><span class="n">IsFirstRun</span> <span class="o">*</span> <span class="n">Simulator</span><span class="o">.</span><span class="n">TrackParams</span><span class="p">[</span><span class="s2">&quot;GuidingCentre&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">Nsave</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">Nsave_check</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;To calculate all additions correctly &#39;Nsave&#39; parameter must be equal to 1&quot;</span></div>
 </div>
 
 

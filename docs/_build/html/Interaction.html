@@ -117,7 +117,7 @@ PDGcode             - PDG encoding
 Mass                - Mass [MeV]
 Charge              - Charge
 KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle (unit vector)</p>
+MomentumDirection   - Direction of the velocity of the particle [unit vector]</p>
 </dd>
 </dl>
 </dd>
@@ -155,7 +155,7 @@ PDGcode             - PDG encoding
 Mass                - Mass [MeV]
 Charge              - Charge
 KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle (unit vector)
+MomentumDirection   - Direction of the velocity of the particle [unit vector]
 Position            - Coordinates of the primary particle [m]
 LastProcess         - Name of the last process in which the primary particle</p>
 <blockquote>
@@ -171,7 +171,7 @@ LastProcess         - Name of the last process in which the primary particle</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="Interaction.G4functions.G4Shower">
-<span class="sig-prename descclassname"><span class="pre">Interaction.G4functions.</span></span><span class="sig-name descname"><span class="pre">G4Shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f107A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f107</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ap</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Interaction/G4functions.html#G4Shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Interaction.G4functions.G4Shower" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Interaction.G4functions.</span></span><span class="sig-name descname"><span class="pre">G4Shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Interaction/G4functions.html#G4Shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Interaction.G4functions.G4Shower" title="Link to this definition"></a></dt>
 <dd><p>The function calls executable binary program that calculates interaction of the charged particle
 with atmospheric column of height h and outputs information about secondary (albedo) particles.</p>
 <p>The program creates a cylindrical column of air, which is divided into layers layers of 1 km thick.
@@ -181,15 +181,9 @@ velocity component is directed along the X axis in the coordinate system of the 
 <dl class="simple">
 <dt>Parameters:</dt><dd><p>PDG         - int                   - Particle PDG code
 E           - float                 - Kinetic energy of the particle [MeV]
-h           - float                 - Initial altitude above ground [km] (less than 100 km)
-alpha       - float                 - Angle between the vertical and the velocity vector of the particle [degrees]
-doy         - float                 - Day of year
-sec         - float                 - Seconds in day [sec]
-lat         - float                 - Geodetic latitude [degrees]
-lon         - float                 - Geodetic longitude [degrees]
-f107A       - float                 - 81 day average of F10.7 flux (centered on doy)
-f107        - float                 - daily F10.7 flux for previous day
-ap          - float                 - magnetic index (daily) [nT]</p>
+r           - float                 - Coordinates of the primary particle in GEO [m]
+v           - float                 - Velocity of the primary particle in GEO [unit vector]
+date        - datetime              - Current datetime</p>
 </dd>
 <dt>Returns:</dt><dd><dl class="simple">
 <dt>primary     - structured ndarray</dt><dd><p>Name                - Name
@@ -204,8 +198,8 @@ PDGcode             - PDG encoding
 Mass                - Mass [MeV]
 Charge              - Charge
 KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle (unit vector)
-Position            - Coordinates of the secondary (albedo) particle [m]</p>
+MomentumDirection   - Direction of the velocity of the particle in GEO [unit vector]
+Position            - Coordinates of the secondary (albedo) particle in GEO [m]</p>
 </dd>
 </dl>
 </dd>
