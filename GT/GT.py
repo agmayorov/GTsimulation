@@ -855,7 +855,7 @@ class GTSimulator(ABC):
                 if self.TrackParamsIsOn:
                     if self.Verbose:
                         print("\t\t\tGet trajectory parameters ...", end=' ')
-                    TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index], self.ToMeters)
+                    TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
                     RetArr[self.index]["Additions"] = TrackParams_i
                     if self.Verbose:
                         print("Done")
