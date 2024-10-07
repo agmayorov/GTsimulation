@@ -54,7 +54,7 @@ def G4Interaction(PDG, E, m, rho, w):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/MatterLayer "
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/MatterLayer "
                             f"{PDG} {E} {m} {rho} {' '.join(map(str, w))}", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print(result.stderr)
@@ -111,7 +111,7 @@ def G4Decay(PDG, E):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/DecayGenerator "
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/DecayGenerator "
                             f"{PDG} {E}", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print(result.stderr)
@@ -189,7 +189,7 @@ def G4Shower(PDG, E, r, v, date):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; {path}/Atmosphere {PDG} {E} {alt} {angle} "
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/Atmosphere {PDG} {E} {alt} {angle} "
                             f"{doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print(result.stderr)

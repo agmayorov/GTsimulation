@@ -44,6 +44,10 @@ class _AbsRegion(ABC):
     def ret_str(cls):
         return "\t\tAdditional Energy Losses: False"
 
+    @staticmethod
+    def do_before_loop(*args, **kwargs):
+        pass
+
 
 
 class _Heliosphere(_AbsRegion):
