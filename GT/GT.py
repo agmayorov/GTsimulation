@@ -61,8 +61,19 @@ class GTSimulator(ABC):
                       See :py:mod:`Global.regions._AbsRegion.transform` for available transforms to a given region.
     :type Particles: str or list
 
-    :param TrackParams:
-    :param ParticleOrigin:
+    :param TrackParams: a 'bool' flag that turns the calculations of additional parameters in given region.
+                If 'True' all the additional parameters will be calculated. Other parameters that one doesn't need
+                to calculate, can be turned off by passing a 'list' instead of 'bool'
+                where the second element is a 'dict' that's key is the parameter name and value is 'False'.
+                Example: [True, {'GuidingCentre': False}]. See :py:mod:`Global.regions._AbsRegion.SaveAdd`
+                for available parameters to a given region.
+
+                **Note**: to calculate some of the additional parameters others must be calculated as well.
+    :type TrackParams: bool or list
+
+    :param ParticleOrigin: a 'bool' flag that turns the calculations of particle's origin through the backtracing
+    :type ParticleOrigin: bool
+
     :param IsFirstRun:
     :param ForwardTrck: 1 refers to forward tracing, and -1 to the back tracing
     :type ForwardTrck: 1 or -1
@@ -129,7 +140,60 @@ class GTSimulator(ABC):
         3.4. T0: Its initial kinetic energy in MeV
 
         3.5. Gen: Its generation
-    4. Additions:
+    4. Additions: Additional parameters calculated in defined region. See :py:mod:`Global.regions._AbsRegion.SaveAdd`
+        4.1. In magnetosphere:
+            Invariants:
+                I1: First adiabatic invariant along the trajectory of a particle
+
+                I2: Second adiabatic invariant between each pair of reflections at mirror points
+            PitchAngles:
+                Pitch: Pitch angles along the trajectory of a particle
+
+                PitchEq: Equatorial pitch angles
+            MirrorPoints:
+                NumMirror: Indexes of trajectory where particle turns to be at a mirror point
+
+                NumEqPitch: Indexes of trajectory where particle crosses the magnetic equator
+
+                NumB0:
+
+                Hmirr: The value of the magnetic field at the mirror points
+
+                Heq: The value of the magnetic field at the magnetic equator
+            Lshell:
+                L: L-shell calculated on the basis of second invariant and the field at the mirror point
+
+                Lgen: L-shell calculated at every magnetic equator point
+
+            GuidingCentre:
+                LR: Larmor radius of a particle
+
+                LRNit:
+
+                Rline: Coordinates of the field line of the guiding centre of the particle
+
+                Bline: The value of the magnetic field of the field line of the guiding centre of the particle
+
+                Req: Coordinates of the guiding centre of the particle calculated from the field line
+
+                Beq: The value of the magnetic field at the magnetic equator calculated from the field line
+
+                BB0: The ratio of the value of the magnetic field at the position of the guiding center corresponding to
+                the initial value of the coordinate and at the magnetic equator
+
+                L: L-shell calculated from the field line of the guiding centre
+
+                parReq: Coordinates of the guiding centre of the particle from the local field line
+
+                parBeq: The value of the magnetic field of the local field line of the particle
+
+                parBB0: The ratio of the value of the magnetic field at the position of
+
+                parL: L-shell calculated from the local field line
+        4.2. In heliosphere:
+
+        4.3. In galaxy:
+
     5. Child: List of secondary particles. They have the same parameters.
     """
     def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None, Date=datetime.datetime(2008, 1, 1),
@@ -179,7 +243,6 @@ class GTSimulator(ABC):
         self.TrackParams = self.Region.value.SaveAdd
         if self.ParticleOrigin:
             self.ParticleOriginIsOn = True
-            # TODO modify
             TrackParams = True
 
         self.__SetAdditions(TrackParams)
@@ -240,10 +303,11 @@ class GTSimulator(ABC):
 
     def refreshParams(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None,
                  Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles="Monolines", TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
+                 RadLosses=False, Particles=dict(), TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
                  ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
                  Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
-                 BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None):
+                 BCcenter=np.array([0, 0, 0]), UseDecay=False,
+                 InteractNUC: None | dict = None):  # TODO: merge BreakCondition and BCcenter
 
         self.__names = self.__init__.__code__.co_varnames[1:]
         self.__vals = []
@@ -286,7 +350,6 @@ class GTSimulator(ABC):
         self.TrackParams = self.Region.value.SaveAdd
         if self.ParticleOrigin:
             self.ParticleOriginIsOn = True
-            # TODO modify
             TrackParams = True
 
         self.__SetAdditions(TrackParams)
@@ -471,10 +534,7 @@ class GTSimulator(ABC):
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
 
-        if self.Region == Regions.Magnetosphere:
-            # TODO modify
-            Nsave_check = (self.TrackParamsIsOn * self.IsFirstRun * self.TrackParams["GuidingCentre"] * (Nsave != 1))
-            assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
+        self.Region.value.checkSave(self, Nsave)
 
         self.Npts = math.ceil(self.Num / Nsave) if Nsave != 0 else 1
         self.Nsave = Nsave

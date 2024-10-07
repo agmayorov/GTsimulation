@@ -111,7 +111,7 @@ def GetLshell(I2, Hm):
 
 # TODO finish save option
 def GetTrackParams(Simulator, RetArr_i, ToMeters):
-    R = RetArr_i["Track"]["Coordinates"] * ToMeters
+    R = RetArr_i["Track"]["Coordinates"] * Simulator.ToMeters
     H = RetArr_i["Track"]["Bfield"]
     M = RetArr_i["Particle"]["M"]
     T0 = RetArr_i["Particle"]["T0"]
@@ -194,7 +194,7 @@ def GetTrackParams(Simulator, RetArr_i, ToMeters):
         if num_B0.size == 0:
             num_B0 = None
 
-    NumMirror = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
+    MirrorPoints = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
 
     # Second invariant
     I2 = None
@@ -301,7 +301,7 @@ def GetTrackParams(Simulator, RetArr_i, ToMeters):
 
     TrackParams_i = {"Invariants": {"I1": I1, "I2": I2},
                      "PitchAngles": {"Pitch": pitch, "PitchEq": pitch_eq},
-                     "MirrorPoints": NumMirror,
+                     "MirrorPoints": MirrorPoints,
                      "Lshell": Lshell,
                      "GuidingCentre": GuidingCentre}
 
@@ -424,6 +424,7 @@ def AddTrajectory(f, b, lonTotal, lon, additions_i, Nm, I1, I2, s):
 
     return addTrackDict
 
+# TODO change according to new initialization style
 def FindParticleOrigin(Simulator, RetArr_i):
     # Forward trajectory
     f, lon_f = GetBCparams(RetArr_i)

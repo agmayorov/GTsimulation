@@ -15,6 +15,11 @@ class _AbsRegion(ABC):
     def additions(*args, **kwargs):
         pass
 
+    @staticmethod
+    @abstractmethod
+    def checkSave(*args, **kwargs):
+        pass
+
 
 class _Heliosphere(_AbsRegion):
 
@@ -51,6 +56,11 @@ class _Magnetosphere(_AbsRegion):
             x, y, z = transformer.transform(y, x, z*1000, radians=False)
             x, y, z = x/units, y/units, z/units
         return x, y, z
+
+    @staticmethod
+    def checkSave(Simulator, Nsave):
+        Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCentre"] * (Nsave != 1))
+        assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
 
 
 class Regions(Enum):
