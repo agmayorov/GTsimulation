@@ -12,14 +12,6 @@ Interaction.G4functions module
    :undoc-members:
    :show-inheritance:
 
-Interaction.functions module
-----------------------------
-
-.. automodule:: Interaction.functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Interaction.settings module
 ---------------------------
 

@@ -57,7 +57,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#Interaction.G4functions.G4Shower"><code class="docutils literal notranslate"><span class="pre">G4Shower()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#interaction-functions-module">Interaction.functions module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-Interaction.settings">Interaction.settings module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-Interaction">Module contents</a></li>
 </ul>
@@ -107,27 +106,37 @@
 <span class="sig-prename descclassname"><span class="pre">Interaction.G4functions.</span></span><span class="sig-name descname"><span class="pre">G4Decay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Interaction/G4functions.html#G4Decay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Interaction.G4functions.G4Decay" title="Link to this definition"></a></dt>
 <dd><p>The function calls executable binary program that simulate decay of unstable particle and outputs
 information about products.</p>
-<dl class="simple">
-<dt>Parameters:</dt><dd><p>PDG         - int                   - Particle PDG code
-E           - float                 - Kinetic energy of the particle [MeV]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>PDG</strong> (<em>int</em>) – Particle PDG code</p></li>
+<li><p><strong>E</strong> (<em>float</em>) – Kinetic energy of the particle [MeV]</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>secondary   - structured ndarray</dt><dd><p>Name                - Name
-PDGcode             - PDG encoding
-Mass                - Mass [MeV]
-Charge              - Charge
-KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle [unit vector]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>secondary</p>
+<ul class="simple">
+<li><p>Name - Name</p></li>
+<li><p>PDGcode - PDG encoding</p></li>
+<li><p>Mass - Mass [MeV]</p></li>
+<li><p>Charge - Charge</p></li>
+<li><p>KineticEnergy - Kinetic energy of the particle [MeV]</p></li>
+<li><p>MomentumDirection - Direction of the velocity of the particle [unit vector]</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>structured ndarray</p>
 </dd>
 </dl>
-</dd>
-<dt>Examples:</dt><dd><p>secondary = G4Decay(2112, 1)        # n -&gt; p + e- + anti_nu_e
-secondary = G4Decay(-2112, 1)       # anti_n -&gt; anti_p + e+ + nu_e
-secondary = G4Decay(211, 1)         # pi+ -&gt; mu+ + nu_mu
-secondary = G4Decay(13, 1)          # mu- -&gt; e- + anti_nu_e + nu_mu
-secondary = G4Decay(1000060140, 1)  # C14 -&gt; N14 + e- + anti_nu_e
-secondary = G4Decay(1000922380, 1)  # U238 -&gt; Th234 + alpha
-secondary = G4Decay(2212, 1)        # p is stable</p>
+<dl>
+<dt>Examples</dt><dd><p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(2112,</span> <span class="pre">1)</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">n</span> <span class="pre">-&gt;</span> <span class="pre">p</span> <span class="pre">+</span> <span class="pre">e-</span> <span class="pre">+</span> <span class="pre">anti_nu_e</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(-2112,</span> <span class="pre">1)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">anti_n</span> <span class="pre">-&gt;</span> <span class="pre">anti_p</span> <span class="pre">+</span> <span class="pre">e+</span> <span class="pre">+</span> <span class="pre">nu_e</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(211,</span> <span class="pre">1)</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">pi+</span> <span class="pre">-&gt;</span> <span class="pre">mu+</span> <span class="pre">+</span> <span class="pre">nu_mu</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(13,</span> <span class="pre">1)</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">mu-</span> <span class="pre">-&gt;</span> <span class="pre">e-</span> <span class="pre">+</span> <span class="pre">anti_nu_e</span> <span class="pre">+</span> <span class="pre">nu_mu</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(1000060140,</span> <span class="pre">1)</span>&#160; <span class="pre">#</span> <span class="pre">C14</span> <span class="pre">-&gt;</span> <span class="pre">N14</span> <span class="pre">+</span> <span class="pre">e-</span> <span class="pre">+</span> <span class="pre">anti_nu_e</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(1000922380,</span> <span class="pre">1)</span>&#160; <span class="pre">#</span> <span class="pre">U238</span> <span class="pre">-&gt;</span> <span class="pre">Th234</span> <span class="pre">+</span> <span class="pre">alpha</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Decay(2212,</span> <span class="pre">1)</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">p</span> <span class="pre">is</span> <span class="pre">stable</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -142,29 +151,32 @@ as l = m / rho. The radius of the cylinder R is equal to its length l. The initi
 the particle is (0, 0, 0). The initial velocity is directed along the cylinder axis, which coincides
 with the Z axis. The simulation stops when the primary particle has died or reached the boundary
 of the cylinder.</p>
-<dl>
-<dt>Parameters:</dt><dd><p>PDG         - int                   - Particle PDG code
-E           - float                 - Kinetic energy of the particle [MeV]
-m           - float                 - Path of a particle in [g/cm^2]
-rho         - float                 - Density of medium [g/cm^3]
-w           - array_like of float   - Medium composition, sum must be equal 1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>PDG</strong> (<em>int</em>) – Particle PDG code</p></li>
+<li><p><strong>E</strong> (<em>float</em>) – Kinetic energy of the particle [MeV]</p></li>
+<li><p><strong>m</strong> (<em>float</em>) – Path of a particle in [g/cm^2]</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Density of medium [g/cm^3]</p></li>
+<li><p><strong>w</strong> (<em>float</em><em> or </em><em>array_like</em>) – Medium composition, sum must be equal 1</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><dl>
-<dt>primary     - structured ndarray</dt><dd><p>Name                - Name
-PDGcode             - PDG encoding
-Mass                - Mass [MeV]
-Charge              - Charge
-KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle [unit vector]
-Position            - Coordinates of the primary particle [m]
-LastProcess         - Name of the last process in which the primary particle</p>
-<blockquote>
-<div><p>participated (usually ‘Transportation’ or ‘…Inelastic’)</p>
-</div></blockquote>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>primary</p>
+<ul class="simple">
+<li><p>Name - Name</p></li>
+<li><p>PDGcode - PDG encoding</p></li>
+<li><p>Mass - Mass [MeV]</p></li>
+<li><p>Charge - Charge</p></li>
+<li><p>KineticEnergy - Kinetic energy of the particle [MeV]</p></li>
+<li><p>MomentumDirection - Direction of the velocity of the particle [unit vector]</p></li>
+<li><p>Position - Coordinates of the primary particle [m]</p></li>
+<li><p>LastProcess - Name of the last process in which the primary particle participated (usually ‘Transportation’ or ‘…Inelastic’)</p></li>
+</ul>
+</p>
 </dd>
-<dt>secondary   - structured ndarray</dt><dd><p>Name, PDGcode, Mass, KineticEnergy, MomentumDirection</p>
-</dd>
-</dl>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>structured ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -178,40 +190,52 @@ with atmospheric column of height h and outputs information about secondary (alb
 The air density for each layer is assumed to be constant and is calculated from the
 atmospheric model NRLMSISE-00. When a particle enters the atmosphere at an angle, the horizontal
 velocity component is directed along the X axis in the coordinate system of the cylinder.</p>
-<dl class="simple">
-<dt>Parameters:</dt><dd><p>PDG         - int                   - Particle PDG code
-E           - float                 - Kinetic energy of the particle [MeV]
-r           - float                 - Coordinates of the primary particle in GEO [m]
-v           - float                 - Velocity of the primary particle in GEO [unit vector]
-date        - datetime              - Current datetime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>PDG</strong> (<em>int</em>) – Particle PDG code</p></li>
+<li><p><strong>E</strong> (<em>float</em>) – Kinetic energy of the particle [MeV]</p></li>
+<li><p><strong>r</strong> (<em>float array</em>) – Coordinates of the primary particle in GEO [m]</p></li>
+<li><p><strong>v</strong> (<em>float array</em>) – Velocity of the primary particle in GEO [unit vector]</p></li>
+<li><p><strong>date</strong> (<em>datetime</em>) – Current datetime</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>primary     - structured ndarray</dt><dd><p>Name                - Name
-PDGcode             - PDG encoding
-Mass                - Mass [MeV]
-Charge              - Charge
-PositionInteraction - Coordinates of the interaction of the primary particle [m]
-LastProcess         - Name of the last process in which the primary particle participated</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>primary</p>
+<ul class="simple">
+<li><p>Name - Name</p></li>
+<li><p>PDGcode - PDG encoding</p></li>
+<li><p>Mass - Mass [MeV]</p></li>
+<li><p>Charge - Charge</p></li>
+<li><p>PositionInteraction - Coordinates of the interaction of the primary particle [m]</p></li>
+<li><p>LastProcess - Name of the last process in which the primary particle participated</p></li>
+</ul>
+<p>secondary</p>
+<ul class="simple">
+<li><p>Name - Name</p></li>
+<li><p>PDGcode - PDG encoding</p></li>
+<li><p>Mass - Mass [MeV]</p></li>
+<li><p>Charge - Charge</p></li>
+<li><p>KineticEnergy - Kinetic energy of the particle [MeV]</p></li>
+<li><p>MomentumDirection - Direction of the velocity of the particle in GEO [unit vector]</p></li>
+<li><p>Position - Coordinates of the secondary (albedo) particle in GEO [m]</p></li>
+</ul>
+</p>
 </dd>
-<dt>secondary   - structured ndarray</dt><dd><p>Name                - Name
-PDGcode             - PDG encoding
-Mass                - Mass [MeV]
-Charge              - Charge
-KineticEnergy       - Kinetic energy of the particle [MeV]
-MomentumDirection   - Direction of the velocity of the particle in GEO [unit vector]
-Position            - Coordinates of the secondary (albedo) particle in GEO [m]</p>
+<dt class="field-odd">Rtype primary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>structured ndarray</p>
+</dd>
+<dt class="field-even">Rtype secondary<span class="colon">:</span></dt>
+<dd class="field-even"><p>structured ndarray</p>
 </dd>
 </dl>
-</dd>
-<dt>Examples:</dt><dd><p>primary, secondary = G4Shower(2212, 10e3, 95, 10, 1, 0, 0, 0, 150, 150, 4)
-primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)</p>
+<dl>
+<dt>Examples:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">primary,</span> <span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Shower(2212,</span> <span class="pre">10e3,</span> <span class="pre">95,</span> <span class="pre">10,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">150,</span> <span class="pre">150,</span> <span class="pre">4)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">primary,</span> <span class="pre">secondary</span> <span class="pre">=</span> <span class="pre">G4Shower(1000020040,</span> <span class="pre">20e3,</span> <span class="pre">80,</span> <span class="pre">30,</span> <span class="pre">365,</span> <span class="pre">43200,</span> <span class="pre">-80,</span> <span class="pre">270,</span> <span class="pre">200,</span> <span class="pre">210,</span> <span class="pre">80)</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
-<section id="interaction-functions-module">
-<h2>Interaction.functions module<a class="headerlink" href="#interaction-functions-module" title="Link to this heading"></a></h2>
 </section>
 <section id="module-Interaction.settings">
 <span id="interaction-settings-module"></span><h2>Interaction.settings module<a class="headerlink" href="#module-Interaction.settings" title="Link to this heading"></a></h2>
