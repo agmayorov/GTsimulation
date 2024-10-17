@@ -373,30 +373,50 @@ if __name__ == "__main__":
     from datetime import datetime
     import matplotlib.pyplot as plt
 
-    b = Parker(date=datetime(2008, 1, 1), use_noise=False)
-    b0 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=0, log_kmax=6, num=256)
-    b1 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=1, log_kmax=6, num=256)
-    z = 0.
-    xx = np.cos(np.arange(0, 6 * np.pi, 0.1))
-    yy = np.sin(np.arange(0, 6 * np.pi, 0.1))
-    B0 = []
-    B1 = []
-    B = []
-    for x, y in zip(xx, yy):
-        B.append(b.CalcBfield(x, y, z))
-        B0.append(b0.CalcBfield(x, y, z))
-        B1.append(b1.CalcBfield(x, y, z))
-    B = np.array(B)
-    B0 = np.array(B0)
-    B1 = np.array(B1)
+    # b = Parker(date=datetime(2008, 1, 1), use_noise=False)
+    # b0 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=0, log_kmax=6, num=256)
+    # b1 = Parker(date=datetime(2008, 1, 1), use_noise=True, log_kmin=1, log_kmax=6, num=256)
+    # z = 0.
+    # xx = np.cos(np.arange(0, 6 * np.pi, 0.1))
+    # yy = np.sin(np.arange(0, 6 * np.pi, 0.1))
+    # B0 = []
+    # B1 = []
+    # B = []
+    # for x, y in zip(xx, yy):
+    #     B.append(b.CalcBfield(x, y, z))
+    #     B0.append(b0.CalcBfield(x, y, z))
+    #     B1.append(b1.CalcBfield(x, y, z))
+    # B = np.array(B)
+    # B0 = np.array(B0)
+    # B1 = np.array(B1)
+    #
+    # # plt.plot(np.arange(0, 6*np.pi, 0.1), B[:,0]*xx + B[:, 1]*yy, label='reg')
+    # # plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,0]*xx + B0[:, 1]*yy, label=0)
+    # plt.plot(np.arange(0, 6 * np.pi, 0.1), B0[:, 2], label='z0')
+    # plt.plot(np.arange(0, 6 * np.pi, 0.1), B1[:, 2], label='z1')
+    # # plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,0]*xx + B1[:, 1]*yy, label=1)
+    # plt.legend()
+    #
+    # plt.show()
 
-    # plt.plot(np.arange(0, 6*np.pi, 0.1), B[:,0]*xx + B[:, 1]*yy, label='reg')
-    # plt.plot(np.arange(0, 6*np.pi, 0.1), B0[:,0]*xx + B0[:, 1]*yy, label=0)
-    plt.plot(np.arange(0, 6 * np.pi, 0.1), B0[:, 2], label='z0')
-    plt.plot(np.arange(0, 6 * np.pi, 0.1), B1[:, 2], label='z1')
-    # plt.plot(np.arange(0, 6*np.pi, 0.1), B1[:,0]*xx + B1[:, 1]*yy, label=1)
-    plt.legend()
+    b = Parker(use_noise=True)
+    b_reg = Parker(use_noise=False)
+    y = 1 / np.sqrt(2)
+    z = 0
+    x = 1 / np.sqrt(2) + np.linspace(-.5, 0.5, 500)
+    Br = []
+    Br_reg = []
+    for xx in x:
+        Bx, By, Bz = b.CalcBfield(xx, y, z)
+        r = np.sqrt(xx ** 2 + y ** 2 + z ** 2)
+        Br.append(Bx)
+        Bx, By, Bz = b_reg.CalcBfield(xx, y, z)
+        Br_reg.append(Bx)
 
+    plt.plot(x, Br)
+    plt.plot(x, Br_reg)
+    plt.xlabel("x, au")
+    plt.ylabel("Bx, nT")
     plt.show()
 
     # st = timer()
