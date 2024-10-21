@@ -20,7 +20,7 @@ e = Constants.e
 p_reg = Parker(date=date, use_reg=True, use_noise=False)
 
 r0 = 0.0232523/5
-for T in [100, 500, 1000, 2000]:
+for T in [200]:
     v = c * np.sqrt(1 - M/(T+M))
 
     D_Par = []
