@@ -4,3 +4,4 @@ test*
 .idea/
 __pycache__/
 Interaction/G4source/*/build/*
+docs/_build/*
