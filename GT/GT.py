@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 
 from numba import jit
 
-from Interaction import G4Interaction, G4Decay
+from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep
 from MagneticFields.Magnetosphere import Functions, Additions
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
     BreakMetric, SaveMetric, vecRotMat
@@ -230,9 +230,8 @@ class GTSimulator(ABC):
             print(f"\tNumber of steps: {self.Num}")
             print()
 
-        self.UseRadLosses = RadLosses
+        self.__SetUseRadLosses(RadLosses)
         if self.Verbose:
-            print(f"\tRadiation Losses: {self.UseRadLosses}")
             print()
 
         self.__SetRegion(Region)
@@ -336,9 +335,8 @@ class GTSimulator(ABC):
             print(f"\tNumber of steps: {self.Num}")
             print()
 
-        self.UseRadLosses = RadLosses
+        self.__SetUseRadLosses(RadLosses)
         if self.Verbose:
-            print(f"\tRadiation Losses: {self.UseRadLosses}")
             print()
 
         self.__SetRegion(Region)
@@ -406,6 +404,28 @@ class GTSimulator(ABC):
         self.index = 0
         if self.Verbose:
             print("Simulator created!\n")
+
+    def __SetUseRadLosses(self, RadLosses):
+        if isinstance(RadLosses, bool):
+            self.UseRadLosses = [RadLosses, False]
+
+        if isinstance(RadLosses, list) and (RadLosses[0] == True) and (RadLosses[1]["Photons"] == False):
+            self.UseRadLosses = [True, False]
+
+        if isinstance(RadLosses, list) and (RadLosses[0] == True) and (RadLosses[1]["Photons"] == True):
+            MinMax = np.array([0, np.inf])
+            if "MinE" in RadLosses[1]:
+                if RadLosses[1]["MinE"] > 0:
+                    MinMax[0] = RadLosses[1]["MinE"]
+            if "MaxE" in RadLosses[1]:
+                if RadLosses[1]["MaxE"] > 0:
+                    MinMax[1] = RadLosses[1]["MaxE"]
+            self.UseRadLosses = [True, True, MinMax]
+
+        self.UseRadLosses
+        if self.Verbose:
+            print(f"\tRadiation Losses: {self.UseRadLosses[0]}")
+            print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
 
     def __SetAdditions(self, TrackParams):
         if not isinstance(TrackParams, list):
@@ -675,14 +695,26 @@ class GTSimulator(ABC):
             Nsave = self.Nsave if self.Nsave != 0 else Num + 1
             i_save = 0
             st = timer()
+
+            if self.UseRadLosses[1]:
+                synch_record = SynchCounter()
+            else:
+                synch_record = 0
+
             if self.Verbose:
                 print(f"\t\t\tCalculating: ", end=' ')
             for i in range(Num):
                 PathLen = V_norm * Step
 
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
-                Vm, T = self.RadLossStep(Vp, Vm, Yp, Ya, M, Q, self.UseRadLosses, Step, self.ForwardTracing,
-                                         Constants.c, Constants.e)
+                if self.UseRadLosses[1]:
+                    synch_record.add_iteration(T,
+                                               np.array(self.Bfield.GetBfield(r[0], r[1], r[2])),
+                                               Vm, Step)
+                Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
+                                                                               self, particle, Constants, synch_record)
+                prod_tracks.extend(new_photons)
+
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c, self.ToMeters)
