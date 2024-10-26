@@ -5,7 +5,7 @@ from .SynchrotronEmission import *
 from .GenSynchCounter import SynchCounter
 
 
-def MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, rm, self, particle, Constants, synch_record: SynchCounter):
+def MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, rm, self, particle, Gen, Constants, synch_record: SynchCounter):
     new_photons = []
 
     if not self.UseRadLosses[0]:
@@ -37,8 +37,9 @@ def MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, rm, self, particle, Constants, synch_r
             E_MeV_photons = E_keV_photons * 1e-3
             E_MeV_photons = E_MeV_photons[(E_MeV_photons >= self.UseRadLosses[2][0]) & (E_MeV_photons <= self.UseRadLosses[2][1])]
             for Energy in E_MeV_photons:
-                new_photon = {"Track": {"Coordinates": rm, "Velocities": Vm},
-                              "Particle": {"PDG": 22, "M": 0, "T": Energy, "Gen": self.__gen + 1}}
+                new_photon = {"Track": {"Coordinates": rm, "Velocities": Vm/np.linalg.norm(Vm)},
+                              "Particle": {"PDG": 22, "M": 0, "T": Energy, "Gen": Gen + 1}}
                 new_photons.append(new_photon)
+            synch_record.reset()
 
     return Vm, T, new_photons, synch_record

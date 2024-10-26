@@ -712,7 +712,7 @@ class GTSimulator(ABC):
                                                np.array(self.Bfield.GetBfield(r[0], r[1], r[2])),
                                                Vm, Step)
                 Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
-                                                                               self, particle, Constants, synch_record)
+                                                                               self, particle, Gen, Constants, synch_record)
                 prod_tracks.extend(new_photons)
 
                 if UseAdditionalEnergyLosses:

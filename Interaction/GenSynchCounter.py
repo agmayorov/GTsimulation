@@ -32,3 +32,9 @@ class SynchCounter:
         T_avg = self.T / self.records
         B_perp_avg = self.norm_B_perp / self.records
         return T_avg, B_perp_avg
+
+    def print(self):
+        print(f"T: {self.T}, norm_B_perp: {self.norm_B_perp}, delta_t: {self.delta_t}, records: {self.records}")
+
+    def reset(self):
+        self.__init__()
