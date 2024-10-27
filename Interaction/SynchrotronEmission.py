@@ -15,9 +15,13 @@ OUTPUT
     E_keV_photons   -   keV -  ndarray  -   массив энергий испускаемых фотонов
 '''
 
-import numpy as np
+import os
+import sys
+import warnings
+
 import matplotlib.pyplot as plt
-from scipy.integrate import quad, cumulative_trapezoid
+import numpy as np
+from scipy.integrate import quad, cumulative_trapezoid, IntegrationWarning
 from scipy.special import kv
 
 
@@ -51,8 +55,21 @@ def MakeSynchrotronEmission(delta_t, T_MeV, Bsina, M, Z):
         return E(E_keV) * 4 * np.pi * m / (3 * G ** 2 * e * h * Bsina)
 
     def F(E_keV):
-        x_values = x(E_keV)
-        return x_values * np.array([quad(lambda z: kv(5 / 3, z), y, np.inf)[0] for y in x_values])
+        # Подавление IntegrationWarning
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=IntegrationWarning)
+
+            # Используем менеджер контекста для безопасного перенаправления stderr
+            with open(os.devnull, 'w') as f:
+                sys.stderr = f  # Перенаправляем stderr на devnull
+
+                x_values = x(E_keV)
+                result = x_values * np.array([quad(lambda z: kv(5 / 3, z), y, np.inf)[0] for y in x_values])
+
+            # Восстанавливаем stderr
+            sys.stderr = sys.__stderr__
+
+            return result
 
     # Нормализованная функция
     def S(E_keV):
