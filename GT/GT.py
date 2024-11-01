@@ -752,6 +752,10 @@ class GTSimulator(ABC):
                                                        "Center": r_interaction / self.ToMeters,
                                                        "Radius": 0,
                                                        "V0": V_p}
+                                if PDGcode_p in self.InteractNUC.get("ExcludeParcticleList", []) or T_p < self.InteractNUC.get("Emin", 0):
+                                    params["Num"] = 1
+                                    params["UseDecay"] = False
+                                    params["InteractNUC"] = None
                                 new_process = self.__class__(**params)
                                 new_process.__gen = Gen + 1
                                 prod_tracks.append(new_process.CallOneFile()[0])
