@@ -425,6 +425,9 @@ class GTSimulator(ABC):
         if self.Medium is None and UseInteractNUC is not None:
             raise ValueError('Nuclear Interaction is enabled but Medium is not set')
         self.InteractNUC = UseInteractNUC
+        if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParcticleList", []):
+            self.InteractNUC['ExcludeParcticleList'].append([ 11,  12,  13,  14,  15,  16,  17,  18,
+                                                             -11, -12, -13, -14, -15, -16, -17, -18])
         self.IntPathDen = 10 # g/cm2
         if self.Verbose:
             print(f"\tDecay: {self.UseDecay}")
