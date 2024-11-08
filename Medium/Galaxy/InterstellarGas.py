@@ -8,8 +8,13 @@ from Medium import GTGeneralMedium
 
 
 def fzero(func, x0):
+    step = 1
+    while func(x0-1) * func(x0+1) > 0:
+        step += 1
+        if step > 3:
+            return np.nan
     result = root_scalar(func, bracket=[x0 - 1, x0 + 1], method='brentq')
-    return result.root if result.converged else -np.inf
+    return result.root if result.converged else np.nan
 
 
 default_params = {
@@ -131,9 +136,9 @@ class InterstellarGas(GTGeneralMedium):
             X_candidate, Y_candidate = r_candidate * np.cos(theta_candidate), r_candidate * np.sin(theta_candidate)
             r_distance[i] = np.min(np.sqrt((X_candidate - X) ** 2 + (Y_candidate - Y) ** 2))
 
-        n_s_HI = np.sum(
+        n_s_HI = np.nansum(
             self.p['n8_s_HI'] * f_d_HI * f_s_HI * np.exp(-r_distance ** 2 / (2 * self.p['sigma_arms'] ** 2)))
-        n_s_CO = np.sum(
+        n_s_CO = np.nansum(
             self.p['n8_s_CO'] * f_d_CO * f_s_CO * np.exp(-r_distance ** 2 / (2 * self.p['sigma_arms'] ** 2)))
 
         # --- Total density ---
