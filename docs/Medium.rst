@@ -17,6 +17,7 @@ Subpackages
    :maxdepth: 4
 
    Medium.Magnetosphere
+   Medium.Galaxy
 
 Submodules
 ----------

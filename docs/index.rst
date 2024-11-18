@@ -13,6 +13,6 @@ Download package from  `GitHub`_.
    :maxdepth: 3
    :caption: Contents:
 
-   install
+   documentation
    modules
 
