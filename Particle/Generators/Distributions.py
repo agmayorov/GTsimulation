@@ -76,6 +76,41 @@ class SphereSurf(AbsDistribution):
         return s
 
 
+class SphereVol(AbsDistribution):
+    def __init__(self,  Radius=0, Center=np.zeros(3), *args, **kwargs):
+        self.Center = Center
+        self.Radius = Radius
+        super().__init__(*args, **kwargs)
+
+    def GenerateCoordinates(self):
+        Ro = self.Radius * self.flux.ToMeters
+        Rc = self.Center * self.flux.ToMeters
+        theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
+        phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
+
+        max_ro3 = 1/3 * Ro**3
+        ro3 = np.random.rand(self.flux.Nevents, 1) * max_ro3
+        ro = np.cbrt(3*ro3)
+
+        r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
+        r_ret = r * ro + Rc
+
+        if self.flux.V0 is None:
+            theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
+            phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
+            v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
+        else:
+            v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
+
+        return r_ret, v
+
+    def __str__(self):
+        s = f"""Sphere Volume
+        Center: {self.Center}
+        Radius: {self.Radius}"""
+
+        return s
+
 class Disk(AbsDistribution):
     def __init__(self, Radius=15, Width=0.3, *args, **kwargs):
         self.Radius = Radius
