@@ -2,13 +2,14 @@ import PIL
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+from Global import Units
 
 file = np.load("IGRFtest/IGRFtest_0.npy", allow_pickle=True)[0]
-R = file["Track"]["Coordinates"]
+R = file["Track"]["Coordinates"] / Units.RE #from meters to RE
 X, Y, Z = R[:, 0], R[:, 1], R[:, 2]
-X/=6378.1371
-Y/=6378.1371
-Z/=6378.1371
+# X/=6378.1371
+# Y/=6378.1371
+# Z/=6378.1371
 # print(f"Path: {file['Track']['Path'][-1]}")
 
 print(X[0], Y[0], Z[0])

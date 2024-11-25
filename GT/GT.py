@@ -255,7 +255,6 @@ class GTSimulator(ABC):
 
         self.IsFirstRun = IsFirstRun
 
-        self.ToMeters = 1
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
@@ -361,7 +360,6 @@ class GTSimulator(ABC):
 
         self.IsFirstRun = IsFirstRun
 
-        self.ToMeters = 1
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
@@ -442,8 +440,7 @@ class GTSimulator(ABC):
             for key in self.__brck_index.keys():
                 print(f"\t\t{key}: {self.__brck_arr[self.__brck_index[key]]}")
             print(f"\tBC center: {center}")
-        self.__brck_arr[BreakMetric] *= self.ToMeters
-        self.BCcenter = center * self.ToMeters
+        self.BCcenter = center
 
     def __SetMedium(self, medium):
         if self.Verbose:
@@ -469,7 +466,6 @@ class GTSimulator(ABC):
             print("\tFlux: ", end='')
         module_name = f"Particle.Generators"
         m = importlib.import_module(module_name)
-        ToMeters = self.ToMeters
         spectrum = flux.pop("Spectrum", None)
         if spectrum is not None:
             if hasattr(m, spectrum):
@@ -489,9 +485,9 @@ class GTSimulator(ABC):
         if transform is not None:
             center = flux.get("Center", None)
             assert center is None
-            center = self.Region.value.transform(*transform[1], transform[0], ToMeters)
+            center = self.Region.value.transform(*transform[1], transform[0])
             flux["Center"] = np.array(center)
-        params = {"ToMeters": ToMeters, **flux}
+        params = {**flux}
         self.Particles = Flux(**params)
 
         if self.Verbose:
@@ -524,7 +520,6 @@ class GTSimulator(ABC):
             if hasattr(m, class_name):
                 B = getattr(m, class_name)
                 self.Bfield = B(**params)
-                self.ToMeters = self.Bfield.ToMeters
                 if self.Verbose:
                     print(str(self.Bfield))
             else:
@@ -662,11 +657,11 @@ class GTSimulator(ABC):
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
                       f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z !=0 else np.inf} [GV]")
-                print(f"\t\t\tCoordinates: {r / self.ToMeters} [{self.Bfield.Units}]")
+                print(f"\t\t\tCoordinates: {r} [m]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
                 print(f"\t\t\tbeta*dt: {V_norm * self.Step / 1000} [km] / "
-                      f"{V_norm * self.Step / self.ToMeters} [{self.Bfield.Units}]")
+                      f"{V_norm * self.Step} [m]")
 
             # Calculation of EAS for magnetosphere
             self.Region.value.do_before_loop(self, Gen, prod_tracks)
@@ -688,7 +683,7 @@ class GTSimulator(ABC):
                                          Constants.c, Constants.e)
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
-                                                                     Constants.c, self.ToMeters)
+                                                                     Constants.c)
 
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 
@@ -752,7 +747,7 @@ class GTSimulator(ABC):
                                     continue
                                 params["Particles"] = {"Names": name_p,
                                                        "T": T_p,
-                                                       "Center": r_interaction / self.ToMeters,
+                                                       "Center": r_interaction,
                                                        "Radius": 0,
                                                        "V0": V_p}
                                 if PDGcode_p in self.InteractNUC.get("ExcludeParcticleList", []) or T_p < self.InteractNUC.get("Emin", 0):
@@ -818,7 +813,6 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print()
             Saves = Saves[:i_save]
-            Saves[:, SaveMetric] /= self.ToMeters
 
             track = {"Coordinates": Saves[:, SaveCode["Coordinates"]], "Velocities": Saves[:, SaveCode["Velocities"]]}
 
@@ -872,7 +866,7 @@ class GTSimulator(ABC):
             rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
             for p in secondary:
                 V_p = rotationMatrix @ p['MomentumDirection']
-                r_p = r / self.ToMeters
+                r_p = r
                 T_p = p['KineticEnergy']
                 name_p = p["Name"]
 

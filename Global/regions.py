@@ -15,7 +15,7 @@ class _AbsRegion(ABC):
     calc_additional = False
 
     @staticmethod
-    def transform(x, y, z, name, units):
+    def transform(x, y, z, name):
         return x, y, z
 
     @classmethod
@@ -61,8 +61,7 @@ class _Heliosphere(_AbsRegion):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c, ToMeters):
-        r = r/ToMeters
+    def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c):
         R = np.sqrt(r[0]**2 + r[1]**2 + r[2]**2)
         theta = np.arccos(r[2] / R)
         div_wind = 2/R * (300 + 475 * (1 - np.sin(theta) ** 8))/149.597870700e6
@@ -96,7 +95,7 @@ class _Magnetosphere(_AbsRegion):
         pass
 
     @staticmethod
-    def transform(x, y, z, name, units):
+    def transform(x, y, z, name):
         if name == 'LLA':
             # x = lat, y = long, z = altitude
             # units = Units.RE2m or Units.km2m
@@ -104,8 +103,8 @@ class _Magnetosphere(_AbsRegion):
             transformer = Transformer.from_crs({"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
                                                {"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'})
             # Matlab lla2ecef([lat, long, altitude]) -> python transformer.transform(long, lat, altitude, radians=False)
-            x, y, z = transformer.transform(y, x, z*1000, radians=False)
-            x, y, z = x/units, y/units, z/units
+            x, y, z = transformer.transform(y, x, z, radians=False)
+            # x, y, z = x/units, y/units, z/units
         return x, y, z
 
     @staticmethod
@@ -142,7 +141,7 @@ class _Magnetosphere(_AbsRegion):
                             continue
                         params["Particles"] = {"Names": name_p,
                                                "T": p['KineticEnergy'],
-                                               "Center": p['Position'] / simulator.ToMeters,
+                                               "Center": p['Position'],
                                                "Radius": 0,
                                                "V0": p['MomentumDirection']}
                         new_process = simulator.__class__(**params)

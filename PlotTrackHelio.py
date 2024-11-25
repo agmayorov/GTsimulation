@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from Global import Units
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -11,7 +12,7 @@ ax.set_zlabel(f"Z [AU]")
 ax.scatter(0, 0, 0, marker="*", color='orange', label="The Sun")
 file = np.load("test_Parker10GeV_0.npy", allow_pickle=True)
 for i, event in enumerate(file):
-    R = event["Track"]["Coordinates"]
+    R = event["Track"]["Coordinates"] / Units.AU #from meters to AU
     X, Y, Z = R[:, 0], R[:, 1], R[:, 2]
 
     if i < len(file)-1:

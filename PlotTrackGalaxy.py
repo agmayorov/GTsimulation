@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from Global import Units
+
 plt.rcParams.update({'font.size': 15})
 
 fig = plt.figure()
@@ -9,7 +11,7 @@ ax.set_ylabel(f"Y [kpc]")
 ax.set_zlabel(f"Z [kpc]")
 events = np.load("tests/GalaxySingle/tracks.npy", allow_pickle=True)
 for event in events:
-    R = event["Track"]["Coordinates"]
+    R = event["Track"]["Coordinates"] / Units.kpc #from meters to kpc
     X, Y, Z = R[:, 0], R[:, 1], R[:, 2]
     T = event["Particle"]["T0"] / 1000000000000
     Clock = event["Track"]["Clock"][-1] * 3.16887646e-8

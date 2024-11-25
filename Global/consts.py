@@ -1,5 +1,5 @@
 from enum import Enum
-
+import numpy as np
 
 class Constants:
     c = 2.99792458e8  # Speed of light in m/s
@@ -38,6 +38,46 @@ class Units:
 
     T2nT = 1e9
 
+    # System of units
+    # Length
+    meters = 1
+    kilometers = 1e3 * meters
+    earthradius = 6378137.1 * meters
+    parsec = 3.08567758149e16 * meters
+    kiloparsec = 1e3 * parsec
+    astronomicalunits = 149.597870700e9 * meters
+
+    # Symbols
+    m = meters
+    km = kilometers
+    RE = earthradius
+    pc = parsec
+    kpc = kiloparsec
+    AU = astronomicalunits
+
+    # Energy
+    megaelectronvolt = 1
+    electronvolt = 1e-6 * megaelectronvolt
+    kiloelectronvolt = 1e-3 * megaelectronvolt
+    gigaelectronvolt = 1e3 * megaelectronvolt
+    teraelectronvolt = 1e6 * megaelectronvolt
+    petaelectronvolt = 1e9 * megaelectronvolt
+
+    # Symbols
+    eV = electronvolt
+    keV = kiloelectronvolt
+    MeV = megaelectronvolt
+    GeV = gigaelectronvolt
+    TeV = teraelectronvolt
+    PeV = petaelectronvolt
+
+    # Angles
+    degree = 1
+    radian = 180 / np.pi
+
+    # Symbols
+    deg = degree
+    rad = radian
 
 
 class Origins(Enum):

@@ -4,7 +4,8 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from Global import Regions, Units
+from Global import Regions
+from Global import Units as U
 from GT.Algos import BunemanBorisSimulator
 
 parser = argparse.ArgumentParser()
@@ -37,7 +38,7 @@ Medium = None
 # Medium = ["GTnrlmsis", {"version": 0}]
 
 # Flux = {"Distribution": "Disk", "Nevents": 10000, "T": 200, "Radius": 14, "Width": 0.2}
-Flux = {"Nevents": 1, "T": 10, "Names": "pr", "Radius": 0, "Center": np.array([5, 5, 0]), "V0": np.array([-0.58762716,  0.79426625, -0.15438733])}
+Flux = {"Nevents": 1, "T": 10*U.MeV, "Names": "pr", "Radius": 0, "Center": np.array([5*U.AU, 5*U.AU, 0]), "V0": np.array([-0.58762716,  0.79426625, -0.15438733])}
 
 UseDecay = True
 NuclearInteraction = None
