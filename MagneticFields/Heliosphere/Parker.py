@@ -314,8 +314,9 @@ class Parker(AbsBfield):
                         - np.sin(theta) * cospsi / (a * r * k[mod, 0]) * (ddeltaB_2d * r * (r - rs) * np.sin(phase_2d) +
                                                                           deltaB_2d * np.sin(phase_2d) * (
                                                                                   2 * r - rs - r * sinpsi ** 2) +
-                                                                          k[mod, 0] * r * (r - rs) / a * np.sin(
-                        alpha_2d[mod, 0] * np.cos(phase_2d) * deltaB_2d))
+                                                                          k[mod, 0] * r * (r - rs) / a *
+                                                                          np.sin(alpha_2d[mod, 0]) * np.cos(phase_2d) *
+                                                                          deltaB_2d)
 
             Bphi_2d = -deltaB_2d / (r * k[mod, 0]) * (cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
                                                       (np.tan(theta))**(-1) * np.sin(phase_2d) * cospsi * sinpsi**2)

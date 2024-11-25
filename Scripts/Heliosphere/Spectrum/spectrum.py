@@ -3,9 +3,12 @@ import numpy as np
 from numba import jit, prange
 
 from scipy.interpolate import interp2d
+from scipy.optimize import curve_fit
+from tqdm import tqdm
 
 from MagneticFields.Heliosphere import ParkerUniform, Parker
 from MagneticFields.Heliosphere.Functions import transformations
+from Scripts.Heliosphere import misc
 
 
 @jit(fastmath=True, nopython=True)
@@ -96,7 +99,7 @@ def calc_noise_uni(r_param, theta_param, phi_param, a,
         Btheta_az = deltaB_azimuth * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
         Bphi_az = 1 / k[mod, 0] * (np.sin(theta_param) * np.sin(phase_azimuth) * np.cos(alpha_azimuth[mod, 0]) *
                                    (
-                                               2 * deltaB_azimuth * sinpsi_ + r_param / a * deltaB_azimuth * cospsi_ + r_param * sinpsi_ * ddeltaB_azimtuth) -
+                                           2 * deltaB_azimuth * sinpsi_ + r_param / a * deltaB_azimuth * cospsi_ + r_param * sinpsi_ * ddeltaB_azimtuth) -
                                    np.cos(theta_param) * deltaB_azimuth * np.sin(phase_azimuth) * sinpsi_ * np.sin(
                     alpha_azimuth[mod, 0]))
 
@@ -107,15 +110,15 @@ def calc_noise_uni(r_param, theta_param, phi_param, a,
                                                           -1))
         Btheta_2d = deltaB_2d / (r_param * np.sin(theta_param)) * cospsi * np.sin(alpha_2d[mod, 0] * np.cos(phase_2d)) \
                     - np.sin(theta_param) * cospsi / (a * r_param * k[mod, 0]) * (
-                                ddeltaB_2d * r_param * (r_param - rs) * np.sin(phase_2d) +
-                                deltaB_2d * np.sin(phase_2d) * (
-                                        2 * r_param - rs - r_param * sinpsi ** 2) +
-                                k[mod, 0] * r_param * (r_param - rs) / a * np.sin(
-                            alpha_2d[mod, 0] * np.cos(phase_2d) * deltaB_2d))
+                            ddeltaB_2d * r_param * (r_param - rs) * np.sin(phase_2d) +
+                            deltaB_2d * np.sin(phase_2d) * (
+                                    2 * r_param - rs - r_param * sinpsi ** 2) +
+                            k[mod, 0] * r_param * (r_param - rs) / a * np.sin(
+                        alpha_2d[mod, 0] * np.cos(phase_2d) * deltaB_2d))
 
         Bphi_2d = -deltaB_2d / (r_param * k[mod, 0]) * (
-                    cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
-                    (np.tan(theta_param)) ** (-1) * np.sin(phase_2d) * cospsi * sinpsi ** 2)
+                cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
+                (np.tan(theta_param)) ** (-1) * np.sin(phase_2d) * cospsi * sinpsi ** 2)
 
         # Total field
         coeff_slab = 0
@@ -133,12 +136,13 @@ def calc_noise_uni(r_param, theta_param, phi_param, a,
     Bx, By, Bz = transformations.Sphere2Cart(Br, Btheta, Bphi, theta, phi)
     return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
+
 @jit(fastmath=True, nopython=True)
 def calc_noise(r, theta, phi, a,
-                A_rad, alpha_rad, delta_rad,
-                A_azimuth, alpha_azimuth, delta_azimuth,
-                A_2d, alpha_2d, delta_2d,
-                rs, k, dk, use_slab, use_2d):
+               A_rad, alpha_rad, delta_rad,
+               A_azimuth, alpha_azimuth, delta_azimuth,
+               A_2d, alpha_2d, delta_2d,
+               rs, k, dk, use_slab, use_2d):
     q_slab = 5 / 3
     q_2d = 8 / 3
     p = 0
@@ -217,7 +221,7 @@ def calc_noise(r, theta, phi, a,
         Btheta_az = deltaB_azimuth * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
         Bphi_az = 1 / k[mod, 0] * (np.sin(theta) * np.sin(phase_azimuth) * np.cos(alpha_azimuth[mod, 0]) *
                                    (
-                                               2 * deltaB_azimuth * sinpsi_ + r / a * deltaB_azimuth * cospsi_ + r * sinpsi_ * ddeltaB_azimtuth) -
+                                           2 * deltaB_azimuth * sinpsi_ + r / a * deltaB_azimuth * cospsi_ + r * sinpsi_ * ddeltaB_azimtuth) -
                                    np.cos(theta) * deltaB_azimuth * np.sin(phase_azimuth) * sinpsi_ * np.sin(
                     alpha_azimuth[mod, 0]))
 
@@ -229,8 +233,9 @@ def calc_noise(r, theta, phi, a,
                     - np.sin(theta) * cospsi / (a * r * k[mod, 0]) * (ddeltaB_2d * r * (r - rs) * np.sin(phase_2d) +
                                                                       deltaB_2d * np.sin(phase_2d) * (
                                                                               2 * r - rs - r * sinpsi ** 2) +
-                                                                      k[mod, 0] * r * (r - rs) / a * np.sin(
-                    alpha_2d[mod, 0] * np.cos(phase_2d) * deltaB_2d))
+                                                                      k[mod, 0] * r * (r - rs) / a *
+                                                                      np.sin(alpha_2d[mod, 0]) * np.cos(phase_2d) *
+                                                                      deltaB_2d)
 
         Bphi_2d = -deltaB_2d / (r * k[mod, 0]) * (cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
                                                   (np.tan(theta)) ** (-1) * np.sin(phase_2d) * cospsi * sinpsi ** 2)
@@ -253,6 +258,18 @@ def calc_noise(r, theta, phi, a,
 
 
 @jit(nopython=True, fastmath=True)
+def calc_path_2d_slab(A, alpha, delta, x, y, z, k, dk, ls):
+    N = len(x)
+    Bx, By, Bz = np.zeros(N), np.zeros(N), np.zeros(N)
+    for ind in prange(N):
+        x_i, y_i, z_i = x[ind], y[ind], z[ind]
+
+        Bx[ind], By[ind], Bz[ind] = gen_2d(x_i, y_i, z_i, k, dk, A, alpha, delta, ls)
+
+    return Bx, By, Bz
+
+
+@jit(nopython=True, fastmath=True)
 def calc_path(a, A_rad, alpha_rad, delta_rad,
               A_azimuth, alpha_azimuth, delta_azimuth,
               A_2d, alpha_2d, delta_2d,
@@ -264,16 +281,17 @@ def calc_path(a, A_rad, alpha_rad, delta_rad,
         r, _, theta, phi = transformations.Cart2Sphere(x_i, y_i, z_i)
         ex_i, ey_i, ez_i = ex[:, ind], ey[:, ind], ez[:, ind]
         Bx_helio, By_helio, Bz_helio = calc_noise(r, theta, phi, a,
-                                                    A_rad, alpha_rad, delta_rad,
-                                                    A_azimuth, alpha_azimuth, delta_azimuth,
-                                                    A_2d, alpha_2d, delta_2d,
-                                                    rs, k, dk, use_slab, use_2d)
+                                                  A_rad, alpha_rad, delta_rad,
+                                                  A_azimuth, alpha_azimuth, delta_azimuth,
+                                                  A_2d, alpha_2d, delta_2d,
+                                                  rs, k, dk, use_slab, use_2d)
         B = np.array([Bx_helio, By_helio, Bz_helio])
-        Bx[ind] = B@ex_i
-        By[ind] = B@ey_i
-        Bz[ind] = B@ez_i
+        Bx[ind] = B @ ex_i
+        By[ind] = B @ ey_i
+        Bz[ind] = B @ ez_i
 
     return Bx, By, Bz
+
 
 @jit(nopython=True, fastmath=True)
 def calc_grid(r_param, theta_param, phi_param, a,
@@ -312,63 +330,117 @@ def calc_grid(r_param, theta_param, phi_param, a,
     return Bx, By, Bz, x, y, z
 
 
-if __name__ == "__main__":
-    np.random.seed(300)
-    p = ParkerUniform(5, 5, 0, use_reg=False, use_noise=True, use_2d=True, use_slab=False)
-    p_reg = ParkerUniform(5, 5, 0, use_reg=True, use_noise=False)
-    parker_reg = Parker(use_noise=False)
-    # Bx_reg, By_reg, Bz_reg = p_reg.CalcBfield()
-    # ez = np.array([Bx_reg, By_reg, Bz_reg])
-    # ez = ez/np.linalg.norm(ez)
-    # n = np.array([1/np.sqrt(3), 1/np.sqrt(3), 1/np.sqrt(3)])
-    # ex = np.cross(ez, n)
-    # ex = ex/np.linalg.norm(ex)
-    # ey = np.cross(ez, ex)
+@jit(nopython=True, fastmath=True)
+def gen_slab(x, y, z, k, dk, A, alpha, delta, ls):
+    Bx, By, Bz = 0, 0, 0
+    spec = dk / (1 + (ls * k)**(5/3))
+    for mod in prange(len(k)):
+        Bx += A[mod, 0] * np.sqrt(spec[mod, 0]) * np.cos(k[mod, 0] * z + delta[mod, 0]) * np.cos(alpha[mod, 0])
+        By += A[mod, 0] * np.sqrt(spec[mod, 0]) * np.cos(k[mod, 0] * z + delta[mod, 0]) * np.sin(alpha[mod, 0])
+        Bz += 0
 
-    # ls = 0.04 * (1 / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+    return Bx, By, Bz
 
-    omega = p.omega
-    rs = p.rs
-    v_wind = p.wind
-    a = v_wind / omega
 
-    A_rad = p.A_rad
-    alpha_rad = p.alpha_rad
-    delta_rad = p.delta_rad
+@jit(nopython=True, fastmath=True)
+def gen_2d(x, y, z, k, dk, A, alpha, delta, ls):
+    Bx, By, Bz = 0, 0, 0
+    spec = dk * k / (1 + (ls * k)**(8/3))
+    for mod in prange(len(k)):
+        Bx += A[mod, 0] * np.sqrt(spec[mod, 0]) * np.cos(
+            k[mod, 0] * (np.cos(alpha[mod, 0]) * x + np.sin(alpha[mod, 0]) * y) +
+            delta[mod, 0]) * np.cos(alpha[mod, 0])
+        By += A[mod, 0] * np.sqrt(spec[mod, 0]) * np.cos(
+            k[mod, 0] * (np.cos(alpha[mod, 0]) * x + np.sin(alpha[mod, 0]) * y) +
+            delta[mod, 0]) * np.sin(alpha[mod, 0])
+        Bz += 0
 
-    A_azimuth = p.A_azimuth
-    alpha_azimuth = p.alpha_azimuth
-    delta_azimuth = p.delta_azimuth
+    return Bx, By, Bz
 
-    A_2D = p.A_2D
-    alpha_2D = p.alpha_2D
-    delta_2D = p.delta_2D
 
-    k = p.k
-    dk = p.dk
-    v = p.v_wind(np.pi / 2, p.km2AU)
+def run_with_grid():
+    Bx, By, Bz, x, y, z = calc_grid(p.r, p.theta, p.phi, a,
+                                    A_rad, alpha_rad, delta_rad,
+                                    A_azimuth, alpha_azimuth, delta_azimuth,
+                                    A_2D, alpha_2D, delta_2D,
+                                    rs, k, dk, p.use_slab, p.use_2d,
+                                    ls, ex, ey, ez)
+    Nz = len(z)
+    Nx = len(x)
+    Ny = len(y)
 
-    l = np.linspace(0, 2, 1000)
+    for i in range(Nz):
+        B = np.sqrt(Bx ** 2 + By ** 2 + Bz ** 2)[:, :, i]
+        plt.pcolormesh(B)
+        plt.show()
+
+    Bx_fft, By_fft, Bz_fft = np.fft.fft(Bx), np.fft.fft(By), np.fft.fft(Bz)
+    kx, ky, kz = np.fft.fftfreq(Nx, x[1] - x[0]), np.fft.fftfreq(Ny, y[1] - y[0]), np.fft.fftfreq(Nz, z[1] - z[0])
+
+    P = np.abs(Bx_fft) ** 2 + np.abs(By_fft) ** 2 + np.abs(Bz_fft) ** 2
+
+    dkx = np.abs(kx[1] - kx[0])
+    dky = np.abs(ky[1] - ky[0])
+    dkz = np.abs(kz[1] - kz[0])
+
+    Pz = np.sum(np.sum(P, axis=0), axis=0) * dkx * dky
+    Px = np.sum(np.sum(P, axis=1), axis=1) * dkz * dky
+    Py = np.sum(np.sum(P, axis=0), axis=1) * dkx * dkz
+    Pxy = np.sum(P, axis=-1) * dkz
+
+    idxx = np.argsort(kx)
+    idxy = np.argsort(ky)
+
+    plt.figure()
+    # plt.pcolormesh(kx[idxx], ky[idxy], np.log(Pxy))
+    plt.imshow(Pxy)
+    plt.colorbar()
+    # plt.show()
+
+    plt.figure()
+    plt.plot(kx[kx > 0], Px[kx > 0])
+    plt.ylabel(r"$\int P(\mathbf{k})dk_ydk_z$")
+    plt.xlabel("$k_x, au^{-1}$")
+    plt.xscale('log')
+    plt.yscale('log')
+    # plt.show()
+
+    plt.figure()
+    plt.plot(ky[ky > 0], Py[ky > 0])
+    plt.ylabel(r"$\int P(\mathbf{k})dk_xdk_z$")
+    plt.xlabel("$k_y, au^{-1}$")
+    plt.xscale('log')
+    plt.yscale('log')
+    # plt.show()
+
+    plt.figure()
+    plt.plot(kz[kz > 0], Pz[kz > 0])
+    plt.ylabel(r"$\int P(\mathbf{k})dk_xdk_y$")
+    plt.xlabel("$k_z, au^{-1}$")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+
+
+def run_with_path_helio():
+    global ls, ez, ex, ey
+    l = np.linspace(0, 0.2, 10000)
     dl = l[1] - l[0]
-    phi = np.zeros_like(l) - 3*np.pi
+    phi = np.zeros_like(l) + np.pi/5
     theta = np.pi / 2 + 0 * phi
-    r = 10 + 0*phi
+    r = 15 + 0 * phi
     # r = np.zeros_like(phi)
     # r[0] = 1/(1 - omega*np.sin(theta[0])/v * phi[0])
     for ind in range(1, len(l)):
         # dphi = -np.abs(dl/np.sqrt((v/omega)**2*(1+np.sin(theta[ind-1])**2 * phi[ind-1]**2)))
         # phi[ind] = phi[ind-1] + dphi
-        dtheta = dl/r[ind-1]
-        theta[ind] = theta[ind-1] + dtheta
+        dtheta = dl / r[ind - 1]
+        theta[ind] = theta[ind - 1] + dtheta
         # dphi = dl / np.sqrt(r[ind-1]**2 * np.sin(theta[ind-1])**2 * (1 + omega**2/v**2))
         # phi[ind] = phi[ind-1] - dphi
         # r[ind] = 1 / (1 - omega * np.sin(theta[ind]) / v * phi[ind])
-
     #
     # r = -v / omega * phi
-    # plt.polar(phi, r)
-    # plt.show()
-
     # plt.polar(phi, r)
     # plt.show()
 
@@ -376,107 +448,175 @@ if __name__ == "__main__":
     z = r * np.cos(theta)
     x = r * np.cos(phi) * np.sin(theta)
     y = r * np.sin(phi) * np.sin(theta)
-
     i = np.array([[1], [0], [0]])
     j = np.array([[0], [1], [0]])
     kk = np.array([[0], [0], [1]])
-
     e_r = np.sin(theta) * np.cos(phi) * i + np.sin(theta) * np.sin(phi) * j + np.cos(theta) * kk
     e_phi = -np.sin(phi) * i + np.cos(phi) * j
     e_theta = np.cos(theta) * np.cos(phi) * i + np.cos(theta) * np.sin(phi) * j - np.sin(theta) * kk
-
-    cos_qsi = 1 / np.sqrt(1 + (omega * (r-p.rs) * np.sin(theta) / v) ** 2)
-    sin_qsi = omega * (r-p.rs) * np.sin(theta) / v / np.sqrt(1 + (omega * (r-p.rs) * np.sin(theta) / v) ** 2)
-
+    cos_qsi = 1 / np.sqrt(1 + (omega * (r - p.rs) * np.sin(theta) / v) ** 2)
+    sin_qsi = omega * (r - p.rs) * np.sin(theta) / v / np.sqrt(1 + (omega * (r - p.rs) * np.sin(theta) / v) ** 2)
     ez = cos_qsi * e_r - sin_qsi * e_phi
     ex = e_theta
     ey = sin_qsi * e_r + cos_qsi * e_phi
-
     Bx, By, Bz = calc_path(a, A_rad, alpha_rad, delta_rad,
                            A_azimuth, alpha_azimuth, delta_azimuth,
                            A_2D, alpha_2D, delta_2D,
                            rs, k, dk, p.use_slab, p.use_2d,
                            ex, ey, ez, x, y, z)
+    ax = plt.figure().add_subplot(projection='3d')
+    # ax = plt.figure().add_subplot(projection='polar')
+    plt.title("Trajectory")
+    plt.plot(x, y, z)
+    # plt.polar(phi, r)
+    plt.plot(0, 0, 0, "*")
+    # plt.plot(0, 0, "*")
+    ax.set_xlabel("x, au")
+    ax.set_ylabel("y, au")
+    ax.set_zlabel("z, au")
 
-    plt.title("slab field")
-    plt.plot(l, Bx, label="Bx")
-    plt.plot(l, By, label="By")
-    plt.plot(l, Bz, label="Bz")
-    plt.xlabel("Length along the 'perpendicular spiral', au")
-    plt.ylabel("Magnetic field")
+    plt.figure()
+    plt.title("Field (slab)")
+    plt.plot(l, Bx, label=r"$B_{\theta}$")
+    plt.plot(l, By, label="$B_{\perp}$")
+    plt.plot(l, Bz, label="$B_{\parallel}$")
+    plt.xlabel("Length along latitude, au")
+    plt.ylabel("Magnetic field, nT")
     plt.legend()
-    plt.show()
 
+    P = np.abs(np.fft.fft(Bx)) ** 2 + np.abs(np.fft.fft(By)) ** 2 + np.abs(np.fft.fft(Bz)) ** 2
+    wave_number = np.fft.fftfreq(len(l), dl)
+    idx = wave_number > 0
+    wave_number = wave_number[idx]
+    P = P[idx]
+    _, wave_number_mean, P_mean = misc.smoothing_function(wave_number, P, window=2)
 
-    P = np.abs(np.fft.fft(Bx))**2 + np.abs(np.fft.fft(By))**2 + np.abs(np.fft.fft(Bz))**2
-    k_2d = np.fft.fftfreq(len(l), dl)
-    idx = np.argsort(k_2d)
+    s, e = 2e2, 3e3
+
+    fitx = np.log(wave_number_mean[(wave_number_mean>s)*(wave_number_mean<e)])
+    fity = np.log(P_mean[(wave_number_mean>s)*(wave_number_mean<e)])
+    def func(param, a, b):
+        return a*param+b
+    param, cov = curve_fit(func, fitx, fity)
+
+    plt.figure()
     plt.title("Power spectrum")
-    plt.plot(k_2d[idx], P[idx])
+    plt.plot(wave_number, P)
+    plt.plot(wave_number_mean, P_mean)
+    plt.plot(np.linspace(s, e), np.exp(func(np.log(np.linspace(s, e)), *param)), linestyle="--", linewidth=2, color='k',
+             label=fr"$\propto k^{{{np.round(param[0], 2)}\pm{np.round(np.sqrt(cov[0][0]), 2)}}}$")
+
+    # s, e = 1e3, 1e4
+    #
+    # fitx = np.log(wave_number_mean[(wave_number_mean>s)*(wave_number_mean<e)])
+    # fity = np.log(P_mean[(wave_number_mean>s)*(wave_number_mean<e)])
+    # param, cov = curve_fit(func, fitx, fity)
+    # plt.plot(np.linspace(s, e), np.exp(func(np.log(np.linspace(s, e)), *param)), linestyle="--", linewidth=2, color='brown',
+    #          label=fr"$\propto k^{{{np.round(param[0], 2)}\pm{np.round(np.sqrt(cov[0][0]), 2)}}}$")
+
     plt.yscale("log")
     plt.xscale("log")
     plt.ylabel(r"$P, nT^2 au^2$")
     plt.xlabel("$k, au^{-1}$")
+    plt.legend()
     plt.show()
 
-    # Bx, By, Bz, x, y, z = calc_grid(p.r, p.theta, p.phi, a,
-    #                                 A_rad, alpha_rad, delta_rad,
-    #                                 A_azimuth, alpha_azimuth, delta_azimuth,
-    #                                 A_2D, alpha_2D, delta_2D,
-    #                                 rs, k, dk, p.use_slab, p.use_2d,
-    #                                 ls, ex, ey, ez)
-    # Nz = len(z)
-    # Nx = len(x)
-    # Ny = len(y)
-    #
-    # for i in range(Nz):
-    #     B = np.sqrt(Bx**2 + By**2 + Bz**2)[:, :, i]
-    #     plt.pcolormesh(B)
-    #     plt.show()
-    #
-    # Bx_fft, By_fft, Bz_fft = np.fft.fft(Bx), np.fft.fft(By), np.fft.fft(Bz)
-    # kx, ky, kz = np.fft.fftfreq(Nx, x[1] - x[0]), np.fft.fftfreq(Ny, y[1] - y[0]), np.fft.fftfreq(Nz, z[1] - z[0])
-    #
-    # P = np.abs(Bx_fft) ** 2 + np.abs(By_fft) ** 2 + np.abs(Bz_fft) ** 2
-    #
-    # dkx = np.abs(kx[1] - kx[0])
-    # dky = np.abs(ky[1] - ky[0])
-    # dkz = np.abs(kz[1] - kz[0])
-    #
-    # Pz = np.sum(np.sum(P, axis=0), axis=0) * dkx * dky
-    # Px = np.sum(np.sum(P, axis=1), axis=1) * dkz * dky
-    # Py = np.sum(np.sum(P, axis=0), axis=1) * dkx * dkz
-    # Pxy = np.sum(P, axis=-1) * dkz
-    #
-    # idxx = np.argsort(kx)
-    # idxy = np.argsort(ky)
-    #
-    # plt.figure()
-    # # plt.pcolormesh(kx[idxx], ky[idxy], np.log(Pxy))
-    # plt.imshow(Pxy)
-    # plt.colorbar()
-    # # plt.show()
-    #
-    # plt.figure()
-    # plt.plot(kx[kx > 0], Px[kx > 0])
-    # plt.ylabel(r"$\int P(\mathbf{k})dk_ydk_z$")
-    # plt.xlabel("$k_x, au^{-1}$")
-    # plt.xscale('log')
-    # plt.yscale('log')
-    # # plt.show()
-    #
-    # plt.figure()
-    # plt.plot(ky[ky > 0], Py[ky > 0])
-    # plt.ylabel(r"$\int P(\mathbf{k})dk_xdk_z$")
-    # plt.xlabel("$k_y, au^{-1}$")
-    # plt.xscale('log')
-    # plt.yscale('log')
-    # # plt.show()
-    #
-    # plt.figure()
-    # plt.plot(kz[kz > 0], Pz[kz > 0])
-    # plt.ylabel(r"$\int P(\mathbf{k})dk_xdk_y$")
-    # plt.xlabel("$k_z, au^{-1}$")
-    # plt.xscale('log')
-    # plt.yscale('log')
+
+def run_with_path_uni():
+    global ls
+    ls = 0.08 * (1 / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+    y = np.linspace(-20*ls, 20*ls, 100000) + 1/np.sqrt(2)
+    x = np.zeros_like(y) + 1/np.sqrt(2)
+    z = np.zeros_like(y) + 0*1/np.sqrt(2)
+    l = y
+    dl = l[1] - l[0]
+    Bx, By, Bz = calc_path_2d_slab(A_2D, alpha_2D, delta_2D, x, y, z, k, dk, ls)
+    # plt.title("2d field")
+    # plt.plot(l, Bx, label="Bx")
+    # plt.plot(l, By, label="By")
+    # plt.plot(l, Bz, label="Bz")
+    # plt.xlabel("x', au")
+    # plt.ylabel("Magnetic field")
+    # plt.legend()
     # plt.show()
+    P = np.abs(np.fft.fft(Bx)) ** 2 + np.abs(np.fft.fft(By)) ** 2 + np.abs(np.fft.fft(Bz)) ** 2
+    wave_number = np.fft.fftfreq(len(l), dl)
+    idx = wave_number > 0
+    wave_number = wave_number[idx]
+    P = P[idx]
+    _, wave_number_mean, P_mean = misc.smoothing_function(wave_number, P, window=2)
+
+    s, e = 2e2, 1e4
+
+    fitx = np.log(wave_number_mean[(wave_number_mean > s) * (wave_number_mean < e)])
+    fity = np.log(P_mean[(wave_number_mean > s) * (wave_number_mean < e)])
+
+    def func(param, a, b):
+        return a * param + b
+
+    param, cov = curve_fit(func, fitx, fity)
+
+    # plt.figure()
+    # plt.title("Power spectrum")
+    # plt.plot(wave_number, P)
+    # plt.plot(wave_number_mean, P_mean)
+    # plt.plot(np.linspace(s, e), np.exp(func(np.log(np.linspace(s, e)), *param)), linestyle="--", linewidth=2, color='k',
+    #          label=fr"$\propto k^{{{np.round(param[0], 2)}\pm{np.round(np.sqrt(cov[0][0]), 2)}}}$")
+    #
+    # plt.yscale("log")
+    # plt.xscale("log")
+    # plt.ylabel(r"$P, nT^2 au^2$")
+    # plt.xlabel("$k, au^{-1}$")
+    # plt.legend()
+    # plt.title("Power spectrum")
+    # plt.show()
+
+
+    return np.round(param[0], 2)
+
+if __name__ == "__main__":
+    np.random.seed()
+    gamma = []
+    for _ in tqdm(range(30)):
+        p = ParkerUniform(5, 5, 0, use_reg=False, use_noise=True, use_2d=False, use_slab=True, noise_num=1024)
+        p_reg = ParkerUniform(5, 5, 0, use_reg=True, use_noise=False)
+        parker_reg = Parker(use_noise=False)
+        # Bx_reg, By_reg, Bz_reg = p_reg.CalcBfield()
+        # ez = np.array([Bx_reg, By_reg, Bz_reg])
+        # ez = ez/np.linalg.norm(ez)
+        # n = np.array([1/np.sqrt(3), 1/np.sqrt(3), 1/np.sqrt(3)])
+        # ex = np.cross(ez, n)
+        # ex = ex/np.linalg.norm(ex)
+        # ey = np.cross(ez, ex)
+
+        # ls = 0.04 * (1 / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+
+        omega = p.omega
+        rs = p.rs
+        v_wind = p.wind
+        a = v_wind / omega
+
+        A_rad = p.A_rad
+        alpha_rad = p.alpha_rad
+        delta_rad = p.delta_rad
+
+        A_azimuth = p.A_azimuth
+        alpha_azimuth = p.alpha_azimuth
+        delta_azimuth = p.delta_azimuth
+
+        A_2D = p.A_2D
+        alpha_2D = p.alpha_2D
+        delta_2D = p.delta_2D
+
+        k = p.k
+        dk = p.dk
+        v = p.v_wind(np.pi / 2, p.km2AU)
+
+        gamma.append(run_with_path_uni())
+
+    print(np.mean(gamma))
+    print(np.std(gamma))
+
+    # run_with_path_helio()
+
+    # run_with_grid()
