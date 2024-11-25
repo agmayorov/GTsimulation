@@ -12,6 +12,15 @@ Particle.Generators.Spectrums module
    :undoc-members:
    :show-inheritance:
 
+Particle.Generators.Distributions module
+------------------------------------
+
+.. automodule:: Particle.Generators.Distributions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 Module contents
 ---------------
 

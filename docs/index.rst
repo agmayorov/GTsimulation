@@ -15,4 +15,5 @@ Download package from  `GitHub`_.
 
    documentation
    modules
+   addons
 

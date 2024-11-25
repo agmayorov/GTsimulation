@@ -17,7 +17,7 @@ IGRF (an alternative for the magentic field is `Bfield = "Dipole"`, where we con
 
 .. code-block:: python
 
-    "T": np.linspace(4.30, 6.00, 171) * 1000
+    "T": np.linspace(4.30, 6.00, 171) * Units.GeV
 their velocity
 
 .. code-block:: python
@@ -28,7 +28,7 @@ and the initial position
 
 .. code-block:: python
 
-    {"Center": np.array([0.8139, 0, 0.6829]) * Units.RE2km, "Radius": 0}
+    {"Center": np.array([0.8139, 0, 0.6829]) * Units.RE, "Radius": 0}
 
 The particles are generated on the surface of a sphere centered in the `Center` and radius of `Radius`.
 
@@ -47,9 +47,9 @@ The particles are generated on the surface of a sphere centered in the `Center` 
 
     Medium = None
 
-    Flux = {"T": np.linspace(4.30, 6.00, 171) * 1000,
+    Flux = {"T": np.linspace(4.30, 6.00, 171) * Units.GeV,
             "Names": "apr",
-            "Center": np.array([0.8139, 0, 0.6829]) * Units.RE2km,
+            "Center": np.array([0.8139, 0, 0.6829]) * Units.RE,
             "Radius": 0,
             "V0": np.array([-0.8139, 0, -0.6829]),
             "Nevents": 171}
@@ -81,7 +81,7 @@ These conditions are written in `BreakConditions` respectively.
 
 .. code-block:: python
 
-    BreakConditions = {"Rmin": 1 * Units.RE2km, "MaxPath": 1000 * Units.RE2km, "Rmax": 10 * Units.RE2km}
+    BreakConditions = {"Rmin": 1 * Units.RE, "MaxPath": 1000 * Units.RE, "Rmax": 10 * Units.RE}
 
 The particles that statisfy the first or the second condition, then these particles cannot be revered and the trajectories are forbidden.
 On the plot they are showed in black. Otherwise, the particles and reach the altitude from outside the magnetosphere, hence those are
