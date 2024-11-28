@@ -62,9 +62,10 @@ class _Heliosphere(_AbsRegion):
     @staticmethod
     @jit(fastmath=True, nopython=True)
     def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c):
+        r = r/149.597870700e9  # meters to au
         R = np.sqrt(r[0]**2 + r[1]**2 + r[2]**2)
         theta = np.arccos(r[2] / R)
-        div_wind = 2/R * (300 + 475 * (1 - np.sin(theta) ** 8))/149.597870700e6
+        div_wind = 2/R * (300 + 475 * (1 - np.sin(theta) ** 8))/149.597870700e6  # km/s to au/s
         dE = dt * T/3 * div_wind * (T+2*M)/(T+M)
         T -= frwd_tracing*dE
 
