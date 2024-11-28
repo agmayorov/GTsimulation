@@ -648,8 +648,8 @@ class GTSimulator(ABC):
 
             r = np.array(particle.coordinates)
 
-            V_normalized = np.array(particle.velocities) # unit vector of velosity (beta vector)
-            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E # scalar speed [m/s]
+            V_normalized = np.array(particle.velocities)  # unit vector of velosity (beta vector)
+            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E  # scalar speed [m/s]
             Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
             if self.Verbose:

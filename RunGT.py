@@ -6,7 +6,7 @@ from datetime import datetime
 
 from Global import Regions
 from Global import Units as U
-from GT.Algos import BunemanBorisSimulator
+from GT.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--folder")
@@ -18,15 +18,17 @@ folder = args.folder
 seed = args.seed
 R = args.R
 
+folder = r"tests/sim_test2"
+
 np.random.seed(seed)
 
-# Region = Regions.Magnetosphere
-# Bfield = "Dipole"
+Region = Regions.Magnetosphere
+Bfield = "Dipole"
 # Bfield = ["Gauss", {"model": "CHAOS", "model_type": "core", "version": 7.13}]
 
-Region = [Regions.Heliosphere, {"CalcAdditionalEnergy": True}]
+# Region = [Regions.Heliosphere, {"CalcAdditionalEnergy": True}]
 # Region = Regions.Heliosphere
-Bfield = "Parker"
+# Bfield = "Parker"
 # Bfield = ["Parker", {"use_noise": False, "noise_num": 1024, "log_kmax": 6, "use_reg": True, "coeff2d": 0.5}]
 
 # Region = Regions.Galaxy
@@ -38,18 +40,18 @@ Medium = None
 # Medium = ["GTnrlmsis", {"version": 0}]
 
 # Flux = {"Distribution": "Disk", "Nevents": 10000, "T": 200, "Radius": 14, "Width": 0.2}
-Flux = {"Nevents": 1, "T": 10*U.MeV, "Names": "pr", "Radius": 0, "Center": np.array([5*U.AU, 5*U.AU, 0]), "V0": np.array([-0.58762716,  0.79426625, -0.15438733])}
+Flux = {"Nevents": 1, "T": 0.1*U.GeV, "Names": "pr", "Radius": 0, "Center": np.array([1.5*U.RE, 0, 0]), "V0": np.array([-0.58762716,  0.79426625, -0.15438733])}
 
-UseDecay = True
+UseDecay = False
 NuclearInteraction = None
 # NuclearInteraction = {"GenMax": 3}
 
 Nfiles = 1
 # Output = None
 # Output = "Galaxy"
-Output = f"{folder}" + os.sep + "test"
+Output = f"{folder}" + os.sep + "BB"
 # Save = [1, {"Clock": True, "Path": True, "Density": True}]
-Save = [1, {"Energy": True}]
+Save = 1
 # Save = [10, {"Clock": False, "Path": False, "Bfield": True, "Efield": True, "Energy": True, "Angles": False}]
 
 Verbose = True
@@ -59,6 +61,6 @@ BreakConditions = None
 # BCcenter = np.array([-8.5, 0, 0])
 
 simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(5e6),
-                                  Step=0.1, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
+                                  Step=1e-5, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
                                   InteractNUC=NuclearInteraction, BreakCondition=BreakConditions)
 simulator()
