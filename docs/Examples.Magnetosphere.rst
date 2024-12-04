@@ -60,7 +60,7 @@ The particles are generated on the surface of a sphere centered in the `Center` 
     Output = "IGRFSteps" + os.sep + "IGRF_Step5e-6"
     Save = [4, {"Bfield":True}]
     Verbose = True
-    BreakConditions = {"Rmin": 1 * Units.RE2km, "Rmax": 10 * Units.RE2km, "MaxPath": 1000 * Units.RE2km}
+    BreakConditions = {"Rmin": 1 * Units.RE, "Rmax": 10 * Units.RE, "MaxPath": 1000 * Units.RE}
     simulator = BunemanBorisSimulator(Date=Date,
                                       Region=Region,
                                       Bfield=Bfield,
