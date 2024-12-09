@@ -10,8 +10,8 @@ from MagneticFields.Heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):
-    def __init__(self, x, y, z, t=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, x, y, z, t=None, coeff2d=0.35, *args, **kwargs):
+        super().__init__(coeff2d=coeff2d, *args, **kwargs)
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
         self.b = Parker(*args, **kwargs)
@@ -151,7 +151,7 @@ class ParkerUniform(Parker):
             coeff_slab = 0
             coeff_2d = 0
             if use_slab:
-                coeff_slab = 1 / 2
+                coeff_slab = 5.546/2 #1 / 2
 
             if use_2d:
                 coeff_2d = 1
@@ -175,20 +175,40 @@ class ParkerUniform(Parker):
 if __name__ == "__main__":
     b = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_noise=True)
     b_reg = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_noise=False)
-    y = 1/np.sqrt(2)
+    y = 1 / np.sqrt(2)
     z = 0
-    x = 1/np.sqrt(2) + np.linspace(-.5, 0.5, 500)
-    Bx_ = []
-    Bx_reg = []
+    x = 1 / np.sqrt(2) + np.linspace(-.5, 0.5, 500)
+    Br = []
+    Br_reg = []
     for xx in x:
         Bx, By, Bz = b.CalcBfield(xx, y, z)
-        r = np.sqrt(xx**2 + y**2 + z**2)
-        Bx_.append(Bz)
+        r = np.sqrt(xx ** 2 + y ** 2 + z ** 2)
+        Br.append(Bx)
         Bx, By, Bz = b_reg.CalcBfield(xx, y, z)
-        Bx_reg.append(Bz)
+        Br_reg.append(Bx)
 
-    plt.plot(x, Bx_)
-    plt.plot(x, Bx_reg)
+    plt.plot(x, Br)
+    plt.plot(x, Br_reg)
     plt.xlabel("x, au")
     plt.ylabel("Bx, nT")
     plt.show()
+
+    b_slab = ParkerUniform(1 / np.sqrt(2), 1 / np.sqrt(2), 0, use_reg=False,use_noise=True, use_slab=False)
+    b_2d = ParkerUniform(1 / np.sqrt(2), 1 / np.sqrt(2), 0, use_reg=False,use_noise=True, use_2d=False)
+
+    [x, y, z] = np.meshgrid(1 / np.sqrt(2) + np.linspace(-.5, 0.5, 100),
+                            1 / np.sqrt(2) + np.linspace(-.5, 0.5, 100),
+                                             np.linspace(-.5, 0.5, 100))
+    x = np.reshape(x, -1)
+    y = np.reshape(y, -1)
+    z = np.reshape(z, -1)
+
+    Bs = []
+    B2d = []
+
+    for i in range(len(x)):
+        Bs.append(np.sum(np.array(b_slab.CalcBfield(x[i],y[i],z[i]))**2))
+        B2d.append(np.sum(np.array(b_2d.CalcBfield(x[i],y[i],z[i]))**2))
+
+    print(np.mean(Bs))
+    print(np.mean(B2d))
