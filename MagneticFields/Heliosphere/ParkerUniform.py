@@ -10,7 +10,7 @@ from MagneticFields.Heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):
-    def __init__(self, x, y, z, t=None, coeff2d=0.35, *args, **kwargs):
+    def __init__(self, x, y, z, t=None, coeff2d=0.75, *args, **kwargs):
         super().__init__(coeff2d=coeff2d, *args, **kwargs)
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
@@ -151,7 +151,7 @@ class ParkerUniform(Parker):
             coeff_slab = 0
             coeff_2d = 0
             if use_slab:
-                coeff_slab = 5.546/2 #1 / 2
+                coeff_slab = 1.4065798530443003/2 #5.546/2 #1 / 2
 
             if use_2d:
                 coeff_2d = 1
