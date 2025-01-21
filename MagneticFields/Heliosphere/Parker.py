@@ -17,7 +17,7 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_hcs=True, use_cir=False,
-                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff2d=1.4, use_slab=True,
+                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=1.4, use_slab=True,
                  use_2d=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
@@ -28,7 +28,7 @@ class Parker(AbsBfield):
         self.use_cir = use_cir
         self.polarity = polarity
         self.use_reg = use_reg
-        self.coeff2d = coeff2d
+        self.coeff_noise = coeff_noise
         self.use_slab = use_slab
         self.use_2d = use_2d
         self.__set_time(date)
@@ -115,9 +115,9 @@ class Parker(AbsBfield):
                                             A_2D, alpha_2D, delta_2D,
                                             rs, k, dk, self.use_slab, self.use_2d)
 
-        Bx += self.magnitude * self.coeff2d * Bx_n
-        By += self.magnitude * self.coeff2d * By_n
-        Bz += self.magnitude * self.coeff2d * Bz_n
+        Bx += self.magnitude * self.coeff_noise * Bx_n
+        By += self.magnitude * self.coeff_noise * By_n
+        Bz += self.magnitude * self.coeff_noise * Bz_n
 
         return Bx, By, Bz
 
@@ -363,7 +363,7 @@ class Parker(AbsBfield):
             Min wave length: {self.log_kmin}
             Max wave length: {self.log_kmax}
             Number of waves: {self.noise_num}
-            Coeff_2d: {self.coeff2d}
+            Coeff_2d: {self.coeff_noise}
             Using Slab: {self.use_slab}
             Using 2D: {self.use_2d}"""
 
@@ -400,25 +400,46 @@ if __name__ == "__main__":
     #
     # plt.show()
 
-    b = Parker(use_noise=True)
-    b_reg = Parker(use_noise=False)
-    y = 1 / np.sqrt(2)
-    z = 0
-    x = 1 / np.sqrt(2) + np.linspace(-.5, 0.5, 500)
-    Br = []
-    Br_reg = []
-    for xx in x:
-        Bx, By, Bz = b.CalcBfield(xx, y, z)
-        r = np.sqrt(xx ** 2 + y ** 2 + z ** 2)
-        Br.append(Bx)
-        Bx, By, Bz = b_reg.CalcBfield(xx, y, z)
-        Br_reg.append(Bx)
+    # b = Parker(use_noise=True)
+    # b_reg = Parker(use_noise=False)
+    # y = 1 / np.sqrt(2)
+    # z = 0
+    # x = 1 / np.sqrt(2) + np.linspace(-.5, 0.5, 500)
+    # Br = []
+    # Br_reg = []
+    # for xx in x:
+    #     Bx, By, Bz = b.CalcBfield(xx, y, z)
+    #     r = np.sqrt(xx ** 2 + y ** 2 + z ** 2)
+    #     Br.append(Bx)
+    #     Bx, By, Bz = b_reg.CalcBfield(xx, y, z)
+    #     Br_reg.append(Bx)
+    #
+    # plt.plot(x, Br)
+    # plt.plot(x, Br_reg)
+    # plt.xlabel("x, au")
+    # plt.ylabel("Bx, nT")
+    # plt.show()
 
-    plt.plot(x, Br)
-    plt.plot(x, Br_reg)
-    plt.xlabel("x, au")
-    plt.ylabel("Bx, nT")
-    plt.show()
+    b_slab = Parker(use_reg=False, use_noise=True, use_slab=False)
+    b_2d = Parker(use_reg=False, use_noise=True, use_2d=False)
+
+    [x, y, z] = np.meshgrid(3 / np.sqrt(2) + np.linspace(-.05, 0.05, 10),
+                            3 / np.sqrt(2) + np.linspace(-.05, 0.05, 10),
+                            np.linspace(-.05, 0.05, 10))
+    x = np.reshape(x, -1)
+    y = np.reshape(y, -1)
+    z = np.reshape(z, -1)
+
+    Bs = []
+    B2d = []
+
+    import tqdm
+    for i in tqdm.tqdm(range(len(x))):
+        Bs.append(np.sum(np.array(b_slab.CalcBfield(x[i], y[i], z[i])) ** 2))
+        B2d.append(np.sum(np.array(b_2d.CalcBfield(x[i], y[i], z[i])) ** 2))
+
+    print(np.mean(Bs))
+    print(np.mean(B2d))
 
     # st = timer()
     # b.CalcBfield(40, 50, 60)

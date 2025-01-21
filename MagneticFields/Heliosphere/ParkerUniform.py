@@ -10,8 +10,8 @@ from MagneticFields.Heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):
-    def __init__(self, x, y, z, t=None, coeff2d=0.75, *args, **kwargs):
-        super().__init__(coeff2d=coeff2d, *args, **kwargs)
+    def __init__(self, x, y, z, t=None, coeff_noise=0.95, *args, **kwargs):
+        super().__init__(coeff_noise=coeff_noise, *args, **kwargs)
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
         self.b = Parker(*args, **kwargs)
@@ -58,9 +58,9 @@ class ParkerUniform(Parker):
                                             A_2D, alpha_2D, delta_2D,
                                             rs, k, dk, self.use_slab, self.use_2d)
 
-        Bx += self.magnitude * self.coeff2d * Bx_n
-        By += self.magnitude * self.coeff2d * By_n
-        Bz += self.magnitude * self.coeff2d * Bz_n
+        Bx += self.magnitude * self.coeff_noise * Bx_n
+        By += self.magnitude * self.coeff_noise * By_n
+        Bz += self.magnitude * self.coeff_noise * Bz_n
 
         return Bx, By, Bz
 
@@ -151,14 +151,14 @@ class ParkerUniform(Parker):
             coeff_slab = 0
             coeff_2d = 0
             if use_slab:
-                coeff_slab = 1.4065798530443003/2 #5.546/2 #1 / 2
+                coeff_slab = 1. #5.546/2 #1 / 2
 
             if use_2d:
-                coeff_2d = 1
+                coeff_2d = 0.00185
 
             Bx_helio += coeff_2d*Bx_2d + coeff_slab * Bx_slab
             By_helio += coeff_2d*By_2d + coeff_slab * By_slab
-            Bz_helio += coeff_2d*Bz_2d + coeff_slab*Bz_slab
+            Bz_helio += coeff_2d*Bz_2d + coeff_slab * Bz_slab
 
         Bx = Bx_helio * i@ex + By_helio * i@ey + Bz_helio * i@ez
         By = Bx_helio * j@ex + By_helio * j@ey + Bz_helio * j@ez

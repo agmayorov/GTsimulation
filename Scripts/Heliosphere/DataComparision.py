@@ -37,7 +37,7 @@ def compare_ace():
     Bz_n = np.zeros_like(Bx)
     # Bx_n, By_n, Bz_n = parker_noise.CalcBfield(x, y, z, t=t* 365.25 * 24 * 3600 + 2488320)
     for i in range(len(x)):
-        parker_uniform = ParkerUniform(use_noise=True, use_reg=False, noise_num=1024, x=x[i], y=y[i],z=z[i], coeff2d=0.75)
+        parker_uniform = ParkerUniform(use_noise=True, use_reg=False, noise_num=1024, x=x[i], y=y[i], z=z[i], coeff_noise=0.95)
         Bx_n[i], By_n[i], Bz_n[i] = parker_uniform.CalcBfield(x[i], y[i], z[i], t = t[i]*365.25*24*3600+2488320)
     Br = -(Bx+Bx_n)*x - (By+By_n)*y - (Bz+Bz_n)*z
 

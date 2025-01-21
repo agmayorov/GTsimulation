@@ -52,3 +52,18 @@ def smoothing_function(x, y, mean=True, window=2, pad=1):
                     xoutmean[i] = np.nanmean(x[i:e])
 
     return xoutmid, xoutmean, yout
+
+
+# @jit(nopython=True, parallel=True)
+def moving_average(x, window, y):
+    x_new = x[x<=np.max(x)-window]
+    y_new = np.zeros_like(x_new)
+    for i, xx in enumerate(x_new):
+        idx = (x>=xx) * (x<xx+window)
+        y_new[i] = np.median(y[idx])
+
+    dindx = int(window/(x[1]-x[0]))
+    x_new = x_new[::dindx]
+    y_new = y_new[::dindx]
+
+    return x_new, y_new
