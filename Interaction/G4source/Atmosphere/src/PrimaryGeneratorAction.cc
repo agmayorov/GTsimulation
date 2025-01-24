@@ -3,17 +3,17 @@
 namespace Atmosphere
 {
 
-PrimaryGeneratorAction::PrimaryGeneratorAction(G4int particlePDG, G4double energy, G4double height, G4double alpha)
+PrimaryGeneratorAction::PrimaryGeneratorAction(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity)
 : G4VUserPrimaryGeneratorAction(),
   fParticleGun(0),
   fParticlePDG(particlePDG),
   fEnergy(energy),
-  fHeight(height),
-  fAlpha(alpha)
+  fCoordinates(coordinates),
+  fVelocity(velocity)
 {
   fParticleGun = new G4ParticleGun();
   
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(sin(fAlpha),0.,-cos(fAlpha)));
+  fParticleGun->SetParticleMomentumDirection(fVelocity);
   fParticleGun->SetParticleEnergy(fEnergy*MeV);
 }
 
@@ -33,7 +33,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
     std::cerr << "Error: particle was not found in G4ParticleTable and G4IonTable" << std::endl;
 
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,fHeight*km));
+  fParticleGun->SetParticlePosition(fCoordinates);
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }

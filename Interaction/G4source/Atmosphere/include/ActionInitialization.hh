@@ -12,15 +12,15 @@ namespace Atmosphere
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization(G4int particlePDG, G4double energy, G4double height, G4double alpha);
+    ActionInitialization(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity);
     ~ActionInitialization() override;
     virtual void Build() const override;
 
   private:
     G4int fParticlePDG;
     G4double fEnergy;
-    G4double fHeight;
-    G4double fAlpha;
+    G4ThreeVector fCoordinates;
+    G4ThreeVector fVelocity;
 };
 
 }

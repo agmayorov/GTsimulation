@@ -226,23 +226,19 @@ def G4Shower(PDG, E, r, v, date):
     geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
                                       {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
     lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
-    alt *= 1e-3 # m -> km
-    # angle between the vertical line and the velocity vector of the particle [degrees]
-    angle = np.arccos(np.dot(-v, r / np.linalg.norm(r))) / np.pi * 180
+    earthRadius = np.linalg.norm(r) - alt
+    earthRadius *= 1e-3 # m -> km
+    print(earthRadius)
     # day of year (from 1 to 365 or 366)
     doy = date.timetuple().tm_yday
     # seconds in day
     sec = (date - date.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     f107, f107a, ap = msis.get_f107_ap(date)
 
-    # Calculating transformations of coordinates
-    phi = 2 * np.pi * np.random.rand()
-    v_local = [np.sin(angle) * np.cos(angle), np.sin(angle) * np.sin(angle), np.cos(angle)]
-    rotationMatrix = vecRotMat(v_local, v)
-
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/Atmosphere {PDG} {E} {alt} {angle} "
+    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/Atmosphere {PDG} {E} "
+                            f"{r[0]/1e3} {r[1]/1e3} {r[2]/1e3} {v[0]} {v[1]} {v[2]} {earthRadius} "
                             f"{doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}", shell=True, stdout=subprocess.PIPE)
     if result.returncode != 0:
         print(result.stderr)
@@ -263,11 +259,7 @@ def G4Shower(PDG, E, r, v, date):
         dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
                           'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
-        if secondary.size > 0:
-            if secondary.ndim == 0:
-                secondary = np.array([secondary])
-            for i, p in enumerate(secondary):
-                secondary[i]['MomentumDirection'] = rotationMatrix @ p['MomentumDirection']
-                secondary[i]['Position'] = r * (1 + (80.5 - alt) * 1e3 / np.linalg.norm(r))
+        if secondary.size > 0 and secondary.ndim == 0:
+            secondary = np.array([secondary])
 
     return primary, secondary

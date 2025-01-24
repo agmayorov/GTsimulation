@@ -26,8 +26,7 @@ void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
   }
 
   if (aTrack->GetTrackID() != 1 && aTrack->GetKineticEnergy() > 1. &&
-      aTrack->GetStep()->GetPostStepPoint()->GetStepStatus() == fWorldBoundary &&
-      aTrack->GetMomentumDirection().z() > 0. && aTrack->GetPosition().z() > 0.) {
+      aTrack->GetStep()->GetPostStepPoint()->GetStepStatus() == fWorldBoundary) {
     if (fFirstSecondaryParticle) {
       G4cout << "\nInformation about the secondary particles:\n"
              << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[m]" << G4endl;

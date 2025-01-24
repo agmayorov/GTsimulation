@@ -15,7 +15,7 @@ namespace Atmosphere
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    PrimaryGeneratorAction(G4int particlePDG, G4double energy, G4double height, G4double alpha);
+    PrimaryGeneratorAction(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity);
     ~PrimaryGeneratorAction() override;
     virtual void GeneratePrimaries(G4Event *anEvent) override;
 
@@ -23,8 +23,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4ParticleGun *fParticleGun;
     G4int fParticlePDG;
     G4double fEnergy;
-    G4double fHeight;
-    G4double fAlpha;
+    G4ThreeVector fCoordinates;
+    G4ThreeVector fVelocity;
 };
 
 }
