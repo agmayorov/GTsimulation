@@ -6,7 +6,7 @@
 
 #include "G4SystemOfUnits.hh"
 #include "G4NistManager.hh"
-#include "G4Sphere.hh"
+#include "G4Orb.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 

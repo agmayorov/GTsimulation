@@ -14,7 +14,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   //--------------------------------------- World --------------------------------------------------
 
-  G4Sphere *world_svol = new G4Sphere("world", 0., 1.*mm, 0., 2 * CLHEP::pi, 0., CLHEP::pi);
+  G4Orb *world_svol = new G4Orb("world", 1.*mm);
 
   G4Material *world_mat = G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
   G4LogicalVolume *world_lvol = new G4LogicalVolume(world_svol, world_mat, "world");
