@@ -1,7 +1,8 @@
+build
+docs/_build/*
+.idea/
+__pycache__/
+
 questions.txt
 tasks.txt
 test*
-.idea/
-__pycache__/
-Interaction/G4source/*/build/*
-docs/_build/*
