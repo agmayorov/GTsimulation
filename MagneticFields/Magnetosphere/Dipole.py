@@ -40,36 +40,37 @@ class Dipole(AbsBfield):
         assert 1900 <= self.Date.year <= 2021
         ND, N = Dipole.GetNDaysInMonth(self.Date.year, self.Date.month)
         D = self.Date.year + (self.Date.day + np.sum(ND[:self.Date.month - 1]) - 0.5) / np.sum(ND)
-        if self.units == "SI_nT":
-            Mx = self.g11sm(D)
-            My = self.h11sm(D)
-            Mz = self.g10sm(D)
-        elif self.units == "SI":
-            Mx = (self.Re ** 3 / 1e-7) * self.g11sm(D) / 1e9
-            My = (self.Re ** 3 / 1e-7) * self.h11sm(D) / 1e9
-            Mz = (self.Re ** 3 / 1e-7) * self.g10sm(D) / 1e9
-        elif self.units == 'CGS_G':
-            Mx = self.g11sm(D) / 1e9 * 1e4
-            My = self.h11sm(D) / 1e9 * 1e4
-            Mz = self.g10sm(D) / 1e9 * 1e4
-        elif self.units == "CGS":
-            Mx = (self.Re * 1e2) ** 3 * self.g11sm(D) / 1e9 * 1e4
-            My = (self.Re * 1e2) ** 3 * self.h11sm(D) / 1e9 * 1e4
-            Mz = (self.Re * 1e2) ** 3 * self.g10sm(D) / 1e9 * 1e4
-        else:
-            Mx = (self.Re * 1e2) * self.g11sm(D) / 1e9 * 1e4 * 300 / 1e9
-            My = (self.Re * 1e2) * self.h11sm(D) / 1e9 * 1e4 * 300 / 1e9
-            Mz = (self.Re * 1e2) * self.g10sm(D) / 1e9 * 1e4 * 300 / 1e9
+        match self.units:
+            case "SI_nT":
+                Mx = self.g11sm(D)
+                My = self.h11sm(D)
+                Mz = self.g10sm(D)
+            case "SI":
+                Mx = (self.Re ** 3 / 1e-7) * self.g11sm(D) / 1e9
+                My = (self.Re ** 3 / 1e-7) * self.h11sm(D) / 1e9
+                Mz = (self.Re ** 3 / 1e-7) * self.g10sm(D) / 1e9
+            case 'CGS_G':
+                Mx = self.g11sm(D) / 1e9 * 1e4
+                My = self.h11sm(D) / 1e9 * 1e4
+                Mz = self.g10sm(D) / 1e9 * 1e4
+            case "CGS":
+                Mx = (self.Re * 1e2) ** 3 * self.g11sm(D) / 1e9 * 1e4
+                My = (self.Re * 1e2) ** 3 * self.h11sm(D) / 1e9 * 1e4
+                Mz = (self.Re * 1e2) ** 3 * self.g10sm(D) / 1e9 * 1e4
+            case _:
+                Mx = (self.Re * 1e2) * self.g11sm(D) / 1e9 * 1e4 * 300 / 1e9
+                My = (self.Re * 1e2) * self.h11sm(D) / 1e9 * 1e4 * 300 / 1e9
+                Mz = (self.Re * 1e2) * self.g10sm(D) / 1e9 * 1e4 * 300 / 1e9
         self.M = np.sqrt(Mx ** 2 + My ** 2 + Mz ** 2)
 
     def CalcBfield(self, x, y, z, **kwargs):
         psi = self.psi
         M = self.M
-        return self.__clacBfield(x, y, z, M, psi)
+        return self.__calcBfield(x, y, z, M, psi)
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def __clacBfield(x, y, z, M, psi):
+    def __calcBfield(x, y, z, M, psi):
         Q = M / (np.sqrt(x ** 2 + y ** 2 + z ** 2)) ** 5
 
         Bx = Q * ((y ** 2 + z ** 2 - 2 * x ** 2) * np.sin(psi) - 3 * (z * x) * np.cos(psi))
