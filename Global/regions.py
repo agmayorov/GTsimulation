@@ -124,7 +124,7 @@ class _Magnetosphere(_AbsRegion):
                                               {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
             lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
             angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
-            if alt < 80e3 and angle < 70:
+            if 0 < alt < 80e3 and angle < 70:
                 primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, simulator.Date)
                 simulator.IsPrimDeath = True
                 if secondary.size > 0 and gen < simulator.InteractNUC['GenMax']:
@@ -146,7 +146,7 @@ class _Magnetosphere(_AbsRegion):
                                                "Radius": 0,
                                                "V0": p['MomentumDirection']}
                         new_process = simulator.__class__(**params)
-                        new_process.__gen = gen + 1
+                        new_process._GTSimulator__gen = gen + 1
                         prod_tracks.append(new_process.CallOneFile()[0])
 
 
