@@ -21,11 +21,13 @@ class Monolines(AbsSpectrum):
         super().__init__(*args, **kwargs)
 
     def GenerateEnergySpectrum(self):
-        assert isinstance(self.T, (int, float)) or isinstance(self.T, (list, np.ndarray))
-        if isinstance(self.T, (int, float)):
-            KinEnergy = np.ones(self.flux.Nevents) * self.T
-            return KinEnergy
-        KinEnergy = np.concatenate((np.tile(self.T, self.flux.Nevents // len(self.T)), self.T[:self.flux.Nevents % len(self.T)]))
+        match self.T:
+            case int() | float():
+                KinEnergy = np.ones(self.flux.Nevents) * self.T
+            case list() | np.ndarray():
+                KinEnergy = np.concatenate((np.tile(self.T, self.flux.Nevents // len(self.T)), self.T[:self.flux.Nevents % len(self.T)]))
+            case _:
+                raise TypeError('Unsupported type')
         return KinEnergy
 
     def __str__(self):

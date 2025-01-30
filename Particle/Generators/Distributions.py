@@ -19,8 +19,7 @@ class AbsDistribution(ABC):
 
 
 class SphereSurf(AbsDistribution):
-    def __init__(self,  Radius=0, Center=np.zeros(3), *args, **kwargs):
-
+    def __init__(self, Radius=0, Center=np.zeros(3), *args, **kwargs):
         self.Center = Center
         self.Radius = Radius
         super().__init__(*args, **kwargs)
@@ -48,6 +47,7 @@ class SphereSurf(AbsDistribution):
                 phi = 2 * np.pi * np.random.rand(1, 1, self.flux.Nevents)
                 p = np.concatenate((-sin_theta * np.cos(phi), -sin_theta * np.sin(phi), -cos_theta))
                 r_ret = r * Ro + Rc
+
                 if self.flux.V0 is None:
                     v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.flux.Nevents)], axis=1).T
                 else:
@@ -77,7 +77,7 @@ class SphereSurf(AbsDistribution):
 
 
 class SphereVol(AbsDistribution):
-    def __init__(self,  Radius=0, Center=np.zeros(3), *args, **kwargs):
+    def __init__(self, Radius=0, Center=np.zeros(3), *args, **kwargs):
         self.Center = Center
         self.Radius = Radius
         super().__init__(*args, **kwargs)
@@ -111,6 +111,7 @@ class SphereVol(AbsDistribution):
 
         return s
 
+
 class Disk(AbsDistribution):
     def __init__(self, Radius=15, Width=0.3, *args, **kwargs):
         self.Radius = Radius
@@ -138,9 +139,29 @@ class Disk(AbsDistribution):
         return r, v
 
     def __str__(self):
-        s = f"""Sphere Surface
+        s = f"""Disk Surface
         Width: {self.Width}
         Radius: {self.Radius}"""
+
+        return s
+
+
+class UserInput(AbsDistribution):
+    def __init__(self, R0=np.zeros((1, 3)), *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.r = R0
+        self.v = self.flux.V0
+
+    def GenerateCoordinates(self, *args, **kwargs):
+        if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
+            raise ValueError("The number of initial coordinates and velocities does not correspond to the number of particles")
+
+        return self.r, self.v
+
+    def __str__(self):
+        s = f"""User Input
+        R0 shape: {self.r.shape}
+        V0 shape: {self.v.shape}"""
 
         return s
 
