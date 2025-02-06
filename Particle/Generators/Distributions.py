@@ -149,8 +149,8 @@ class Disk(AbsDistribution):
 class UserInput(AbsDistribution):
     def __init__(self, R0=np.zeros((1, 3)), *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.r = R0
-        self.v = self.flux.V0
+        self.r = np.array(R0, ndmin=2)
+        self.v = np.array(self.flux.V0, ndmin=2)
 
     def GenerateCoordinates(self, *args, **kwargs):
         if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
