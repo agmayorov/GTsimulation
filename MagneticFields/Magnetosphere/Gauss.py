@@ -26,7 +26,7 @@ class GaussTypes(Enum):
     ionosphere = 3
 
 
-versions_dict = {GaussModels.IGRF: [13],
+versions_dict = {GaussModels.IGRF: [13, 14],
                  GaussModels.CHAOS: [7.13, 8.1],
                  GaussModels.CM: [6],
                  GaussModels.COV_OBS: [2],

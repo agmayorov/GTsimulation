@@ -1,7 +1,7 @@
 import scipy.io
 import numpy as np
 
-name = "../CHAOS-7.13/CHAOS-7.13_static"
+name = "../IGRF14/igrf14coeffs"
 
 coeffs = scipy.io.loadmat(name + ".mat")["coefs"]
 years = coeffs["year"][0].astype(np.float32)
