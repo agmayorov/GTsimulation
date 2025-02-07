@@ -1,8 +1,10 @@
 import scipy.io
 import numpy as np
 
-coeffs = scipy.io.loadmat("../SIFM/SIFM_static.mat")["coefs"]
-years = coeffs["year"][0].astype(int)
+name = "../CHAOS-7.13/CHAOS-7.13_static"
+
+coeffs = scipy.io.loadmat(name + ".mat")["coefs"]
+years = coeffs["year"][0].astype(np.float32)
 g = [gg.astype(np.float32) for gg in coeffs["g"][0]]
 h = [hh.astype(np.float32) for hh in coeffs["h"][0]]
 gh = [ghgh.astype(np.float32) for ghgh in coeffs["gh"][0]]
@@ -15,4 +17,4 @@ if 'slope' in coeffs.dtype.names:
 else:
     Coeffs = {"years": years, "g": g, "h": h,
               "gh": gh}
-np.save("../SIFM/SIFM_static.npy", Coeffs)
+np.save(name + ".npy", Coeffs)

@@ -27,7 +27,7 @@ class GaussTypes(Enum):
 
 
 versions_dict = {GaussModels.IGRF: [13],
-                 GaussModels.CHAOS: [7.13],
+                 GaussModels.CHAOS: [7.13, 8.1],
                  GaussModels.CM: [6],
                  GaussModels.COV_OBS: [2],
                  GaussModels.LCS: [1],
@@ -171,7 +171,7 @@ class Gauss(AbsBfield):
 
     def UpdateState(self, new_date):
         self.Date = new_date
-        self.g, self.h.self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
+        self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
     def SetFullModelName(self):
         assert self.version in versions_dict[self.Model]
