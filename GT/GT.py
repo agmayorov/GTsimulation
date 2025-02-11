@@ -805,10 +805,12 @@ class GTSimulator(ABC):
                     i_save += 1
                 r = r_new
 
-                # TODO reduce time of the calculation
+                # TODO the code is region specific
                 # Full revolution
-                if self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
-                    a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.ParamDict["Date"])
+                if (self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]) and \
+                        self.Region == Regions.Magnetosphere:
+                    a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.Bfield.g,
+                                                                            self.Bfield.h)
                     lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i, a_, b_)
 
                 # if i % (self.Num // 100) == 0:

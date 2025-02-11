@@ -34,9 +34,10 @@ def DirectionEarthtoSun(Year, Day, Secs):
     return Vector, GST, SLONG
 
 
-def DisplacementForEccentricDipole(date: datetime.datetime):
-    g, h, _ = gauss.LoadGaussCoeffs("MagneticFields/Magnetosphere/IGRF13/igrf13coeffs.npy", date)
-    B0 = np.linalg.norm([g[0, 0], g[0, 1], h[0, 1]])
+@jit(fastmath=True, nopython=True)
+def DisplacementForEccentricDipole(g, h):
+    v = np.array([g[0, 0], g[0, 1], h[0, 1]])
+    B0 = np.linalg.norm(v)
     L0 = 2 * g[0, 0] * g[1, 0] + np.sqrt(3) * (g[0, 1] * g[1, 1] + h[0, 1] * h[1, 1])
     L1 = -g[0, 1] * g[1, 0] + np.sqrt(3) * (g[0, 0] * g[1, 1] + g[0, 1] * g[1, 2] + h[0, 1] * h[1, 2])
     L2 = -h[0, 1] * g[1, 0] + np.sqrt(3) * (g[0, 0] * h[1, 1] - h[0, 1] * g[1, 2] + g[0, 1] * h[1, 2])
@@ -48,25 +49,24 @@ def DisplacementForEccentricDipole(date: datetime.datetime):
     return np.array([[DX], [DY], [DZ]])
 
 
-def geo2mag_eccentric(x, y, z, j, date: datetime.datetime):
+@jit(fastmath=True, nopython=True)
+def geo2mag_eccentric(x, y, z, j, g, h):
     RE = 6378137.1
-    A = DisplacementForEccentricDipole(date) * RE
+    A = DisplacementForEccentricDipole(g, h) * RE
 
-    if np.ndim(x) > 1 and x.shape[1] == 1:
-        x = np.transpose(x)
-        y = np.transpose(y)
-        z = np.transpose(z)
+    # if np.ndim(x) > 1 and x.shape[1] == 1:
+    #     x = np.transpose(x)
+    #     y = np.transpose(y)
+    #     z = np.transpose(z)
+
+    mat = np.array([[0.339067758413505, -0.919633920274268, -0.198258689306225],
+                      [0.938257039240758, 0.345938908356903, 0],
+                      [0.068589929661063, -0.186019809236783, 0.980148994857721]])
 
     if j > 0:
-        vec = np.dot([[0.339067758413505, -0.919633920274268, -0.198258689306225],
-                      [0.938257039240758, 0.345938908356903, 0],
-                      [0.068589929661063, -0.186019809236783, 0.980148994857721]],
-                     (np.vstack((x, y, z)) - A))
+        vec = mat @ (np.array([[x], [y], [z]], dtype=mat.dtype) - A)
     else:
-        vec = np.dot(np.transpose([[0.339067758413505, -0.919633920274268, -0.198258689306225],
-                                   [0.938257039240758, 0.345938908356903, 0],
-                                   [0.068589929661063, -0.186019809236783, 0.980148994857721]]),
-                     np.vstack((x, y, z))) + A
+        vec = np.transpose(mat) @ np.array([[x], [y], [z]], dtype=mat.dtype) + A
 
     vec = np.transpose(vec)
 

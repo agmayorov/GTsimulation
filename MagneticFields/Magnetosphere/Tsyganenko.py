@@ -3,7 +3,7 @@ import numpy as np
 
 from Global import Units, Regions
 from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere.Functions import transformations, t89, t96
+from MagneticFields.Magnetosphere.Functions import transformations, t89, t96, gauss
 
 
 class Tsyganenko(AbsBfield):
@@ -40,7 +40,8 @@ class Tsyganenko(AbsBfield):
             self.iopt = self.GetTsyganenkoInd()
 
     def GetPsi(self):
-        [x, y, z] = transformations.geo2mag_eccentric(0, 0, 1, 0, datetime.datetime.fromordinal(self.DTnum))
+        self.g, self.h, _ = gauss.LoadGaussCoeffs("MagneticFields/Magnetosphere/IGRF13/igrf13coeffs.npy", self.Date)
+        [x, y, z] = transformations.geo2mag_eccentric(0, 0, 1, 0, self.g, self.h)
         [x, y, z] = transformations.gei2geo(x, y, z, self.Year, self.DoY, self.Secs, 0)
         [x, y, z] = transformations.gei2gsm(x, y, z, self.Year, self.DoY, self.Secs, 1)
         psi = np.arccos(z / np.linalg.norm([x, y, z]))
