@@ -1,25 +1,18 @@
-import os
-import math
-
-import matplotlib.pyplot as plt
-import tqdm
-from timeit import default_timer as timer
-import numpy as np
-import importlib
 import datetime
-import copy
+import importlib
+import math
+import os
 import warnings
 warnings.simplefilter("always")
-
+from timeit import default_timer as timer
+import numpy as np
+from numba import jit
 from abc import ABC, abstractmethod
 
-from numba import jit
-
-from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep
-from MagneticFields.Magnetosphere import Functions, Additions
-from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, \
-    BreakMetric, SaveMetric, vecRotMat
+from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
+from MagneticFields.Magnetosphere import Functions, Additions
+from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
 
 
 class GTSimulator(ABC):
@@ -442,10 +435,12 @@ class GTSimulator(ABC):
         self.UseDecay = UseDecay
         if self.Medium is None and UseInteractNUC is not None:
             raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+        if UseInteractNUC is not None and not os.path.exists(f"{path_geant4}/bin/geant4.sh"):
+            raise ValueError("Geant4 setup script was not found. Please, check path_geant4 variable in the settings file.")
         self.InteractNUC = UseInteractNUC
-        if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParcticleList", []):
-            self.InteractNUC['ExcludeParcticleList'].extend([ 11,  12,  13,  14,  15,  16,  17,  18,
-                                                             -11, -12, -13, -14, -15, -16, -17, -18])
+        if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParticleList", []):
+            self.InteractNUC['ExcludeParticleList'].extend([ 11,  12,  13,  14,  15,  16,  17,  18,
+                                                            -11, -12, -13, -14, -15, -16, -17, -18])
         self.IntPathDen = 10 # g/cm2
         if self.Verbose:
             print(f"\tDecay: {self.UseDecay}")
@@ -705,20 +700,22 @@ class GTSimulator(ABC):
                 PathLen = V_norm * Step
 
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
-                if self.UseRadLosses[1]:
-                    synch_record.add_iteration(T,
-                                               np.array(self.Bfield.GetBfield(r[0], r[1], r[2])),
-                                               Vm, Step)
-                Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
-                                                                               self, particle, Gen, Constants, synch_record)
-                prod_tracks.extend(new_photons)
 
+                if self.UseRadLosses[1]:
+                    synch_record.add_iteration(T, np.array(self.Bfield.GetBfield(r[0], r[1], r[2])), Vm, Step)
+                if self.UseRadLosses[0]:
+                    Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
+                                                                                   self, particle, Gen, synch_record)
+                    prod_tracks.extend(new_photons)
+                else:
+                    Vm = Vp
+                    T = M * (Yp - 1) if M != 0 else T
                 if UseAdditionalEnergyLosses:
-                    Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
-                                                                     Constants.c)
+                    Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing, Constants.c)
 
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 
+                # Medium
                 if self.Medium is not None:
                     self.Medium.calculate_model(r_new[0], r_new[1], r_new[2])
                     Den = self.Medium.get_density() # kg/m3
@@ -733,7 +730,7 @@ class GTSimulator(ABC):
                         LocalCoordinate = np.append(LocalCoordinate, r[None, :], axis=0)
 
                 # Decay
-                if tau:
+                if tau and not self.IsPrimDeath:
                     lifetime = tau * (T/M + 1)
                     if rnd_dec > np.exp(-TotTime/lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
@@ -762,9 +759,6 @@ class GTSimulator(ABC):
                             # Cordinates of interaction point in XYZ
                             path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
                             r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
-                            # Parameters for recursive call of GT
-                            params = self.ParamDict.copy()
-                            params["Date"] += datetime.timedelta(seconds=TotTime)
                             for p in secondary:
                                 V_p = rotationMatrix @ p['MomentumDirection']
                                 # TODO: possible wrong using of rotation matrix for secondary particles
@@ -777,14 +771,20 @@ class GTSimulator(ABC):
                                 except:
                                     warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
                                     continue
+                                # Parameters for recursive call of GT
+                                params = self.ParamDict.copy()
+                                params["Date"] += datetime.timedelta(seconds=TotTime)
                                 params["Particles"] = {"Names": name_p,
                                                        "T": T_p,
                                                        "Center": r_interaction,
                                                        "Radius": 0,
                                                        "V0": V_p}
-                                if PDGcode_p in self.InteractNUC.get("ExcludeParcticleList", []) or T_p < self.InteractNUC.get("Emin", 0):
+                                if PDGcode_p in self.InteractNUC.get("ExcludeParticleList", []) or T_p < self.InteractNUC.get("Emin", 0):
                                     params["Num"] = 1
                                     params["UseDecay"] = False
+                                    params["InteractNUC"] = None
+                                if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
+                                    params["Medium"] = None
                                     params["InteractNUC"] = None
                                 new_process = self.__class__(**params)
                                 new_process.__gen = Gen + 1

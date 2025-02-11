@@ -120,8 +120,8 @@ class _Magnetosphere(_AbsRegion):
             r = np.array(particle.coordinates)
             V_normalized = np.array(particle.velocities)
             T = particle.T
-            geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
-                                              {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
+            geo_to_lla = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
+                                              {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
             lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
             angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
             if 0 < alt < 80e3 and angle < 70:
@@ -131,7 +131,6 @@ class _Magnetosphere(_AbsRegion):
                     if simulator.Verbose:
                         print(f"EAS ~ {secondary.size} secondaries")
                         print(secondary)
-                    params = simulator.ParamDict.copy()
                     for p in secondary:
                         PDGcode_p = p["PDGcode"]
                         # Try to find a particle (TODO: REMOVE IN THE FUTURE)
@@ -140,11 +139,15 @@ class _Magnetosphere(_AbsRegion):
                         except:
                             warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
                             continue
+                        params = simulator.ParamDict.copy()
                         params["Particles"] = {"Names": name_p,
                                                "T": p['KineticEnergy'],
                                                "Center": p['Position'],
                                                "Radius": 0,
                                                "V0": p['MomentumDirection']}
+                        if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
+                            params["Medium"] = None
+                            params["InteractNUC"] = None
                         new_process = simulator.__class__(**params)
                         new_process._GTSimulator__gen = gen + 1
                         prod_tracks.append(new_process.CallOneFile()[0])
