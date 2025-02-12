@@ -1,11 +1,11 @@
-import subprocess
 import os
-import numpy as np
+import subprocess
 from io import StringIO
+
+import numpy as np
 from pymsis import msis
 from pyproj import Transformer
 
-from Global import vecRotMat
 from .settings import path_geant4
 
 
@@ -62,16 +62,13 @@ def G4Interaction(PDG, E, m, rho, w):
     # Fractions of H, He, N, O, Ar
     if len(w) != 5:
         raise ValueError('G4Int: wrong number of fractions (atmosphere)')
-    # TEMPORARY PATCH
-    if E == 0:
-        E = 1
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/MatterLayer "
-                            f"{PDG} {E} {m} {rho} {' '.join(map(str, w))}", shell=True, stdout=subprocess.PIPE)
+    cmd = f"'{path}'/MatterLayer {PDG} {E} {m} {rho} {' '.join(map(str, w))}"
+    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
-        print(result.stderr)
+        print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
     output = result.stdout.decode("utf-8")
 
@@ -139,10 +136,10 @@ def G4Decay(PDG, E):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/DecayGenerator "
-                            f"{PDG} {E}", shell=True, stdout=subprocess.PIPE)
+    cmd = f"'{path}'/DecayGenerator {PDG} {E}"
+    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
-        print(result.stderr)
+        print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
     output = result.stdout.decode("utf-8")
 
@@ -223,12 +220,10 @@ def G4Shower(PDG, E, r, v, date):
     """
 
     # Calculating input parameters
-    geo_to_lla = Transformer.from_crs({"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'},
-                                      {"proj":'latlong', "ellps":'WGS84', "datum":'WGS84'})
+    geo_to_lla = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
+                                      {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
     lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
-    earthRadius = np.linalg.norm(r) - alt
-    earthRadius *= 1e-3 # m -> km
-    print(earthRadius)
+    earth_radius = (np.linalg.norm(r) - alt) / 1e3 # m -> km
     # day of year (from 1 to 365 or 366)
     doy = date.timetuple().tm_yday
     # seconds in day
@@ -237,11 +232,10 @@ def G4Shower(PDG, E, r, v, date):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    result = subprocess.run(f"bash {path_geant4}/bin/geant4.sh; '{path}'/Atmosphere {PDG} {E} "
-                            f"{r[0]/1e3} {r[1]/1e3} {r[2]/1e3} {v[0]} {v[1]} {v[2]} {earthRadius} "
-                            f"{doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}", shell=True, stdout=subprocess.PIPE)
+    cmd = f"'{path}'/Atmosphere {PDG} {E} {r[0] / 1e3} {r[1] / 1e3} {r[2] / 1e3} {v[0]} {v[1]} {v[2]} {earth_radius} {doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}"
+    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
-        print(result.stderr)
+        print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
     output = result.stdout.decode("utf-8")
 

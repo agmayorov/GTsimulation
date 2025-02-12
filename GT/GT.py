@@ -742,7 +742,10 @@ class GTSimulator(ABC):
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal, LocalChemComp / nLocal)
                     T = primary['KineticEnergy']
-                    V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
+                    if T > 0:
+                        V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
+                    else:
+                        V_norm = 0
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
                     if T > 0 and T > 1: # Cut particles with T < 1 MeV
                         # Only ionization losses
