@@ -151,7 +151,7 @@ class InterstellarGas(GTGeneralMedium):
     def get_element_abundance(self):
         pass
 
-    def __str__(self):
+    def to_string(self):
         return f'Interstellar Gas'
 
     # @staticmethod

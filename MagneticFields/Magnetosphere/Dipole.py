@@ -90,7 +90,7 @@ class Dipole(AbsBfield):
 
         return ND, ND[month - 1]
 
-    def __str__(self):
+    def to_string(self):
         s = f"""Dipole
         psi: {self.psi}
         MagMom: {self.M}"""

@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+
 warnings.simplefilter("always")
 
 from enum import Enum
@@ -7,8 +8,9 @@ from abc import ABC, abstractmethod
 from numba import jit
 from pyproj import Transformer
 
-from Particle import CRParticle
+from Particle import CRParticle, Flux
 from Interaction import G4Shower
+
 
 class _AbsRegion(ABC):
     SaveAdd = dict()
@@ -49,7 +51,6 @@ class _AbsRegion(ABC):
         pass
 
 
-
 class _Heliosphere(_AbsRegion):
     @staticmethod
     def additions(*args, **kwargs):
@@ -62,12 +63,12 @@ class _Heliosphere(_AbsRegion):
     @staticmethod
     @jit(fastmath=True, nopython=True)
     def AdditionalEnergyLosses(r, v, T, M, dt, frwd_tracing, c):
-        r = r/149.597870700e9  # meters to au
-        R = np.sqrt(r[0]**2 + r[1]**2 + r[2]**2)
+        r = r / 149.597870700e9  # meters to au
+        R = np.sqrt(r[0] ** 2 + r[1] ** 2 + r[2] ** 2)
         theta = np.arccos(r[2] / R)
-        div_wind = 2/R * (300 + 475 * (1 - np.sin(theta) ** 8))/149.597870700e6  # km/s to au/s
-        dE = dt * T/3 * div_wind * (T+2*M)/(T+M)
-        T -= frwd_tracing*dE
+        div_wind = 2 / R * (300 + 475 * (1 - np.sin(theta) ** 8)) / 149.597870700e6  # km/s to au/s
+        dE = dt * T / 3 * div_wind * (T + 2 * M) / (T + M)
+        T -= frwd_tracing * dE
 
         V = c * np.sqrt((T + M) ** 2 - M ** 2) / (T + M)
         Vn = np.linalg.norm(v)
@@ -110,7 +111,8 @@ class _Magnetosphere(_AbsRegion):
 
     @staticmethod
     def checkSave(Simulator, Nsave):
-        Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCentre"] * (Nsave != 1))
+        Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCentre"] * (
+                    Nsave != 1))
         assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
 
     @staticmethod
@@ -140,11 +142,11 @@ class _Magnetosphere(_AbsRegion):
                             warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
                             continue
                         params = simulator.ParamDict.copy()
-                        params["Particles"] = {"Names": name_p,
-                                               "T": p['KineticEnergy'],
-                                               "Center": p['Position'],
-                                               "Radius": 0,
-                                               "V0": p['MomentumDirection']}
+                        params["Particles"] = Flux(Names=name_p,
+                                                   T=p['KineticEnergy'],
+                                                   Center=p['Position'],
+                                                   Radius=0,
+                                                   V0=p['MomentumDirection'])
                         if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
                             params["Medium"] = None
                             params["InteractNUC"] = None

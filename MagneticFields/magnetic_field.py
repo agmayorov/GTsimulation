@@ -38,3 +38,10 @@ class AbsBfield(ABC):
             return self.ToTesla(Bx, By, Bz)
 
         return Bx, By, Bz
+
+    @abstractmethod
+    def to_string(self):
+        pass
+
+    def __str__(self):
+        return self.to_string()

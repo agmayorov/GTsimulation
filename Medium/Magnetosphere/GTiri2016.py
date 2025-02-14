@@ -8,6 +8,9 @@ from Medium import GTGeneralMedium
 
 class GTiri2016(GTGeneralMedium):
 
+    def to_string(self):
+        return self.model
+
     def __init__(self, date: datetime.datetime):
         super().__init__()
         self.region = "Magnetosphere"

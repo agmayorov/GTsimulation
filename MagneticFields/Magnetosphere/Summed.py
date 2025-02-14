@@ -5,7 +5,7 @@ from Global import Units, Regions
 from MagneticFields import AbsBfield
 
 
-class Summary(AbsBfield):
+class Summed(AbsBfield):
     ToMeters = Units.RE2m
 
     def __init__(self, date: datetime.datetime, models, **kwargs):
@@ -42,10 +42,10 @@ class Summary(AbsBfield):
         for model in self.models:
             model.UpdateState(new_date)
 
-    def __str__(self):
-        s = f"""Summary
+    def to_string(self):
+        s = f"""Summed
         #-#-#-#-#-#-#-#-#\n"""
         for model in self.models:
-            s += "\t\t"+model.__str__()
+            s += "\t\t"+model.to_string()
             s += "\n\t\t#-#-#-#-#-#-#-#-#\n"
         return s

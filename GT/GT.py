@@ -1,18 +1,23 @@
-import datetime
-import importlib
 import math
 import os
+import numpy as np
+import importlib
+import datetime
+
 import warnings
 warnings.simplefilter("always")
-from timeit import default_timer as timer
-import numpy as np
+
 from numba import jit
 from abc import ABC, abstractmethod
+from timeit import default_timer as timer
 
+from MagneticFields import AbsBfield
+from Medium import GTGeneralMedium
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
 from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
+
 
 
 class GTSimulator(ABC):
@@ -100,17 +105,16 @@ class GTSimulator(ABC):
     :param Verbose: If `True` logs are printed
     :type Verbose: bool
 
-    :param BreakCondition: If `None` no break conditions are applied. Otherwise, a `dict` with a key corresponding to
-                           the `BreakCondition` name and value corresponding to its value is passed. Example:
-                           `{"Rmax": 10}`. In the example the maximal radius of the particle is 10 (in
-                           :py:mod:`MagneticFields` distance units). See the full list of break conditions
+    :param BreakCondition: If `None` no break conditions are applied. In case of a `dict` with a key corresponding to
+                           the `BreakCondition` name and value corresponding to its value is passed.
+                           Example: `{"Rmax": 10}`. In the example the maximal radius of the particle is 10
+                           (in :py:mod:`MagneticFields` distance units). See the full list of break conditions
                            :py:mod:`Global.codes.BreakCode`.
-    :type BreakCondition: dict or None
-
-    :param BCcenter: A 3d array of point (in :py:mod:`MagneticFields` distance units). It represents the **(0, 0, 0)**
-                     relative to which `Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin` are calculated.
-                     Default `np.array([0, 0, 0])`.
-    :type BCcenter: np.ndarray
+                           If `list`, the first parameter is the `dict`, the second parameter describes the break
+                           condition center, i.e. A 3d array of point (in :py:mod:`MagneticFields` distance units). It
+                           represents the **(0, 0, 0)** relative to which `Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin`
+                           are calculated. Default `np.array([0, 0, 0])`.
+    :type BreakCondition: dict or list or None
 
     :param UseDecay: If `True` the particles may decay. Otherwise, not.
     :type UseDecay: bool
@@ -193,121 +197,38 @@ class GTSimulator(ABC):
 
     5. Child: List of secondary particles. They have the same parameters.
     """
-    def __init__(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium: None | dict = None,
-                 Date=datetime.datetime(2008, 1, 1), RadLosses=False, Particles: None | dict = None, TrackParams=False,
-                 ParticleOrigin=False, IsFirstRun=True, ForwardTrck=None, Save: int | list = 1, Num: int = 1e6, Step=1,
-                 Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
-                 BCcenter=np.array([0, 0, 0]), UseDecay=False, InteractNUC: None | dict = None): #TODO: merge BreakCondition and BCcenter
 
-        self.__names = self.__init__.__code__.co_varnames[1:]
-        self.__vals = []
-        for self.__v in self.__names:
-            self.__vals.append(eval(self.__v))
-        self.ParamDict = dict(zip(self.__names, self.__vals))
-
-        del self.__names, self.__vals
-
-        self.Verbose = Verbose
-        if self.Verbose:
-            print("Creating simulator object...")
-
-        self.Date = Date
-        if self.Verbose:
-            print(f"\tDate: {self.Date}")
-            print()
-
-        self.Step = Step
-        self.Num = int(Num)
-
-        if self.Verbose:
-            print(f"\tTime step: {self.Step}")
-            print(f"\tNumber of steps: {self.Num}")
-            print()
-
-        self.__SetUseRadLosses(RadLosses)
-        if self.Verbose:
-            print()
-
-        self.__SetRegion(Region)
-
-        self.ParticleOrigin = ParticleOrigin
-        self.ParticleOriginIsOn = False
-        self.TrackParamsIsOn = False
-        self.TrackParams = self.Region.value.SaveAdd
-        if self.ParticleOrigin:
-            self.ParticleOriginIsOn = True
-            TrackParams = True
-
-        self.__SetAdditions(TrackParams)
-
-        if self.TrackParamsIsOn:
-            if not isinstance(Save, list):
-                Save = [Save, {"Bfield": True}]
-            elif "Bfield" not in Save[1]:
-                Save[1] = Save[1] | {"Bfield": True}
-
-        self.IsFirstRun = IsFirstRun
-
-        self.Bfield = None
-        self.Efield = None
-        self.__SetEMFF(Bfield, Efield)
-        if self.Verbose:
-            print()
-
-        self.Medium = None
-        self.__SetMedium(Medium)
-        if self.Verbose:
-            print()
-
-        self.UseDecay = False
-        self.InteractNUC = None
-        self.__gen = 1
-        self.__SetNuclearInteractions(UseDecay, InteractNUC)
-        if self.Verbose:
-            print()
-
-        self.Particles = None
-        self.ForwardTracing = 1
-        self.__SetFlux(Particles, ForwardTrck)
-        if self.Verbose:
-            print()
-
-        self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
-        self.Output = Output
-        self.Npts = 2
-        self.Save = SaveDef.copy()
-        if self.Verbose:
-            print(f"\tNumber of files: {self.Nfiles}")
-            print(f"\tOutput file name: {self.Output}_file_num.npy")
-        self.__SetSave(Save)
-        if self.Verbose:
-            print()
-
-        self.__brck_index = BreakCode.copy()
-        self.__brck_index.pop("Loop")
-        self.__index_brck = BreakIndex.copy()
-        self.__brck_arr = BreakDef.copy()
-        self.__SetBrck(BreakCondition, BCcenter)
-
-        self.index = 0
-        if self.Verbose:
-            print("Simulator created!\n")
-
-    def refreshParams(self, Bfield=None, Efield=None, Region=Regions.Magnetosphere, Medium=None,
+    def __init__(self,
+                 Bfield: None | AbsBfield = None,
+                 Efield=None,
+                 Region: None | Regions = None,
+                 Medium: None | GTGeneralMedium = None,
                  Date=datetime.datetime(2008, 1, 1),
-                 RadLosses=False, Particles=dict(), TrackParams=False, ParticleOrigin=False, IsFirstRun=True,
-                 ForwardTrck=None, Save: int | list = 1, Num: int = 1e6,
-                 Step=1, Nfiles=1, Output=None, Verbose=False, BreakCondition: None | dict = None,
-                 BCcenter=np.array([0, 0, 0]), UseDecay=False,
-                 InteractNUC: None | dict = None):  # TODO: merge BreakCondition and BCcenter
+                 RadLosses: bool | list = False,
+                 Particles: None | Flux = None,
+                 TrackParams=False,
+                 ParticleOrigin=False,
+                 IsFirstRun=True,
+                 ForwardTrck=None,
+                 Save: int | list = 1,
+                 Num: int = 1e6,
+                 Step: float = 1,
+                 Nfiles=1,
+                 Output=None,
+                 Verbose=False,
+                 BreakCondition: None | dict = None,
+                 UseDecay=False,
+                 InteractNUC: None | dict = None,
+                 ):
 
-        if Particles is None:
-            Particles = {}
         self.__names = self.__init__.__code__.co_varnames[1:]
+        self.__vals_str = []
         self.__vals = []
         for self.__v in self.__names:
+            self.__vals_str.append(str(eval(self.__v)))
             self.__vals.append(eval(self.__v))
         self.ParamDict = dict(zip(self.__names, self.__vals))
+        self.ParamSave = dict(zip(self.__names, self.__vals_str))
 
         del self.__names, self.__vals
 
@@ -391,7 +312,7 @@ class GTSimulator(ABC):
         self.__brck_index.pop("Loop")
         self.__index_brck = BreakIndex.copy()
         self.__brck_arr = BreakDef.copy()
-        self.__SetBrck(BreakCondition, BCcenter)
+        self.__SetBrck(BreakCondition)
 
         self.index = 0
         if self.Verbose:
@@ -414,7 +335,6 @@ class GTSimulator(ABC):
                     MinMax[1] = RadLosses[1]["MaxE"]
             self.UseRadLosses = [True, True, MinMax]
 
-        self.UseRadLosses
         if self.Verbose:
             print(f"\tRadiation Losses: {self.UseRadLosses[0]}")
             print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
@@ -440,15 +360,21 @@ class GTSimulator(ABC):
             raise ValueError("Geant4 setup script was not found. Please, check path_geant4 variable in the settings file.")
         self.InteractNUC = UseInteractNUC
         if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParticleList", []):
-            self.InteractNUC['ExcludeParticleList'].extend([ 11,  12,  13,  14,  15,  16,  17,  18,
+            self.InteractNUC['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
                                                             -11, -12, -13, -14, -15, -16, -17, -18])
-        self.IntPathDen = 10 # g/cm2
+        self.IntPathDen = 10  # g/cm2
         if self.Verbose:
             print(f"\tDecay: {self.UseDecay}")
             print(f"\tNuclear Interactions: {self.InteractNUC}")
 
-    def __SetBrck(self, Brck, center):
+    def __SetBrck(self, Brck):
+        center = np.array([0, 0, 0])
         if Brck is not None:
+            if isinstance(Brck, list):
+                center = Brck[1]
+                assert isinstance(center, np.ndarray) and center.shape == (3,)
+                Brck = Brck[0]
+                assert isinstance(Brck, dict)
             for key in Brck.keys():
                 self.__brck_arr[self.__brck_index[key]] = Brck[key]
         if self.Verbose:
@@ -462,17 +388,9 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("\tMedium: ", end='')
         if medium is not None:
-            module_name = f"Medium.{self.Region.name}"
-            m = importlib.import_module(module_name)
-            class_name = medium if not isinstance(medium, list) else medium[0]
-            params = {"date": self.Date, **({} if not isinstance(medium, list) else medium[1])}
-            if hasattr(m, class_name):
-                class_medium = getattr(m, class_name)
-                self.Medium = class_medium(**params)
-                if self.Verbose:
-                    print(str(self.Medium))
-            else:
-                raise Exception("No such medium")
+            self.Medium = medium
+            if self.Verbose:
+                print(str(self.Medium))
         else:
             if self.Verbose:
                 print(None)
@@ -480,31 +398,8 @@ class GTSimulator(ABC):
     def __SetFlux(self, flux, forward_trck):
         if self.Verbose:
             print("\tFlux: ", end='')
-        module_name = f"Particle.Generators"
-        m = importlib.import_module(module_name)
-        spectrum = flux.pop("Spectrum", None)
-        if spectrum is not None:
-            if hasattr(m, spectrum):
-                spectrum = getattr(m, spectrum)
-                flux["Spectrum"] = spectrum
-            else:
-                raise Exception("No spectrum")
-
-        distribution = flux.pop("Distribution", None)
-        if distribution is not None:
-            if hasattr(m, distribution):
-                distribution = getattr(m, distribution)
-                flux["Distribution"] = distribution
-            else:
-                raise Exception("No Distribution")
-        transform = flux.pop("Transform", None)
-        if transform is not None:
-            center = flux.get("Center", None)
-            assert center is None
-            center = self.Region.value.transform(*transform[1], transform[0])
-            flux["Center"] = np.array(center)
-        params = {**flux}
-        self.Particles = Flux(**params)
+        assert flux is not None
+        self.Particles = flux
 
         if self.Verbose:
             print(str(self.Particles))
@@ -520,7 +415,9 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("\tElectric field: ", end='')
         if Efield is not None:
-            pass
+            self.Efield = Efield
+            if self.Verbose:
+                print(str(self.Efield))
         else:
             if self.Verbose:
                 print(None)
@@ -528,28 +425,15 @@ class GTSimulator(ABC):
         if self.Verbose:
             print("\tMagnetic field: ", end='')
         if Bfield is not None:
-            module_name = f"MagneticFields.{self.Region.name}"
-            m = importlib.import_module(module_name)
-            class_name = Bfield if not isinstance(Bfield, list) else Bfield[0]
-            params = {"date": self.Date, "use_tesla": True, "use_meters": True,
-                      **({} if not isinstance(Bfield, list) else Bfield[1])}
-            if hasattr(m, class_name):
-                B = getattr(m, class_name)
-                self.Bfield = B(**params)
-                if self.Verbose:
-                    print(str(self.Bfield))
-            else:
-                raise Exception("No such field")
+            self.Bfield = Bfield
+            if self.Verbose:
+                print(str(self.Bfield))
         else:
             if self.Verbose:
                 print(None)
 
     def __SetRegion(self, Region):
-        if not isinstance(Region, list):
-            self.Region = Region
-        else:
-            self.Region = Region[0]
-            self.Region.value.set_params(**Region[1])
+        self.Region = Region
 
         if self.Verbose:
             print(f"\tRegion: {self.Region.name}")
@@ -589,7 +473,7 @@ class GTSimulator(ABC):
                 if len(file) != 1 and not os.path.isdir(folder):
                     os.mkdir(folder)
                 with open(f'{self.Output}_params.txt', 'w') as file:
-                    file.write(str(self.ParamDict))
+                    file.write(str(self.ParamSave))
 
             RetArr = self.CallOneFile()
 
@@ -632,7 +516,8 @@ class GTSimulator(ABC):
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.InteractNUC is not None:
-                LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
+                LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(
+                    len(self.Medium.chemical_element_list)), 0, 0
                 LocalPathDenVector = np.empty(0)
                 LocalCoordinate = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
@@ -663,8 +548,8 @@ class GTSimulator(ABC):
             T = particle.T
 
             # TODO: optimize calculation of neutral particles
-            if Q == 0:              # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
-                self.Step *= 1e2    # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+            if Q == 0:  # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+                self.Step *= 1e2  # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
 
             r = np.array(particle.coordinates)
 
@@ -676,7 +561,7 @@ class GTSimulator(ABC):
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
                       f"Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
-                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z !=0 else np.inf} [GV]")
+                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf} [GV]")
                 print(f"\t\t\tCoordinates: {r} [m]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
@@ -693,7 +578,7 @@ class GTSimulator(ABC):
             Nsave = self.Nsave if self.Nsave != 0 else Num + 1
             i_save = 0
             st = timer()
-            
+
             if self.UseRadLosses[1]:
                 synch_record = SynchCounter()
             else:
@@ -723,9 +608,9 @@ class GTSimulator(ABC):
                 # Medium
                 if self.Medium is not None:
                     self.Medium.calculate_model(r_new[0], r_new[1], r_new[2])
-                    Den = self.Medium.get_density() # kg/m3
-                    PathDen = (Den * 1e-3) * (PathLen * 1e2) # g/cm2
-                    TotPathDen += PathDen # g/cm2
+                    Den = self.Medium.get_density()  # kg/m3
+                    PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
+                    TotPathDen += PathDen  # g/cm2
                     if self.InteractNUC is not None and Den > 0:
                         LocalDen += Den
                         LocalChemComp += self.Medium.get_chemical_element_abundance()
@@ -736,8 +621,8 @@ class GTSimulator(ABC):
 
                 # Decay
                 if tau and not self.IsPrimDeath:
-                    lifetime = tau * (T/M + 1)
-                    if rnd_dec > np.exp(-TotTime/lifetime):
+                    lifetime = tau * (T / M + 1)
+                    if rnd_dec > np.exp(-TotTime / lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
                         self.IsPrimDeath = True
 
@@ -745,16 +630,18 @@ class GTSimulator(ABC):
                 if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not self.IsPrimDeath:
                     # Construct Rotation Matrix & Save velosity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
-                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal, LocalChemComp / nLocal)
+                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal,
+                                                       LocalChemComp / nLocal)
                     T = primary['KineticEnergy']
                     if T > 0:
-                        V_norm = Constants.c * np.sqrt(1 - (M / (T + M))**2)
+                        V_norm = Constants.c * np.sqrt(1 - (M / (T + M)) ** 2)
                     else:
                         V_norm = 0
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
-                    if T > 0 and T > 1: # Cut particles with T < 1 MeV
+                    if T > 0 and T > 1:  # Cut particles with T < 1 MeV
                         # Only ionization losses
-                        LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(len(self.Medium.chemical_element_list)), 0, 0
+                        LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(
+                            len(self.Medium.chemical_element_list)), 0, 0
                         LocalPathDenVector = np.empty(0)
                         LocalCoordinate = np.empty([0, 3])
                     else:
@@ -762,10 +649,12 @@ class GTSimulator(ABC):
                         self.IsPrimDeath = True
                         if secondary.size > 0 and Gen < GenMax:
                             if self.Verbose:
-                                print(f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
+                                print(
+                                    f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
                                 print(secondary)
                             # Cordinates of interaction point in XYZ
-                            path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (LocalDen * 1e-3 / nLocal) # Path in cylinder [g/cm2]
+                            path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (
+                                    LocalDen * 1e-3 / nLocal)  # Path in cylinder [g/cm2]
                             r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
                             for p in secondary:
                                 V_p = rotationMatrix @ p['MomentumDirection']
@@ -777,17 +666,19 @@ class GTSimulator(ABC):
                                 try:
                                     name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
                                 except:
-                                    warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
+                                    warnings.warn(
+                                        f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
                                     continue
                                 # Parameters for recursive call of GT
                                 params = self.ParamDict.copy()
                                 params["Date"] += datetime.timedelta(seconds=TotTime)
-                                params["Particles"] = {"Names": name_p,
-                                                       "T": T_p,
-                                                       "Center": r_interaction,
-                                                       "Radius": 0,
-                                                       "V0": V_p}
-                                if PDGcode_p in self.InteractNUC.get("ExcludeParticleList", []) or T_p < self.InteractNUC.get("Emin", 0):
+                                params["Particles"] = Flux(Names=name_p,
+                                                           T=T_p,
+                                                           Center=r_interaction,
+                                                           Radius=0,
+                                                           V0=V_p)
+                                if PDGcode_p in self.InteractNUC.get("ExcludeParticleList",
+                                                                     []) or T_p < self.InteractNUC.get("Emin", 0):
                                     params["Num"] = 1
                                     params["UseDecay"] = False
                                     params["InteractNUC"] = None
@@ -921,11 +812,11 @@ class GTSimulator(ABC):
                 name_p = p["Name"]
 
                 params = self.ParamDict.copy()
-                params["Particles"] = {"Names": name_p,
-                                       "T": T_p,
-                                       "Center": r_p,
-                                       "Radius": 0,
-                                       "V0": V_p}
+                params["Particles"] = Flux(Names=name_p,
+                                           T=T_p,
+                                           Center=r_p,
+                                           Radius=0,
+                                           V0=V_p)
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                 new_process = self.__class__(**params)
                 new_process.__gen = Gen + 1
@@ -1001,7 +892,7 @@ class GTSimulator(ABC):
         acc_per = np.sqrt(np.linalg.norm(acc) ** 2 - acc_par ** 2)
 
         dE = Step * ((2 / (3 * 4 * np.pi * 8.854187e-12) * Q ** 2 * Ya ** 4 / c ** 3) *
-                          (acc_per ** 2 + acc_par ** 2 * Ya ** 2) / e / 1e6)
+                     (acc_per ** 2 + acc_par ** 2 * Ya ** 2) / e / 1e6)
 
         T = M * (Yp - 1) - ForwardTracing * np.abs(dE)
 

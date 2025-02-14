@@ -77,7 +77,7 @@ class Tsyganenko(AbsBfield):
         self.Date = new_date
         self.__SetPsiInd()
 
-    def __str__(self):
+    def to_string(self):
         s = f"""Tsyganenko
         Mode: {self.ModCode}
         pis: {self.ps}"""
