@@ -88,9 +88,10 @@ class GTSimulator(ABC):
     :param Step: The time step of simulation in seconds
     :type Step: float
 
-    :param Nfiles: Number of files. If :ref:`Particles` creates a flux of `Nevents` particles then the total number of
-                   particles that are going to be simulated is `Nevents`x`Nfiles`.
-    :type Nfiles: int
+    :param Nfiles: Number of files if `int`, otherwise the `list` of file numbers (e.g. `Nfiles = [5, 10, 20]`, then
+                   3 files are numerated as 5, 10, 20). If :ref:`Particles` creates a flux of `Nevents` particles then
+                   the total number of particles that are going to be simulated is `Nevents`x`Nfiles`.
+    :type Nfiles: int or list
 
     :param Output: If `None` no files are saved. Otherwise, the name of the saved *.npy* file. If :ref:`Nfiles` is
                    greater than 1. Then the names of the saved files will have the following form `"Output"_i.npy`
@@ -577,9 +578,13 @@ class GTSimulator(ABC):
         Track = []
         if self.Verbose:
             print("Launching simulation...")
-        for i in range(self.Nfiles):
+        if isinstance(self.Nfiles, int):
+            file_nums = np.arange(self.Nfiles)
+        else:
+            file_nums = self.Nfiles
+        for (idx, i) in enumerate(file_nums):
             if self.IsFirstRun:
-                print(f"\tFile No {i + 1} of {self.Nfiles}")
+                print(f"\tFile number {i}. No {idx+1} file out of {len(file_nums)}")
             if self.Output is not None:
                 file = self.Output.split(os.sep)
                 folder = os.sep.join(file[:-1])
@@ -814,7 +819,8 @@ class GTSimulator(ABC):
                         self.Region == Regions.Magnetosphere:
                     a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.Bfield.g,
                                                                             self.Bfield.h)
-                    lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i, a_, b_)
+                    lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i,
+                                                                             a_, b_)
 
                 # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
