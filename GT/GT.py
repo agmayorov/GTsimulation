@@ -565,8 +565,6 @@ class GTSimulator(ABC):
         self.Nsave = Nsave
         if self.Verbose:
             print(f"\tSave every {self.Nsave} step of:")
-            print("\t\tCoordinates: True")
-            print("\t\tVelocities: True")
         if isinstance(Save, list):
             for saves in Save[1].keys():
                 self.Save[saves] = Save[1][saves]
@@ -614,6 +612,8 @@ class GTSimulator(ABC):
         RetArr = []
         status = "Done"
 
+        SaveCoord = self.Save["Coordinates"]
+        SaveVel = self.Save["Velocities"]
         SaveE = self.Save["Efield"]
         SaveB = self.Save["Bfield"]
         SaveA = self.Save["Angles"]
@@ -803,6 +803,8 @@ class GTSimulator(ABC):
                                   SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
                                   SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
                                   SaveCode["Clock"], SaveCode["Energy"],
+                                  SaveCoord,
+                                  SaveVel,
                                   SaveE,
                                   SaveB,
                                   SaveA,
@@ -831,6 +833,8 @@ class GTSimulator(ABC):
                                       SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
                                       SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
                                       SaveCode["Clock"], SaveCode["Energy"],
+                                      SaveCoord,
+                                      SaveVel,
                                       SaveE,
                                       SaveB,
                                       SaveA,
@@ -857,8 +861,11 @@ class GTSimulator(ABC):
                 print()
             Saves = Saves[:i_save]
 
-            track = {"Coordinates": Saves[:, SaveCode["Coordinates"]], "Velocities": Saves[:, SaveCode["Velocities"]]}
-
+            track = {}
+            if SaveCoord:
+                track['Coordinates'] = Saves[:, SaveCode["Coordinates"]]
+            if SaveVel:
+                track["Velocities"] = Saves[:, SaveCode["Velocities"]]
             if SaveE:
                 track["Efield"] = Saves[:, SaveCode["Efield"]]
             if SaveB:
@@ -950,6 +957,8 @@ class GTSimulator(ABC):
     @jit(fastmath=True, nopython=True)
     def SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                  CordCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, EnCode,
+                 SaveCoord,
+                 SaveVel,
                  SaveE,
                  SaveB,
                  SaveA,
@@ -958,8 +967,10 @@ class GTSimulator(ABC):
                  SaveC,
                  SaveT
                  ):
-        Saves[i_save, CordCode] = r
-        Saves[i_save, VCode] = Vm / V_norm
+        if SaveCoord:
+            Saves[i_save, CordCode] = r
+        if SaveVel:
+            Saves[i_save, VCode] = Vm / V_norm
         if SaveE:
             Saves[i_save, ECode] = E
         if SaveB:
