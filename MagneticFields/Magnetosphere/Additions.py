@@ -5,6 +5,7 @@ from MagneticFields.Magnetosphere.Functions import transformations
 from GT.functions import GetLastPoints
 from numba import jit
 
+
 @jit(fastmath=True, nopython=True)
 def AddLon(lon_total, lon_prev, full_revolutions, index, a_, b_):
     lon = np.arctan(b_ / a_)
@@ -29,6 +30,7 @@ def AddLon(lon_total, lon_prev, full_revolutions, index, a_, b_):
 
     return lon_total, lon_prev, full_revolutions
 
+
 def FieldLine(simulator, Rinp, sgn):
     bline = np.array([[0, 0, 0]])
     rline = np.array([Rinp])
@@ -49,6 +51,7 @@ def FieldLine(simulator, Rinp, sgn):
 
     return rline[1:], bline[1:]
 
+
 def GetEarthBfieldLine(simulator, rinp):
     urline, ubline = FieldLine(simulator, rinp, 1)
     drline, dbline = FieldLine(simulator, rinp, -1)
@@ -57,6 +60,7 @@ def GetEarthBfieldLine(simulator, rinp):
     bline = np.concatenate((ubline.T, dbline.T), axis=1).T
 
     return rline, bline
+
 
 def GetLarmorRadius(T0, Hn, Z, M, pitch):
     M /= Units.MeV2kg
@@ -69,6 +73,7 @@ def GetLarmorRadius(T0, Hn, Z, M, pitch):
     LR = np.sin(np.deg2rad(pitch)) * np.sqrt(1 - 1 / gamma ** 2) * Constants.c / omega
 
     return LR
+
 
 def GetLshell(I2, Hm):
     RE = Units.RE2m
@@ -108,6 +113,7 @@ def GetLshell(I2, Hm):
     Lshell = (k0 / RE ** 3 / Bm * (1 + np.exp(Y))) ** (1 / 3)
 
     return Lshell
+
 
 # TODO finish save option
 def GetTrackParams(Simulator, RetArr_i):
@@ -307,6 +313,7 @@ def GetTrackParams(Simulator, RetArr_i):
 
     return TrackParams_i
 
+
 def GetParticleOrigin(TrackParams_i):
     InitEndFlag = TrackParams_i["InitEndFlag"]
     isFullRevolution = TrackParams_i["isFullRevolution"]
@@ -374,6 +381,7 @@ def GetParticleOrigin(TrackParams_i):
 
     return origin
 
+
 def GetBCparams(RetArr_i):
     if RetArr_i["BC"]["WOut"] == 3:
         u = 1
@@ -386,6 +394,7 @@ def GetBCparams(RetArr_i):
 
     lon_u = RetArr_i["BC"]["lon_total"]
     return u, lon_u
+
 
 def AddTrajectory(f, b, lonTotal, lon, additions_i, Nm, I1, I2, s):
     InitEndFlag = np.array([f, b])
@@ -424,7 +433,7 @@ def AddTrajectory(f, b, lonTotal, lon, additions_i, Nm, I1, I2, s):
 
     return addTrackDict
 
-# TODO change according to new initialization style
+
 def FindParticleOrigin(Simulator, RetArr_i):
     # Forward trajectory
     f, lon_f = GetBCparams(RetArr_i)
@@ -438,10 +447,10 @@ def FindParticleOrigin(Simulator, RetArr_i):
     Rf, Vf = GetLastPoints(RetArr_i, 1)
 
     # Backward trajectory
-    Date = Simulator.ParamDict["Date"]
-    Region = Simulator.ParamDict["Region"]
-    Bfield = Simulator.ParamDict["Bfield"]
-    Particles = Simulator.ParamDict["Particles"]
+    Date = Simulator.Date
+    Region = Simulator.Region
+    Bfield = Simulator.Bfield
+    Particles = Simulator.Particles
     Num = Simulator.ParamDict["Num"]
     Step = Simulator.ParamDict["Step"]
     UseDecay = Simulator.UseDecay
@@ -455,9 +464,9 @@ def FindParticleOrigin(Simulator, RetArr_i):
     else:
         BreakCondition["MaxRev"] = 5
     bGTsim = copy.deepcopy(Simulator)
-    bGTsim.refreshParams(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step, Save=Save,
-                         BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False, IsFirstRun=False,
-                         ForwardTrck=-1, UseDecay=UseDecay, InteractNUC=InteractNUC)
+    bGTsim.__init__(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step, Save=Save,
+                    BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False, IsFirstRun=False,
+                    ForwardTrck=-1, UseDecay=UseDecay, InteractNUC=InteractNUC)
 
     bGTtrack = bGTsim()
     b, lon_b = GetBCparams(bGTtrack[0][0])
@@ -480,9 +489,9 @@ def FindParticleOrigin(Simulator, RetArr_i):
                 Particles[1]["Center"] = Rf
                 Particles[1]["V0"] = Vf
             fGTsim = copy.deepcopy(Simulator)
-            fGTsim.refreshParams(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step,
-                                 Save=Save, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
-                                 IsFirstRun=False, UseDecay=UseDecay, InteractNUC=InteractNUC)
+            fGTsim.__init__(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step,
+                            Save=Save, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
+                            IsFirstRun=False, UseDecay=UseDecay, InteractNUC=InteractNUC)
             fGTtrack = fGTsim()
 
             Rf, Vf = GetLastPoints(fGTtrack[0][0], 1)

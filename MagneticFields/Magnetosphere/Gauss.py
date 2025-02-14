@@ -71,31 +71,31 @@ class Gauss(AbsBfield):
         Rearth_km = 6371.2
         costheta = np.cos(theta)
         sintheta = np.sin(theta)
-        if coord == 0:
-            # TODO: to fix r calculation
-            a = 6378.137
-            f = 1 / 298.257223563
-            b = a * (1 - f)
-
-            rho = np.hypot(a * sintheta, b * costheta)
-            r = np.sqrt(
-                altitude ** 2 + 2 * altitude * rho + (a ** 4 * sintheta ** 2 + b ** 4 * costheta ** 2) / (rho ** 2))
-            cd = (altitude + rho) / r
-            sd = (a ** 2 - b ** 2) / rho * costheta * sintheta / r
-            oldcos = costheta
-            costheta = costheta * cd - sintheta * sd
-            sintheta = sintheta * cd + oldcos * sd
-        else:
-            r = altitude
-            cd = 1
-            sd = 0
+        # if coord == 0:
+        #     # TODO: to fix r calculation
+        #     a = 6378.137
+        #     f = 1 / 298.257223563
+        #     b = a * (1 - f)
+        #
+        #     rho = np.hypot(a * sintheta, b * costheta)
+        #     r = np.sqrt(
+        #         altitude ** 2 + 2 * altitude * rho + (a ** 4 * sintheta ** 2 + b ** 4 * costheta ** 2) / (rho ** 2))
+        #     cd = (altitude + rho) / r
+        #     sd = (a ** 2 - b ** 2) / rho * costheta * sintheta / r
+        #     oldcos = costheta
+        #     costheta = costheta * cd - sintheta * sd
+        #     sintheta = sintheta * cd + oldcos * sd
+        # else:
+        r = altitude
+        cd = 1
+        sd = 0
         nmax = np.sqrt(len(gh) + 1) - 1
         cosphi = np.cos(np.arange(1, nmax + 1) * phi)
         sinphi = np.sin(np.arange(1, nmax + 1) * phi)
         Pmax = int((nmax + 1) * (nmax + 2) / 2)
-        Br = 0
-        Bt = 0
-        Bp = 0
+        Br = 0.
+        Bt = 0.
+        Bp = 0.
         P = np.zeros(Pmax)
         P[0] = 1
         P[2] = sintheta
@@ -135,7 +135,6 @@ class Gauss(AbsBfield):
                 Br += (n + 1) * coef * P[Pindex]
                 Bt -= coef * dP[Pindex]
 
-                # TODO: generalize this function, to have vector coordinate inputs and vector magentic field outputs
                 if sintheta == 0:
                     Bp -= costheta * a_r * (-gh[coefindex] * sinphi[m - 1] + gh[coefindex] * cosphi[m - 1]) * \
                           dP[Pindex]
@@ -148,10 +147,10 @@ class Gauss(AbsBfield):
         Bx = -Bt
         By = Bp
         Bz = -Br
-        if coord == 0:
-            Bx_old = Bx
-            Bx = Bx * cd + Bz * sd
-            Bz = Bz * cd - Bx_old * sd
+        # if coord == 0:
+        #     Bx_old = Bx
+        #     Bx = Bx * cd + Bz * sd
+        #     Bz = Bz * cd - Bx_old * sd
 
         My = np.array([[-np.sin(lat), 0., np.cos(lat)],
                        [0, 1., 0],
@@ -233,7 +232,7 @@ class Gauss(AbsBfield):
         self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
         self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
 
-    def __str__(self):
+    def to_string(self):
         s = f"""{self.Model.name}
         Type: {self.type.name}
         Version: {self.version}"""

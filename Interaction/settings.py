@@ -1,1 +1,1 @@
-path_geant4 = '/home/rustam/Software/Geant4/geant4-v11.2.1-install'
+path_geant4 = '/opt/geant4-v11.2.2-install2'

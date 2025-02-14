@@ -233,7 +233,7 @@ class JF12mod(AbsBfield):
     def UpdateState(self, new_date):
         pass
 
-    def __str__(self):
+    def to_string(self):
         s = f"""JF12mod
         Noise: {self.use_noise}"""
 

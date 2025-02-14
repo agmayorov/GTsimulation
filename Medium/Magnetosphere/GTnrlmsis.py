@@ -47,5 +47,5 @@ class GTnrlmsis(GTGeneralMedium):
                       e[5]])
         return c / np.sum(c)
 
-    def __str__(self):
+    def to_string(self):
         return f'NRLMSIS-{self.version}'

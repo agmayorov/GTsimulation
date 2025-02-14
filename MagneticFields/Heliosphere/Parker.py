@@ -348,7 +348,7 @@ class Parker(AbsBfield):
         Bx, By, Bz = transformations.Sphere2Cart(Br, Btheta, Bphi, theta, phi)
         return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
-    def __str__(self):
+    def to_string(self):
         s = f"""Parker
         Regular: {self.use_reg}
         Magnitude: {self.magnitude}

@@ -50,7 +50,7 @@ class Flux(Sequence):
     def __len__(self):
         return len(self.particles)
 
-    def __str__(self):
+    def to_string(self):
         s = f"""
         Number of particles: {self.Nevents}"""
         if self.Names is not None:
@@ -62,3 +62,6 @@ class Flux(Sequence):
         Distribution: {str(self._distribution)}"""
 
         return s
+
+    def __str__(self):
+        return self.to_string()

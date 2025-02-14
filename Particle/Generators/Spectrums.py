@@ -14,6 +14,13 @@ class AbsSpectrum(ABC):
     def GenerateEnergySpectrum(self, *args, **kwargs):
         return []
 
+    @abstractmethod
+    def to_string(self):
+        pass
+
+    def __str__(self):
+        return self.to_string()
+
 
 class Monolines(AbsSpectrum):
     def __init__(self, T=1, *args, **kwargs):
@@ -30,7 +37,7 @@ class Monolines(AbsSpectrum):
                 raise TypeError('Unsupported type')
         return KinEnergy
 
-    def __str__(self):
+    def to_string(self):
         s = f"""Monolines
         Energy: {self.T}"""
 
@@ -70,7 +77,7 @@ class PowerSpectrum(AbsSpectrum):
                 KinEnergy[s] = ConvertUnits(KinEnergy[s], self.Base, self.RangeUnits, M, A, Z)
         return KinEnergy
 
-    def __str__(self):
+    def to_string(self):
         s = f"""PowerSpectrum
         Minimal Energy: {self.EnergyMin}
         Maximal Energy: {self.EnergyMax}
@@ -100,10 +107,9 @@ class Uniform(AbsSpectrum):
     def GenerateEnergySpectrum(self):
         return np.random.rand(self.flux.Nevents) * (self.MaxT - self.MinT) + self.MinT
 
-    def __str__(self):
+    def to_string(self):
         s = f"""Uniform
         Minimal Energy: {self.MinT}
         Maximal Energy: {self.MaxT}"""
-        s1 = super().__str__()
 
-        return s + s1
+        return s

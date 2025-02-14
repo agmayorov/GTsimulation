@@ -166,32 +166,47 @@ class Uniform(AbsBfield):
             By += (iy_c - iy) * By_xf + (iy - iy_f) * By_xc
         return Bx, By
 
+    def to_string(self):
+        s = f"""Parker
+            Regular: {self.use_reg}
+            Noise: {self.use_noise}
+            """
+
+        if self.use_noise:
+            s += f"""
+            Using Slab: {self.use_slab}
+            Using 2D: {self.use_2d}"""
+
+        return s
+
 
 if __name__ == "__main__":
-    field = Uniform(use_2d=False)
-    # Bx_slab = field.Bx_slab
-    #
-    # z_max = 2 * field.l0_slab
-    # dk = 2 * np.pi / z_max
-    # P_slab = np.abs(np.fft.rfftn(Bx_slab)) ** 2
-    #
-    # P_slab_total = np.sum(dk * P_slab)
-    # print("slab: ", P_slab_total)
-    #
-    # Bx_2d = field.Bx_2d
-    #
-    # x_max = 2 * field.l0_2d
-    # dk = 2 * np.pi / x_max
-    # P_2d = np.abs(np.fft.rfftn(Bx_2d)) ** 2
-    # P_2d_total = np.sum(dk ** 2 * P_2d)
-    # print("2d: ", P_2d_total)
-    #
-    # print("2d/slab: ", P_2d_total / P_slab_total)
-    #
-    # BT2 = np.mean(Bx_slab ** 2) + np.mean(Bx_2d ** 2)
-    # print(np.mean(Bx_slab ** 2))
-    # print(np.mean(Bx_2d ** 2))
-    # print(BT2)
+    field = Uniform()
+    Bx_slab = field.Bx_slab
+    By_slab = field.By_slab
+
+    z_max = 2 * field.l0_slab
+    dk = 2 * np.pi / z_max
+    P_slab = np.abs(np.fft.rfftn(Bx_slab)) ** 2 + np.abs(np.fft.rfftn(By_slab)) ** 2
+
+    P_slab_total = np.sum(dk * P_slab)
+    print("slab: ", P_slab_total)
+
+    Bx_2d = field.Bx_2d
+    By_2d = field.By_2d
+
+    x_max = 2 * field.l0_2d
+    dk = 2 * np.pi / x_max
+    P_2d = np.abs(np.fft.rfftn(Bx_2d)) ** 2 + np.abs(np.fft.rfftn(By_2d)) ** 2
+    P_2d_total = np.sum(dk ** 2 * P_2d)
+    print("2d: ", P_2d_total)
+
+    print("2d/slab: ", P_2d_total / P_slab_total)
+
+    BT2 = np.mean(Bx_slab ** 2) + np.mean(Bx_2d ** 2)
+    print(np.mean(Bx_slab ** 2))
+    print(np.mean(Bx_2d ** 2))
+    print(BT2)
 
     print(field.CalcBfield(5, 4, 2))
     print(field.CalcBfield(5, 4, 3))

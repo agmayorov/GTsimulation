@@ -40,5 +40,6 @@ SaveCode = {"Coordinates": np.s_[0:3:1],
 The parameters that can be saved along the path and the corresponding indices in the matrix.
 """
 SaveMetric = np.array(3*[True]+10*[False]+[True]+3*[False])
-SaveDef = dict(zip([key for key in SaveCode.keys() if key != "Coordinates" and key != "Velocities"],
-                   [False] * (len(SaveCode.keys())-2)))
+SaveDef = {"Coordinates": True, "Velocities": True}
+SaveDef.update(dict(zip([key for key in SaveCode.keys() if key != "Coordinates" and key != "Velocities"],
+                   [False] * (len(SaveCode.keys())-2))))

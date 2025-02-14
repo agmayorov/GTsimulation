@@ -166,9 +166,11 @@ class ParkerUniform(Parker):
 
         return Bx * (r_param > rs), By * (r_param > rs), Bz * (r_param > rs)
 
-    def __str__(self):
-        s = super().__str__()
+    def to_string(self):
+        s = super().to_string()
         s = s.replace("Parker", "ParkerUniform")
+        s += f"""
+        Coordinates: {self.x}, {self.y}, {self.z} AU"""
         return s
 
 
