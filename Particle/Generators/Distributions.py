@@ -32,8 +32,8 @@ class SphereSurf(AbsDistribution):
         super().__init__(*args, **kwargs)
 
     def GenerateCoordinates(self):
-        Ro = self.Radius * self.flux.ToMeters
-        Rc = self.Center * self.flux.ToMeters
+        Ro = self.Radius
+        Rc = self.Center
         r_ret, v = [], []
         match self.flux.Mode:
             case GeneratorModes.Inward:
@@ -90,8 +90,8 @@ class SphereVol(AbsDistribution):
         super().__init__(*args, **kwargs)
 
     def GenerateCoordinates(self):
-        Ro = self.Radius * self.flux.ToMeters
-        Rc = self.Center * self.flux.ToMeters
+        Ro = self.Radius
+        Rc = self.Center
         theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
         phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
 
@@ -126,8 +126,8 @@ class Disk(AbsDistribution):
         super().__init__(*args, **kwargs)
 
     def GenerateCoordinates(self):
-        Ro = self.Radius * self.flux.ToMeters
-        Width = self.Width * self.flux.ToMeters
+        Ro = self.Radius
+        Width = self.Width
         z = np.random.rand(self.flux.Nevents, 1)*Width/2 - Width/2
         b_max = 1/2 * Ro**2
         phi = np.random.rand(self.flux.Nevents, 1)*2*np.pi
