@@ -1,8 +1,9 @@
 from collections.abc import Sequence, Iterable
+from datetime import datetime
 
 from Particle.Generators import GeneratorModes
 from Particle.Generators import Monolines, SphereSurf
-from Particle.Particle import CRParticle
+from Particle.Particle import CRParticle, Particle
 
 
 class Flux(Sequence):
@@ -20,8 +21,9 @@ class Flux(Sequence):
         # self.Generate()
 
     def Generate(self):
+        self.particles = []
         self.GenerateCoordinates()
-        self.GenerateParticles(self.Names)
+        self.GenerateParticles()
         self.generate_energy_spectrum()
         self.particles = []
         for i in range(self.Nevents):
@@ -30,14 +32,14 @@ class Flux(Sequence):
     def generate_energy_spectrum(self, *args, **kwargs):
         self.kinetic_energy = self._spectrum.generate_energy_spectrum()
 
-    def GenerateParticles(self, Names):
-        if isinstance(Names, (Iterable, Sequence)) and not isinstance(Names, str):
-            if len(Names) == self.Nevents:
-                self.ParticleNames = Names
+    def GenerateParticles(self):
+        if isinstance(self.Names, (Iterable, Sequence)) and not isinstance(self.Names, str):
+            if len(self.Names) == self.Nevents:
+                self.ParticleNames = self.Names
             else:
                 raise Exception("Wrong number of particles")
         else:
-            self.ParticleNames = [Names] * self.Nevents
+            self.ParticleNames = [self.Names] * self.Nevents
 
     def GenerateCoordinates(self, *args, **kwargs):
         self.r, self.v = self._distribution.GenerateCoordinates(*args, **kwargs)
@@ -57,9 +59,77 @@ class Flux(Sequence):
         s += f"""
         V: {self.V0 if self.V0 is not None else 'Isotropic'}
         Spectrum: {str(self._spectrum)}
-        Distribution: {str(self._distribution)}"""
+        Distribution: {str(self._distrgenerate_energy_spectrumibution)}"""
 
         return s
 
     def __str__(self):
         return self.to_string()
+
+
+class GyroCenterFlux(Flux):
+    def __init__(self, coo_gyr, pitchd, phased, bfield, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.coo_gyr = coo_gyr
+
+        if isinstance(pitchd, np.ndarray):
+            if len(pitchd) == self.Nevents:
+                self.pitchd = pitchd[:, np.newaxis]
+            else:
+                raise Exception("Wrong number of pitch angles")
+        else:
+            self.pitchd = np.array([pitchd] * self.Nevents)[:, np.newaxis]
+
+        if isinstance(phased, np.ndarray):
+            if len(phased) == self.Nevents:
+                self.phased = phased[:, np.newaxis]
+            else:
+                raise Exception("Wrong number of phase angles")
+        else:
+            self.phased = np.array([phased] * self.Nevents)[:, np.newaxis]
+
+        bfield.use_tesla = False
+        bfield.use_meters = True
+        self.B = bfield.GetBfield(*self.coo_gyr)
+        self.Bm = np.linalg.norm(self.B)
+
+    def Generate(self):
+        self.GenerateParticles()
+        self.generate_energy_spectrum()
+        masses = np.zeros(self.Nevents)
+        charges = np.zeros(self.Nevents)
+        for i in range(self.Nevents):
+            p = Particle(self.ParticleNames[i])
+            masses[i] = p.M
+            charges[i] = p.Z
+
+        r_lar = self.larmor(self.KinEnergy, self.Bm, masses, charges, self.pitchd.flatten())[:, np.newaxis]
+        B3 = self.B/self.Bm
+        B1 = np.copy(B3)
+        B1[0] = -(B1[1] ** 2 + B1[2] ** 2) / B1[0]
+        B1 /= np.linalg.norm(B1)
+        B2 = np.cross(B3, B1)
+        init_v = B1 + np.tan(self.phased * np.pi / 180) * B2 + 1 / np.tan(self.pitchd * np.pi / 180) * B3
+        init_v /= np.linalg.norm(init_v)
+        offset = ((np.cross(init_v, self.B) / np.linalg.norm(np.cross(init_v, self.B), axis=1)[:, np.newaxis]) * r_lar)
+        init_coo = self.coo_gyr - offset
+        self.v = init_v
+        self.r = init_coo
+        for i in range(self.Nevents):
+            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
+
+    @staticmethod
+    def larmor(T, Bm, M, Z, pitchd):
+        """
+        :param T: kinetic energy in MeV
+        :param Bm: Magnetic field intensity in nT
+        :param M:  mass in MeV
+        :param Z: charge number
+        :param pitchd: pitch angle in degree
+
+        :return: Output larmor radius in m
+        """
+        cc = 299_792_458.
+        return (np.sqrt((T + M) ** 2 - M ** 2) * 1e6 / cc * np.sin(pitchd / 180 * np.pi)) / (Z * Bm * 1e-9)
+
+
