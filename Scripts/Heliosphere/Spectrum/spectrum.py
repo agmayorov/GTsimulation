@@ -424,18 +424,31 @@ def run_with_grid():
 
 def run_with_path_helio():
     global ls, ez, ex, ey
-    l = np.linspace(0, 0.2, 10000)
+    l = np.linspace(0, 0.25, 10000)
     dl = l[1] - l[0]
-    phi = np.zeros_like(l) + np.pi/5
+    phi = np.zeros_like(l) + 0
     theta = np.pi / 2 + 0 * phi
-    r = 15 + 0 * phi
-    # r = np.zeros_like(phi)
+    r = np.zeros_like(phi)
+    r = 1 + 0 * phi
     # r[0] = 1/(1 - omega*np.sin(theta[0])/v * phi[0])
+    # r[0] = 50
     for ind in range(1, len(l)):
+        cospsi = 1/np.sqrt(1 + ((r[ind-1])*omega*np.sin(theta[ind-1])/v)**2)
+        sinpsi = ((r[ind-1])*omega*np.sin(theta[ind-1])/v)/np.sqrt(1 + ((r[ind-1])*omega*np.sin(theta[ind-1])/v)**2)
+
+
+        dphi = -sinpsi/(r[ind-1]*np.sin(theta[ind-1]))*dl
+        dr = cospsi*dl
+        #
+        # dphi = cospsi/(r[ind-1]*np.sin(theta[ind-1]))*dl
+        # dr = sinpsi*dl
+
+        r[ind] = r[ind-1]+dr
+        phi[ind] = phi[ind-1]+dphi
         # dphi = -np.abs(dl/np.sqrt((v/omega)**2*(1+np.sin(theta[ind-1])**2 * phi[ind-1]**2)))
         # phi[ind] = phi[ind-1] + dphi
-        dtheta = dl / r[ind - 1]
-        theta[ind] = theta[ind - 1] + dtheta
+        # dtheta = dl / r[ind - 1]
+        # theta[ind] = theta[ind - 1] + dtheta
         # dphi = dl / np.sqrt(r[ind-1]**2 * np.sin(theta[ind-1])**2 * (1 + omega**2/v**2))
         # phi[ind] = phi[ind-1] - dphi
         # r[ind] = 1 / (1 - omega * np.sin(theta[ind]) / v * phi[ind])
@@ -443,8 +456,8 @@ def run_with_path_helio():
     # r = -v / omega * phi
     # plt.polar(phi, r)
     # plt.show()
-
-    ls = 0.08 * (r / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+    rs = p.rs
+    ls = 0.08 * (r / (rs / 5)) ** 0.8 * (rs / 5)
     z = r * np.cos(theta)
     x = r * np.cos(phi) * np.sin(theta)
     y = r * np.sin(phi) * np.sin(theta)
@@ -464,23 +477,24 @@ def run_with_path_helio():
                            A_2D, alpha_2D, delta_2D,
                            rs, k, dk, p.use_slab, p.use_2d,
                            ex, ey, ez, x, y, z)
-    ax = plt.figure().add_subplot(projection='3d')
-    # ax = plt.figure().add_subplot(projection='polar')
-    plt.title("Trajectory")
-    plt.plot(x, y, z)
-    # plt.polar(phi, r)
-    plt.plot(0, 0, 0, "*")
-    # plt.plot(0, 0, "*")
-    ax.set_xlabel("x, au")
-    ax.set_ylabel("y, au")
-    ax.set_zlabel("z, au")
+    # ax = plt.figure().add_subplot(projection='3d')
+    ax = plt.figure().add_subplot(projection='polar')
+    # plt.title("Trajectory")
+    # plt.plot(x, y, z)
+    plt.polar(phi, r, label='The path')
+    # plt.plot(0, 0, 0, "*")
+    plt.plot(0, 0, "*", label='The Sun')
+    plt.legend()
+    # ax.set_xlabel("x, au")
+    # ax.set_ylabel("y, au")
+    # ax.set_zlabel("z, au")
 
     plt.figure()
     plt.title("Field (slab)")
     plt.plot(l, Bx, label=r"$B_{\theta}$")
     plt.plot(l, By, label="$B_{\perp}$")
     plt.plot(l, Bz, label="$B_{\parallel}$")
-    plt.xlabel("Length along latitude, au")
+    plt.xlabel("Path, au")
     plt.ylabel("Magnetic field, nT")
     plt.legend()
 
@@ -491,7 +505,7 @@ def run_with_path_helio():
     P = P[idx]
     _, wave_number_mean, P_mean = misc.smoothing_function(wave_number, P, window=2)
 
-    s, e = 2e2, 3e3
+    s, e = 3e1, 1e3
 
     fitx = np.log(wave_number_mean[(wave_number_mean>s)*(wave_number_mean<e)])
     fity = np.log(P_mean[(wave_number_mean>s)*(wave_number_mean<e)])
@@ -576,46 +590,103 @@ def run_with_path_uni():
 
 if __name__ == "__main__":
     np.random.seed()
-    gamma = []
-    for _ in tqdm(range(30)):
-        p = ParkerUniform(5, 5, 0, use_reg=False, use_noise=True, use_2d=False, use_slab=True, noise_num=1024)
-        p_reg = ParkerUniform(5, 5, 0, use_reg=True, use_noise=False)
-        parker_reg = Parker(use_noise=False)
-        # Bx_reg, By_reg, Bz_reg = p_reg.CalcBfield()
-        # ez = np.array([Bx_reg, By_reg, Bz_reg])
-        # ez = ez/np.linalg.norm(ez)
-        # n = np.array([1/np.sqrt(3), 1/np.sqrt(3), 1/np.sqrt(3)])
-        # ex = np.cross(ez, n)
-        # ex = ex/np.linalg.norm(ex)
-        # ey = np.cross(ez, ex)
+    # gamma = []
+    # for _ in tqdm(range(30)):
+    p = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_reg=False, use_noise=True, noise_num=1024)
+    p_slab = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_reg=False, use_noise=True, use_2d=False, use_slab=True, noise_num=1024)
+    p_2d = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_reg=False, use_noise=True, use_2d=True, use_slab=False, noise_num=1024)
+    p_reg = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_reg=True, use_noise=False)
+    parker_reg = Parker(use_noise=False)
+    Bx_reg, By_reg, Bz_reg = p_reg.CalcBfield()
+    ez = np.array([Bx_reg, By_reg, Bz_reg])
+    ez = ez/np.linalg.norm(ez)
+    n = np.array([1/np.sqrt(3), 1/np.sqrt(3), 1/np.sqrt(3)])
+    ex = np.cross(ez, n)
+    ex = ex/np.linalg.norm(ex)
+    ey = np.cross(ez, ex)
 
-        # ls = 0.04 * (1 / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+    l = np.linspace(0, 1, 10000)
+    dl = l[1] - l[0]
+    k = np.fft.rfftfreq(len(l), dl)
+    dk = k[1] - k[0]
 
-        omega = p.omega
-        rs = p.rs
-        v_wind = p.wind
-        a = v_wind / omega
+    dr = l[np.newaxis].T*ez
+    x = dr[:, 0]
+    y = dr[:, 1]
+    z = dr[:, 2]
+    Bx, By, Bz = [], [], []
+    for (xx, yy, zz) in zip(x, y, z):
+        bx, by, bz = p_slab.CalcBfield(xx, yy, zz)
+        Bx.append(bx)
+        By.append(by)
+        Bz.append(bz)
 
-        A_rad = p.A_rad
-        alpha_rad = p.alpha_rad
-        delta_rad = p.delta_rad
+    P_slab = np.abs(np.fft.rfftn(Bx)) ** 2 + np.abs(np.fft.rfftn(By)) ** 2 + np.abs(np.fft.rfftn(Bz)) ** 2
+    E_slab = np.sum(P_slab*dk)
+    print("Slab:", E_slab)
 
-        A_azimuth = p.A_azimuth
-        alpha_azimuth = p.alpha_azimuth
-        delta_azimuth = p.delta_azimuth
+    l = np.linspace(0, 0.1, 1000)
+    dl = l[1] - l[0]
+    k = np.fft.rfftfreq(len(l), dl)
+    dk = k[1] - k[0]
 
-        A_2D = p.A_2D
-        alpha_2D = p.alpha_2D
-        delta_2D = p.delta_2D
+    dr1 = l[np.newaxis].T * ex
+    x1 = dr1[:, 0]
+    y1 = dr1[:, 1]
+    z1 = dr1[:, 2]
 
-        k = p.k
-        dk = p.dk
-        v = p.v_wind(np.pi / 2, p.km2AU)
+    dr2 = l[np.newaxis].T * ey
+    x2 = dr2[:, 0]
+    y2 = dr2[:, 1]
+    z2 = dr2[:, 2]
+    Bx, By, Bz = [], [], []
+    for (xx1, yy1, zz1) in zip(x1, y1, z1):
+        Bx1, By1, Bz1 =[], [], []
+        for (xx2, yy2, zz2) in zip(x2, y2, z2):
+            bx, by, bz = p_2d.CalcBfield(xx1 + xx2, yy1 + yy2, zz1 + zz2)
+            Bx1.append(bx)
+            By1.append(by)
+            Bz1.append(bz)
+        Bx.append(Bx1)
+        By.append(By1)
+        Bz.append(Bz1)
+    Bx = np.array(Bx)
+    By = np.array(By)
+    Bz = np.array(Bz)
 
-        gamma.append(run_with_path_uni())
+    P_2d = np.abs(np.fft.rfftn(Bx)) ** 2 + np.abs(np.fft.rfftn(By)) ** 2 + np.abs(np.fft.rfftn(Bz)) ** 2
+    E_2d = np.sum(P_2d * dk*dk)
+    print("2D:", E_2d)
 
-    print(np.mean(gamma))
-    print(np.std(gamma))
+    print("2d/slab:", E_2d/E_slab)
+
+    ls = 0.04 * (1 / (p.rs / 5)) ** 0.8 * (p.rs / 5)
+
+    omega = p.omega
+    rs = p.rs
+    v_wind = p.wind
+    a = v_wind / omega
+
+    A_rad = p.A_rad
+    alpha_rad = p.alpha_rad
+    delta_rad = p.delta_rad
+
+    A_azimuth = p.A_azimuth
+    alpha_azimuth = p.alpha_azimuth
+    delta_azimuth = p.delta_azimuth
+
+    A_2D = p.A_2D
+    alpha_2D = p.alpha_2D
+    delta_2D = p.delta_2D
+
+    k = p.k
+    dk = p.dk
+    v = p.v_wind(np.pi / 2, p.km2AU)
+
+    #     gamma.append(run_with_path_uni())
+    #
+    # print(np.mean(gamma))
+    # print(np.std(gamma))
 
     # run_with_path_helio()
 
