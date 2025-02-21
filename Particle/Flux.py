@@ -23,6 +23,7 @@ class Flux(Sequence):
         self.GenerateCoordinates()
         self.GenerateParticles(self.Names)
         self.generate_energy_spectrum()
+        self.particles = []
         for i in range(self.Nevents):
             self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
 
