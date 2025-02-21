@@ -1,109 +1,142 @@
-import numpy as np
-
 from abc import ABC, abstractmethod
 
-from Particle.functions import ConvertUnits
+import numpy as np
+
+from Particle.GeneratorCR import GetGCRflux
 from Particle.GetNucleiProp import GetNucleiProp
+from Particle.functions import ConvertUnits
 
 
 class AbsSpectrum(ABC):
-    def __init__(self, FluxObj=None, *args, **kwargs):
-        self.flux = FluxObj
+    def __init__(self, flux_object=None, *args, **kwargs):
+        self.flux = flux_object
 
     @abstractmethod
-    def GenerateEnergySpectrum(self, *args, **kwargs):
+    def generate_energy_spectrum(self, *args, **kwargs):
         return []
 
 
+class ContinuumSpectrum(AbsSpectrum):
+    def __init__(self, energy_min=500., energy_max=10000., *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.energy_min = energy_min
+        self.energy_max = energy_max
+        self.energy_range = np.array([self.energy_min, self.energy_max])
+
+    def generate_energy_spectrum(self, *args, **kwargs):
+        return []
+
+    def __str__(self):
+        s = f"""Minimal Energy: {self.energy_min}
+        Maximal Energy: {self.energy_max}"""
+        return s
+
+
 class Monolines(AbsSpectrum):
-    def __init__(self, T=1, *args, **kwargs):
-        self.T = T
+    def __init__(self, energy=1000., *args, **kwargs):
+        self.T = energy
         super().__init__(*args, **kwargs)
 
-    def GenerateEnergySpectrum(self):
+    def generate_energy_spectrum(self):
         match self.T:
             case int() | float():
-                KinEnergy = np.ones(self.flux.Nevents) * self.T
+                energy = np.ones(self.flux.Nevents) * self.T
             case list() | np.ndarray():
-                KinEnergy = np.concatenate((np.tile(self.T, self.flux.Nevents // len(self.T)), self.T[:self.flux.Nevents % len(self.T)]))
+                energy = np.concatenate((np.tile(self.T, self.flux.Nevents // len(self.T)), self.T[:self.flux.Nevents % len(self.T)]))
             case _:
                 raise TypeError('Unsupported type')
-        return KinEnergy
+        return energy
 
     def __str__(self):
         s = f"""Monolines
         Energy: {self.T}"""
-
         return s
 
 
-class PowerSpectrum(AbsSpectrum):
-    def __init__(self, EnergyMin=1, EnergyMax=10, RangeUnits='T', Base='T', SpectrumIndex=1., *args, **kwargs):
-        self.EnergyMin = EnergyMin
-        self.EnergyMax = EnergyMax
-        self.SpectrumIndex = SpectrumIndex
-        self.RangeUnits = RangeUnits
-        self.Base = Base
-        super().__init__(*args, **kwargs)
+class PowerSpectrum(ContinuumSpectrum):
+    def __init__(self, energy_min=500., energy_max=10000., energy_range_units='T', base='T', spectrum_index=-1., *args, **kwargs):
+        super().__init__(energy_min, energy_max, *args, **kwargs)
+        self.energy_range_units = energy_range_units
+        self.base = base
+        self.spectrum_index = spectrum_index
 
-    def GenerateEnergySpectrum(self):
-        KinEnergy = np.zeros(self.flux.Nevents)
+    def generate_energy_spectrum(self):
+        energy = np.zeros(self.flux.Nevents)
         for s in range(self.flux.Nevents):
-            A, Z, M, *_ = GetNucleiProp(self.flux.ParticleNames[s])
-            M = M / 1e3  # MeV/c2 -> GeVA, /c2
-
-            EnergyRange = np.array([self.EnergyMin, self.EnergyMax])
-            if self.RangeUnits != self.Base:
-                EnergyRangeS = ConvertUnits(EnergyRange, self.RangeUnits, self.Base, M, A, Z)
+            a, z, m, *_ = GetNucleiProp(self.flux.ParticleNames[s])
+            if self.energy_range_units != self.base:
+                energy_range_s = ConvertUnits(self.energy_range, self.energy_range_units, self.base, m, a, z)
             else:
-                EnergyRangeS = EnergyRange
+                energy_range_s = self.energy_range
+
             ksi = np.random.rand()
-            if self.SpectrumIndex == -1:
-                KinEnergy[s] = EnergyRangeS[0] * np.power((EnergyRangeS[1] / EnergyRangeS[0]), ksi)
+            if self.spectrum_index == -1:
+                energy[s] = energy_range_s[0] * (energy_range_s[1] / energy_range_s[0]) ** ksi
             else:
-                g = self.SpectrumIndex + 1.
-                KinEnergy[s] = np.power(np.power(EnergyRangeS[0], g) +
-                                             ksi * (np.power(EnergyRangeS[1], g) - np.power(EnergyRangeS[0], g)),
-                                             (1 / g))
+                g = self.spectrum_index + 1.
+                energy[s] = (energy_range_s[0] ** g + ksi * (energy_range_s[1] ** g - energy_range_s[0] ** g)) ** (1 / g)
 
-            if self.RangeUnits != self.Base:
-                KinEnergy[s] = ConvertUnits(KinEnergy[s], self.Base, self.RangeUnits, M, A, Z)
-        return KinEnergy
+            if self.energy_range_units != self.base:
+                energy[s] = ConvertUnits(energy[s], self.base, self.energy_range_units, m, a, z)
+        return energy
 
     def __str__(self):
         s = f"""PowerSpectrum
-        Minimal Energy: {self.EnergyMin}
-        Maximal Energy: {self.EnergyMax}
-        Spectrum Index: {self.SpectrumIndex}"""
-
-        return s
+        Spectrum Index: {self.spectrum_index}"""
+        s_super = super().__str__()
+        return s + s_super
 
 
-#
-# class ForceField(PowerSpectrum):
-#     def __init__(self, T=1, *args, **kwargs):
-#         super().__init__(*args, T=T, **kwargs)
-#
-#     def GenerateEnergySpectrum(self, T):
-#         self.KinEnergy = np.zeros(self.Nevents)
-#         for s in range(self.Nevents):
-#             A, Z, M, *_ = GetNucleiProp(self.ParticleNames[s])
-#             M = M / 1e3  # MeV/c2 -> GeVA, /c2
+class ForceField(ContinuumSpectrum):
+    def __init__(self, energy_min=500., energy_max=10000., energy_range_units='T', modulation_potential=500., *args, **kwargs):
+        super().__init__(energy_min, energy_max, *args, **kwargs)
+        self.energy_range_units = energy_range_units
+        self.modulation_potential = modulation_potential
 
+    def generate_energy_spectrum(self):
+        energy = np.zeros(self.flux.Nevents)
+        # partitioning by particle species
+        unique_particle, index_inverse, count = np.unique(self.flux.ParticleNames, return_inverse=True, return_counts=True)
+        for i, particle in enumerate(unique_particle):
+            a, z, m, *_ = GetNucleiProp(particle)
+            if self.energy_range_units != 'T':
+                energy_range_s = ConvertUnits(self.energy_range, self.energy_range_units, 'T', m, a, z)
+            else:
+                energy_range_s = self.energy_range
 
-class Uniform(AbsSpectrum):
-    def __init__(self, MinT=1, MaxT=10, *args, **kwargs):
-        self.MinT = MinT
-        self.MaxT = MaxT
-        super().__init__(*args, **kwargs)
+            f_max = GetGCRflux('T', np.geomspace(energy_range_s[0], energy_range_s[1], 1000), self.modulation_potential, particle).max()
+            index_particle = np.flatnonzero(index_inverse == i)
+            bunch_size = count[i] * 10 # multiplying by 10 for faster calculations
+            while True:
+                energy_played = np.random.uniform(*energy_range_s, bunch_size)
+                ksi = f_max * np.random.rand(bunch_size)
+                index_suited = np.flatnonzero(ksi < GetGCRflux('T', energy_played, self.modulation_potential, particle))
+                if index_suited.size < index_particle.size:
+                    energy[index_particle[:index_suited.size]] = energy_played[index_suited]
+                    index_particle = np.delete(index_particle, range(index_suited.size))
+                else:
+                    energy[index_particle] = energy_played[index_suited[:index_particle.size]]
+                    break
 
-    def GenerateEnergySpectrum(self):
-        return np.random.rand(self.flux.Nevents) * (self.MaxT - self.MinT) + self.MinT
+            if self.energy_range_units != 'T':
+                energy[index_inverse == i] = ConvertUnits(energy[index_inverse == i], 'T', self.energy_range_units, m, a, z)
+        return energy
 
     def __str__(self):
-        s = f"""Uniform
-        Minimal Energy: {self.MinT}
-        Maximal Energy: {self.MaxT}"""
-        s1 = super().__str__()
+        s = f"""ForceField
+        Modulation Potential: {self.modulation_potential} MV"""
+        s_super = super().__str__()
+        return s + s_super
 
-        return s + s1
+
+class Uniform(ContinuumSpectrum):
+    def __init__(self, energy_min=500., energy_max=10000., *args, **kwargs):
+        super().__init__(energy_min, energy_max, *args, **kwargs)
+
+    def generate_energy_spectrum(self):
+        return np.random.uniform(self.energy_min, self.energy_max, self.flux.Nevents)
+
+    def __str__(self):
+        s = f"""Uniform"""
+        s_super = super().__str__()
+        return s + s_super

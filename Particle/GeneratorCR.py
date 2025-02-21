@@ -1,7 +1,7 @@
 import numpy as np
 
 from Particle.functions import ConvertT2R, ConvertR2T
-from Particle.Flux import Flux
+# from Particle.Flux import Flux
 
 
 def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):
@@ -164,9 +164,9 @@ def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):
 
     Energy = np.array(Energy)
 
-    flux = Flux(r, v, Energy, ParticleName)
-    # return r, v, Energy, ParticleName
-    return flux
+    # flux = Flux(r, v, Energy, ParticleName)
+    return r, v, Energy, ParticleName
+    # return flux
 
 
 def GetSourceArguments(SourceArguments):

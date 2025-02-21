@@ -1,9 +1,7 @@
 from collections.abc import Sequence, Iterable
 
-import numpy as np
-
-from Particle.Generators import Monolines, SphereSurf
 from Particle.Generators import GeneratorModes
+from Particle.Generators import Monolines, SphereSurf
 from Particle.Particle import CRParticle
 
 
@@ -16,21 +14,20 @@ class Flux(Sequence):
         self.Names = Names
         self.V0 = V0
         self.particles = []
-        self._spectrum = Spectrum(FluxObj=self, *args, **kwargs)
+        self.kinetic_energy = None
+        self._spectrum = Spectrum(flux_object=self, *args, **kwargs)
         self._distribution = Distribution(FluxObj=self, *args, **kwargs)
         # self.Generate()
 
     def Generate(self):
-        self.particles = []
         self.GenerateCoordinates()
         self.GenerateParticles(self.Names)
-        self.GenerateEnergySpectrum()
+        self.generate_energy_spectrum()
         for i in range(self.Nevents):
-            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
+            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
 
-    # @abstractmethod
-    def GenerateEnergySpectrum(self, *args, **kwargs):
-        self.KinEnergy = self._spectrum.GenerateEnergySpectrum(*args, **kwargs)
+    def generate_energy_spectrum(self, *args, **kwargs):
+        self.kinetic_energy = self._spectrum.generate_energy_spectrum()
 
     def GenerateParticles(self, Names):
         if isinstance(Names, (Iterable, Sequence)) and not isinstance(Names, str):
