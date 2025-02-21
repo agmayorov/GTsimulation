@@ -4,6 +4,7 @@ from numba import jit
 
 from Global import Units, Regions
 from MagneticFields import AbsBfield
+from MagneticFields.Magnetosphere.Functions import transformations
 
 
 class Dipole(AbsBfield):
@@ -66,7 +67,8 @@ class Dipole(AbsBfield):
     def CalcBfield(self, x, y, z, **kwargs):
         psi = self.psi
         M = self.M
-        return self.__calcBfield(x, y, z, M, psi)
+        X, Y, Z = transformations.geo2dipmag(x, y, z, psi, 1)
+        return transformations.geo2dipmag(*self.__calcBfield(X, Y, Z, M, psi), psi, 0)
 
     @staticmethod
     @jit(fastmath=True, nopython=True)

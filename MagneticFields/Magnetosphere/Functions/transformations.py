@@ -121,19 +121,19 @@ def gei2gsm(x, y, z, Year, Day, Secs, j):
     return X, Y, Z
 
 
+@jit(nopython=True, fastmath=True)
 def geo2dipmag(x, y, z, psi, j):
+    mat = np.array([[np.cos(psi), 0., np.sin(psi)],
+                    [0., 1., 0.],
+                    [-np.sin(psi), 0., np.cos(psi)]])
     if j > 0:
-        vec = np.array([[np.cos(np.radians(psi)), 0, np.sin(np.radians(psi))],
-                        [0, 1, 0],
-                        [-np.sin(np.radians(psi)), 0, np.cos(np.radians(psi))]]) @ np.vstack((x, y, z))
+        vec = mat @ np.array([[x], [y], [z]], dtype=mat.dtype)
     else:
-        vec = np.array([[np.cos(np.radians(psi)), 0, np.sin(np.radians(psi))],
-                        [0, 1, 0],
-                        [-np.sin(np.radians(psi)), 0, np.cos(np.radians(psi))]]).T @ np.vstack((x, y, z))
+        vec = np.transpose(mat) @ np.array([[x], [y], [z]], dtype=mat.dtype)
 
-    X = vec[0, :]
-    Y = vec[1, :]
-    Z = vec[2, :]
+    X = vec[0, 0]
+    Y = vec[1, 0]
+    Z = vec[2, 0]
 
     return X, Y, Z
 
