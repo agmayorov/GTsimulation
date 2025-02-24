@@ -17,6 +17,28 @@ class AbsDistribution(ABC):
     def GenerateCoordinates(self, *args, **kwargs):
         return [], []
 
+    def generate_random_v(self):
+        theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
+        phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
+        v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
+        return v
+
+    def generate_v_pitch(self, r_ret):
+        v = []
+        for idx in range(r_ret.shape[0]):
+            r = r_ret[idx, :]
+            B = self.flux.Bfield.GetBfield(*r)
+            ez = B / np.linalg.norm(B)
+            rnorm = r / np.linalg.norm(r)
+            ey = np.cross(rnorm, ez)
+            ey = ey / np.linalg.norm(ey)
+            ex = np.cross(ey, ez)
+            phase = self.flux.Phase if self.flux.Phase is not None else np.random.rand() * 2 * np.pi
+            pitch = self.flux.Pitch
+            v.append(np.cos(pitch) * ez + np.sin(pitch) * np.cos(phase) * ex + np.sin(pitch) * np.sin(phase) * ey)
+        v = np.array(v)
+        return v
+
     @abstractmethod
     def to_string(self):
         pass
@@ -35,43 +57,40 @@ class SphereSurf(AbsDistribution):
         Ro = self.Radius
         Rc = self.Center
         r_ret, v = [], []
-        match self.flux.Mode:
-            case GeneratorModes.Inward:
-                theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-                phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-                r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
-
-                newZ = r
-                newX = np.cross(newZ, np.tile([[0, 0, 1]], (self.flux.Nevents, 1)))
-                newX /= np.linalg.norm(newX, axis=1)[:, np.newaxis]
-                newY = np.cross(newZ, newX)
-
-                S = np.stack((newX.T, newY.T, newZ.T), axis=1)
-
-                ksi = np.random.rand(1, 1, self.flux.Nevents)
-                sin_theta = np.sqrt(ksi)
-                cos_theta = np.sqrt(1 - ksi)
-                phi = 2 * np.pi * np.random.rand(1, 1, self.flux.Nevents)
-                p = np.concatenate((-sin_theta * np.cos(phi), -sin_theta * np.sin(phi), -cos_theta))
-                r_ret = r * Ro + Rc
-
-                if self.flux.V0 is None:
-                    v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.flux.Nevents)], axis=1).T
-                else:
-                    v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
-
-            case GeneratorModes.Outward:
-                theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-                phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-                r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
-                r_ret = r * Ro + Rc
-
-                if self.flux.V0 is None:
+        if self.flux.V0 is not None:
+            v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
+        else:
+            match self.flux.Mode:
+                case GeneratorModes.Inward:
                     theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
                     phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-                    v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
-                else:
-                    v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
+                    r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
+                    r_ret = r * Ro + Rc
+                    if hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
+                        v = self.generate_v_pitch(r_ret)
+                    else:
+                        newZ = r
+                        newX = np.cross(newZ, np.tile([[0, 0, 1]], (self.flux.Nevents, 1)))
+                        newX /= np.linalg.norm(newX, axis=1)[:, np.newaxis]
+                        newY = np.cross(newZ, newX)
+
+                        S = np.stack((newX.T, newY.T, newZ.T), axis=1)
+
+                        ksi = np.random.rand(1, 1, self.flux.Nevents)
+                        sin_theta = np.sqrt(ksi)
+                        cos_theta = np.sqrt(1 - ksi)
+                        phi = 2 * np.pi * np.random.rand(1, 1, self.flux.Nevents)
+                        p = np.concatenate((-sin_theta * np.cos(phi), -sin_theta * np.sin(phi), -cos_theta))
+                        v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.flux.Nevents)], axis=1).T
+                case GeneratorModes.Outward:
+                    theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
+                    phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
+                    r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
+                    r_ret = r * Ro + Rc
+                    if hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
+                        v = self.generate_v_pitch(r_ret)
+                    else:
+                        v = self.generate_random_v()
 
         return r_ret, v
 
@@ -102,12 +121,12 @@ class SphereVol(AbsDistribution):
         r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
         r_ret = r * ro + Rc
 
-        if self.flux.V0 is None:
-            theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-            phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-            v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
-        else:
+        if self.flux.V0 is not None:
             v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
+        elif hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
+            v = self.generate_v_pitch(r_ret)
+        else:
+            v = self.generate_random_v()
 
         return r_ret, v
 
@@ -136,12 +155,13 @@ class Disk(AbsDistribution):
         x = R*np.cos(phi)
         y = R*np.sin(phi)
         r = np.hstack((x, y, z))
-        if self.flux.V0 is None:
-            theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-            phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-            v = np.hstack([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
-        else:
+
+        if self.flux.V0 is not None:
             v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
+        elif hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
+            v = self.generate_v_pitch(r)
+        else:
+            v = self.generate_random_v()
 
         return r, v
 
@@ -161,7 +181,8 @@ class UserInput(AbsDistribution):
 
     def GenerateCoordinates(self, *args, **kwargs):
         if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
-            raise ValueError("The number of initial coordinates and velocities does not correspond to the number of particles")
+            raise ValueError("The number of initial coordinates and velocities does not correspond to the number of "
+                             "particles")
 
         return self.r, self.v
 

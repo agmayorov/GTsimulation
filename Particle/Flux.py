@@ -67,6 +67,22 @@ class Flux(Sequence):
         return self.to_string()
 
 
+class FluxPitchPhase(Flux):
+    def __init__(self, Bfield, Pitch=None, Phase=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.Pitch = Pitch
+        self.Phase = Phase
+        self.Bfield = Bfield
+
+    def to_string(self):
+        s = super().to_string()
+        s1 = f"""
+        Pitch Angle: {self.Pitch} [rad]
+        Phase Angles: {self.Phase} [rad]"""
+
+        return s + s1
+
+
 class GyroCenterFlux(Flux):
     def __init__(self, coo_gyr, pitchd, phased, bfield, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -131,5 +147,14 @@ class GyroCenterFlux(Flux):
         """
         cc = 299_792_458.
         return (np.sqrt((T + M) ** 2 - M ** 2) * 1e6 / cc * np.sin(pitchd / 180 * np.pi)) / (Z * Bm * 1e-9)
+
+    def to_string(self):
+        s = super().to_string()
+        s1 = f"""
+        GyroCenter Coordinates: {self.coo_gyr} [m]
+        Pitch Angle: {self.pitchd} [deg]
+        Phase Angles: {self.phased} [deg]"""
+
+        return s + s1
 
 

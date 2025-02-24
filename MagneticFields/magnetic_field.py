@@ -7,7 +7,7 @@ from Global import Units, Regions
 class AbsBfield(ABC):
     ToMeters = 1
 
-    def __init__(self, use_tesla=False, use_meters=False, **kwargs):
+    def __init__(self, use_tesla=True, use_meters=True, **kwargs):
         self.Region = None
         self.ModelName = None
         self.Units = None
