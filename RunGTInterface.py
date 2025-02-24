@@ -4,13 +4,8 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from Global import Regions
 from Global import Units as U
-from GT.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
-from MagneticFields.Magnetosphere import Gauss
-from Particle import Flux
-from Medium.Magnetosphere import GTnrlmsis
-from Particle.Flux import FluxPitchPhase
+from Interface import InterfaceGT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--folder")
@@ -25,11 +20,10 @@ R = args.R
 folder = r"tests/Mag"
 
 np.random.seed(seed)
-Date = datetime(2008, 1, 1)
 
-Region = Regions.Magnetosphere
+Region = "Magnetosphere"
 # Bfield = "Dipole"
-Bfield = Gauss(date=Date, model='CHAOS', model_type='core', version=7.13)
+Bfield = ["Gauss", {"model": "CHAOS", "model_type": "core", "version": 7.13}]
 
 # Region = [Regions.Heliosphere, {"CalcAdditionalEnergy": True}]
 # Region = Regions.Heliosphere
@@ -39,32 +33,32 @@ Bfield = Gauss(date=Date, model='CHAOS', model_type='core', version=7.13)
 # Region = Regions.Galaxy
 # Bfield = "JF12mod"
 
-
+Date = datetime(2008, 1, 1)
 
 # Medium = None
-Medium = GTnrlmsis(date=Date, version=0)
+Medium = ["GTnrlmsis", {"version": 0}]
 
 # Flux = {"Distribution": "Disk", "Nevents": 10000, "T": 200, "Radius": 14, "Width": 0.2}
-Particles = FluxPitchPhase(Names='pr', Radius=0, Center=np.array([1.2*U.RE, 0, 0]), T=20*U.GeV, Nevents=20,
-                           Pitch=np.pi/4, Phase=np.pi/6, Mode="Outward", Bfield=Bfield)
-Particles.GenerateCoordinates()
-
+Flux = {"Nevents": 1, "T": 20*U.GeV, "Names": "pr", "Radius": 0, "Center": np.array([1.5*U.RE, 0, 0]), "Mode": "Inward"}
 
 UseDecay = False
 NuclearInteraction = None
 # NuclearInteraction = {"GenMax": 3}
 
-Nfiles = 1
+Nfiles = [80]
 # Output = None
 # Output = "Galaxy"
-Output = f"{folder}" + os.sep + "test"
+Output = f"{folder}" + os.sep + "MaxRevTest"
 # Save = [1, {"Clock": True, "Path": True, "Density": True}]
-Save = 1
+# Save = 1
+Save = [1, {"Bfield": True, "Clock": True, "Coordinates": False}]
 
 Verbose = True
 
-BreakConditions = None
+# BreakConditions = None
+BreakConditions = {"Rmax": 80*U.AU, 'MaxRev': 1}
+# BCcenter = np.array([-8.5, 0, 0])
 
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(1e3),
-                                  Step=1e-5, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
+tracks = InterfaceGT(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(1e3),
+                                  Step=1e-6, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
                                   InteractNUC=NuclearInteraction, BreakCondition=BreakConditions, ForwardTrck=1)
