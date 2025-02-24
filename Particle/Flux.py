@@ -84,26 +84,27 @@ class FluxPitchPhase(Flux):
 
 
 class GyroCenterFlux(Flux):
-    def __init__(self, coo_gyr, pitchd, phased, bfield, *args, **kwargs):
+    def __init__(self, Bfield, Pitchd, Phased, CooGyr, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.coo_gyr = coo_gyr
+        self.coo_gyr = CooGyr
 
-        if isinstance(pitchd, np.ndarray):
-            if len(pitchd) == self.Nevents:
-                self.pitchd = pitchd[:, np.newaxis]
+        if isinstance(Pitchd, np.ndarray):
+            if len(Pitchd) == self.Nevents:
+                self.pitchd = Pitchd[:, np.newaxis]
             else:
                 raise Exception("Wrong number of pitch angles")
         else:
-            self.pitchd = np.array([pitchd] * self.Nevents)[:, np.newaxis]
+            self.pitchd = np.array([Pitchd] * self.Nevents)[:, np.newaxis]
 
-        if isinstance(phased, np.ndarray):
-            if len(phased) == self.Nevents:
-                self.phased = phased[:, np.newaxis]
+        if isinstance(Phased, np.ndarray):
+            if len(Phased) == self.Nevents:
+                self.phased = Phased[:, np.newaxis]
             else:
                 raise Exception("Wrong number of phase angles")
         else:
-            self.phased = np.array([phased] * self.Nevents)[:, np.newaxis]
+            self.phased = np.array([Phased] * self.Nevents)[:, np.newaxis]
 
+        bfield = Bfield.copy()
         bfield.use_tesla = False
         bfield.use_meters = True
         self.B = bfield.GetBfield(*self.coo_gyr)
