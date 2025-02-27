@@ -4,7 +4,7 @@ import numpy as np
 
 from Particle.GeneratorCR import GetGCRflux
 from Particle.GetNucleiProp import GetNucleiProp
-from Particle.functions import ConvertUnits
+from Particle.functions import convert_units
 
 
 class AbsSpectrum(ABC):
@@ -65,7 +65,7 @@ class PowerSpectrum(ContinuumSpectrum):
         for s in range(self.flux.Nevents):
             a, z, m, *_ = GetNucleiProp(self.flux.ParticleNames[s])
             if self.energy_range_units != self.base:
-                energy_range_s = ConvertUnits(self.energy_range, self.energy_range_units, self.base, m, a, z)
+                energy_range_s = convert_units(self.energy_range, self.energy_range_units, self.base, m, a, z)
             else:
                 energy_range_s = self.energy_range
 
@@ -77,7 +77,7 @@ class PowerSpectrum(ContinuumSpectrum):
                 energy[s] = (energy_range_s[0] ** g + ksi * (energy_range_s[1] ** g - energy_range_s[0] ** g)) ** (1 / g)
 
             if self.energy_range_units != self.base:
-                energy[s] = ConvertUnits(energy[s], self.base, self.energy_range_units, m, a, z)
+                energy[s] = convert_units(energy[s], self.base, self.energy_range_units, m, a, z)
         return energy
 
     def __str__(self):
@@ -100,17 +100,17 @@ class ForceField(ContinuumSpectrum):
         for i, particle in enumerate(unique_particle):
             a, z, m, *_ = GetNucleiProp(particle)
             if self.energy_range_units != 'T':
-                energy_range_s = ConvertUnits(self.energy_range, self.energy_range_units, 'T', m, a, z)
+                energy_range_s = convert_units(self.energy_range, self.energy_range_units, 'T', m, a, z)
             else:
                 energy_range_s = self.energy_range
 
-            f_max = GetGCRflux('T', np.geomspace(energy_range_s[0], energy_range_s[1], 1000), self.modulation_potential, particle).max()
+            f_max = GetGCRflux('T', np.geomspace(energy_range_s[0], energy_range_s[1], 1000) / 1e3, self.modulation_potential / 1e3, particle).max()
             index_particle = np.flatnonzero(index_inverse == i)
             bunch_size = count[i] * 10 # multiplying by 10 for faster calculations
             while True:
                 energy_played = np.random.uniform(*energy_range_s, bunch_size)
                 ksi = f_max * np.random.rand(bunch_size)
-                index_suited = np.flatnonzero(ksi < GetGCRflux('T', energy_played, self.modulation_potential, particle))
+                index_suited = np.flatnonzero(ksi < GetGCRflux('T', energy_played / 1e3, self.modulation_potential / 1e3, particle))
                 if index_suited.size < index_particle.size:
                     energy[index_particle[:index_suited.size]] = energy_played[index_suited]
                     index_particle = np.delete(index_particle, range(index_suited.size))
@@ -119,7 +119,7 @@ class ForceField(ContinuumSpectrum):
                     break
 
             if self.energy_range_units != 'T':
-                energy[index_inverse == i] = ConvertUnits(energy[index_inverse == i], 'T', self.energy_range_units, m, a, z)
+                energy[index_inverse == i] = convert_units(energy[index_inverse == i], 'T', self.energy_range_units, m, a, z)
         return energy
 
     def __str__(self):

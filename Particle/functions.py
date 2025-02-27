@@ -6,7 +6,7 @@ def ConvertR2T(R, M, A, Z):
     # INPUT:
     #       R - rigidity in GV
     #       M - Mass of particle in GV/c^2
-    #       A - Number of nuclons
+    #       A - Number of nucleons
     #       Z - Charge
     # OUTPUT:
     #       E - Kinetic energy in GeV
@@ -24,7 +24,7 @@ def ConvertT2R(T, M, A, Z):
     # INPUT:
     #       T - Kinetic energy in GeV
     #       M - Mass of particle in GV/c^2
-    #       A - Number of nuclons
+    #       A - Number of nucleons
     #       Z - Charge
     # OUTPUT:
     #       R - Rigidity in GV
@@ -35,28 +35,30 @@ def ConvertT2R(T, M, A, Z):
 
     return R
 
-def ConvertUnits(Energy, FromUnits, ToUnits, M, A, Z):
-    match FromUnits:
-        case 'T':
-            match ToUnits:
-                case 'R':
-                    EnergyConverted = ConvertT2R(Energy, M, A, Z)
-                case 'E':
-                    EnergyConverted = Energy * A
-        case 'R':
-            match ToUnits:
-                case 'T':
-                    EnergyConverted = ConvertR2T(Energy, M, A, Z)
-                case 'E':
-                    EnergyConverted = ConvertR2T(Energy, M, A, Z) * A
-        case 'E':
-            match ToUnits:
-                case 'T':
-                    EnergyConverted = Energy / A
-                case 'R':
-                    EnergyConverted = ConvertT2R(Energy / A, M, A, Z)
 
-    return EnergyConverted
+def convert_units(energy, from_units, to_units, m, a, z):
+    energy_converted = np.zeros_like(energy)
+    match from_units:
+        case 'T':
+            match to_units:
+                case 'R':
+                    energy_converted = ConvertT2R(energy, m, a, z)
+                case 'E':
+                    energy_converted = energy * a
+        case 'R':
+            match to_units:
+                case 'T':
+                    energy_converted = ConvertR2T(energy, m, a, z)
+                case 'E':
+                    energy_converted = ConvertR2T(energy, m, a, z) * a
+        case 'E':
+            match to_units:
+                case 'T':
+                    energy_converted = energy / a
+                case 'R':
+                    energy_converted = ConvertT2R(energy / a, m, a, z)
+
+    return energy_converted
 
 
 def GetAntiParticle(particle):
