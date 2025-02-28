@@ -513,6 +513,7 @@ class GTSimulator(ABC):
                 LocalCoordinate = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
+            Step = self.Step
             Saves = np.zeros((self.Npts + 1, 17))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
@@ -538,13 +539,12 @@ class GTSimulator(ABC):
             E = particle.E
             T = particle.T
 
-            # TODO: optimize calculation of neutral particles
-            if Q == 0:  # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
-                self.Step *= 1e2  # !!! TEMPORARY FOR FASTER CALCULATIONS !!!
+            if Q == 0:
+                Step *= 1e2
 
             r = np.array(particle.coordinates)
 
-            V_normalized = np.array(particle.velocities)  # unit vector of velosity (beta vector)
+            V_normalized = np.array(particle.velocities)  # unit vector of velocity (beta vector)
             V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E  # scalar speed [m/s]
             Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
@@ -556,15 +556,15 @@ class GTSimulator(ABC):
                 print(f"\t\t\tCoordinates: {r} [m]")
                 print(f"\t\t\tVelocity: {V_normalized}")
                 print(f"\t\t\tbeta: {V_norm / Constants.c}")
-                print(f"\t\t\tbeta*dt: {V_norm * self.Step / 1000} [km] / "
-                      f"{V_norm * self.Step} [m]")
+                print(f"\t\t\tbeta*dt: {V_norm * Step / 1000} [km] / "
+                      f"{V_norm * Step} [m]")
 
             # Calculation of EAS for magnetosphere
             self.Region.value.do_before_loop(self, Gen, prod_tracks)
 
-            q = self.Step * Q / 2 / (M * Units.MeV2kg) if M != 0 else 0
+            q = Step * Q / 2 / (M * Units.MeV2kg) if M != 0 else 0
             brk = BreakCode["Loop"]
-            Step = self.Step
+
             Num = self.Num
             Nsave = self.Nsave if self.Nsave != 0 else Num + 1
             i_save = 0
@@ -591,7 +591,7 @@ class GTSimulator(ABC):
                     Vm = Vp
                 else:
                     Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
-                                                                                   self.Step, self.ForwardTracing,
+                                                                                   Step, self.ForwardTracing,
                                                                                    self.UseRadLosses[1:], particle, Gen,
                                                                                    Constants,
                                                                                    synch_record)
