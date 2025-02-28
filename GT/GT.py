@@ -257,12 +257,12 @@ class GTSimulator(ABC):
 
         self.ParticleOrigin = ParticleOrigin
         self.ParticleOriginIsOn = False
-        self.TrackParamsIsOn = False
-        self.TrackParams = self.Region.value.SaveAdd
         if self.ParticleOrigin:
             self.ParticleOriginIsOn = True
             TrackParams = True
 
+        self.TrackParamsIsOn = False
+        self.TrackParams = self.Region.value.SaveAdd
         self.__SetAdditions(TrackParams)
 
         if self.TrackParamsIsOn:
@@ -270,6 +270,17 @@ class GTSimulator(ABC):
                 Save = [Save, {"Bfield": True}]
             elif "Bfield" not in Save[1]:
                 Save[1] = Save[1] | {"Bfield": True}
+
+        self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
+        self.Output = Output
+        self.Npts = 2
+        self.Save = SaveDef.copy()
+        if self.Verbose:
+            print(f"\tNumber of files: {self.Nfiles}")
+            print(f"\tOutput file name: {self.Output}_file_num.npy")
+        self.__SetSave(Save)
+        if self.Verbose:
+            print()
 
         self.IsFirstRun = IsFirstRun
 
@@ -294,17 +305,6 @@ class GTSimulator(ABC):
         self.Particles = None
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
-        if self.Verbose:
-            print()
-
-        self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
-        self.Output = Output
-        self.Npts = 2
-        self.Save = SaveDef.copy()
-        if self.Verbose:
-            print(f"\tNumber of files: {self.Nfiles}")
-            print(f"\tOutput file name: {self.Output}_file_num.npy")
-        self.__SetSave(Save)
         if self.Verbose:
             print()
 
@@ -486,6 +486,8 @@ class GTSimulator(ABC):
                     print("\tFile saved!")
             else:
                 Track.append(RetArr)
+            del RetArr
+
         if self.Verbose:
             print("Simulation completed!")
         if self.Output is None:
@@ -592,16 +594,23 @@ class GTSimulator(ABC):
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
 
                 if self.UseRadLosses[1]:
-                    synch_record.add_iteration(T, np.array(self.Bfield.GetBfield(r[0], r[1], r[2])), Vm, Step)
-                if self.UseRadLosses[0]:
-                    Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
-                                                                                   self, particle, Gen, synch_record)
-                    prod_tracks.extend(new_photons)
-                else:
+                    synch_record.add_iteration(T,
+                                               np.array(self.Bfield.GetBfield(r[0], r[1], r[2])),
+                                               Vm, Step)
+                if not self.UseRadLosses[0]:
+                    T = M * (Yp - 1)
                     Vm = Vp
-                    T = M * (Yp - 1) if M != 0 else T
+                else:
+                    Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
+                                                                                   self.Step, self.ForwardTracing,
+                                                                                   self.UseRadLosses[1:], particle, Gen,
+                                                                                   Constants,
+                                                                                   synch_record)
+                    prod_tracks.extend(new_photons)
+
                 if UseAdditionalEnergyLosses:
-                    Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing, Constants.c)
+                    Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
+                                                                     Constants.c)
 
                 V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 

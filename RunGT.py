@@ -47,7 +47,7 @@ Medium = GTnrlmsis(date=Date, version=0)
 # Flux = {"Distribution": "Disk", "Nevents": 10000, "T": 200, "Radius": 14, "Width": 0.2}
 Particles = FluxPitchPhase(Names='pr', Radius=0, Center=np.array([1.2*U.RE, 0, 0]), T=20*U.GeV, Nevents=20,
                            Pitch=np.pi/4, Phase=np.pi/6, Mode="Outward", Bfield=Bfield)
-Particles.GenerateCoordinates()
+# Particles.GenerateCoordinates()
 
 
 UseDecay = False
@@ -65,6 +65,6 @@ Verbose = True
 
 BreakConditions = None
 
-simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(1e3),
+simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Particles, Num=int(1e3),
                                   Step=1e-5, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
                                   InteractNUC=NuclearInteraction, BreakCondition=BreakConditions, ForwardTrck=1)
