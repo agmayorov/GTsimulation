@@ -1,5 +1,6 @@
 from collections.abc import Sequence, Iterable
-from datetime import datetime
+
+import numpy as np
 
 from Particle.Generators import GeneratorModes
 from Particle.Generators import Monolines, SphereSurf
@@ -16,13 +17,14 @@ class Flux(Sequence):
         self.V0 = V0
         self.particles = []
         self.kinetic_energy = None
-        self._spectrum = Spectrum(flux_object=self, *args, **kwargs)
-        self._distribution = Distribution(FluxObj=self, *args, **kwargs)
+        self._spectrum = Spectrum
+        self._spectrum.flux = self
+        self._distribution = Distribution
+        self._distribution.flux = self
         # self.Generate()
 
     def Generate(self):
-        self.particles = []
-        self.GenerateCoordinates()
+        self.generate_coordinates()
         self.GenerateParticles()
         self.generate_energy_spectrum()
         self.particles = []
@@ -30,7 +32,7 @@ class Flux(Sequence):
             self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
 
     def generate_energy_spectrum(self, *args, **kwargs):
-        self.kinetic_energy = self._spectrum.generate_energy_spectrum()
+        self.kinetic_energy = self._spectrum.generate_energy_spectrum(*args, **kwargs)
 
     def GenerateParticles(self):
         if isinstance(self.Names, (Iterable, Sequence)) and not isinstance(self.Names, str):
@@ -41,8 +43,8 @@ class Flux(Sequence):
         else:
             self.ParticleNames = [self.Names] * self.Nevents
 
-    def GenerateCoordinates(self, *args, **kwargs):
-        self.r, self.v = self._distribution.GenerateCoordinates(*args, **kwargs)
+    def generate_coordinates(self, *args, **kwargs):
+        self.r, self.v = self._distribution.generate_coordinates(*args, **kwargs)
 
     def __getitem__(self, item):
         return self.particles[item]
@@ -59,7 +61,7 @@ class Flux(Sequence):
         s += f"""
         V: {self.V0 if self.V0 is not None else 'Isotropic'}
         Spectrum: {str(self._spectrum)}
-        Distribution: {str(self._distrgenerate_energy_spectrumibution)}"""
+        Distribution: {str(self._distribution)}"""
 
         return s
 
@@ -120,7 +122,7 @@ class GyroCenterFlux(Flux):
             masses[i] = p.M
             charges[i] = p.Z
 
-        r_lar = self.larmor(self.KinEnergy, self.Bm, masses, charges, self.pitchd.flatten())[:, np.newaxis]
+        r_lar = self.larmor(self.kinetic_energy, self.Bm, masses, charges, self.pitchd.flatten())[:, np.newaxis]
         B3 = self.B/self.Bm
         B1 = np.copy(B3)
         B1[0] = -(B1[1] ** 2 + B1[2] ** 2) / B1[0]
@@ -133,7 +135,7 @@ class GyroCenterFlux(Flux):
         self.v = init_v
         self.r = init_coo
         for i in range(self.Nevents):
-            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.KinEnergy[i], Name=self.ParticleNames[i]))
+            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
 
     @staticmethod
     def larmor(T, Bm, M, Z, pitchd):

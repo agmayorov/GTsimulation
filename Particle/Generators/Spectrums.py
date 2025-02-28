@@ -8,7 +8,7 @@ from Particle.functions import convert_units
 
 
 class AbsSpectrum(ABC):
-    def __init__(self, flux_object=None, *args, **kwargs):
+    def __init__(self, flux_object=None):
         self.flux = flux_object
 
     @abstractmethod
@@ -21,6 +21,7 @@ class AbsSpectrum(ABC):
 
     def __str__(self):
         return self.to_string()
+
 
 class ContinuumSpectrum(AbsSpectrum):
     def __init__(self, energy_min=500., energy_max=10000., *args, **kwargs):

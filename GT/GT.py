@@ -1,11 +1,9 @@
 import math
 import os
 import numpy as np
-import importlib
 import datetime
 
 import warnings
-warnings.simplefilter("always")
 
 from numba import jit
 from abc import ABC, abstractmethod
@@ -17,7 +15,7 @@ from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, S
 from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
 from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
-
+warnings.simplefilter("always")
 
 class GTSimulator(ABC):
     """
@@ -262,6 +260,7 @@ class GTSimulator(ABC):
             elif "Bfield" not in Save[1]:
                 Save[1] = Save[1] | {"Bfield": True}
 
+        self.IsFirstRun = IsFirstRun
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
         self.Output = Output
         self.Npts = 2
@@ -273,7 +272,6 @@ class GTSimulator(ABC):
         if self.Verbose:
             print()
 
-        self.IsFirstRun = IsFirstRun
 
         self.Bfield = None
         self.Efield = None

@@ -1,8 +1,8 @@
-from enum import Enum
-
 import numpy as np
 
 from abc import ABC, abstractmethod
+from enum import Enum
+
 
 class GeneratorModes(Enum):
     Inward = 1
@@ -10,11 +10,11 @@ class GeneratorModes(Enum):
 
 
 class AbsDistribution(ABC):
-    def __init__(self, FluxObj=None, *args, **kwargs):
-        self.flux = FluxObj
+    def __init__(self, flux_object=None):
+        self.flux = flux_object
 
     @abstractmethod
-    def GenerateCoordinates(self, *args, **kwargs):
+    def generate_coordinates(self, *args, **kwargs):
         return [], []
 
     def generate_random_v(self):
@@ -53,19 +53,19 @@ class SphereSurf(AbsDistribution):
         self.Radius = Radius
         super().__init__(*args, **kwargs)
 
-    def GenerateCoordinates(self):
+    def generate_coordinates(self):
         Ro = self.Radius
         Rc = self.Center
-        r_ret, v = [], []
+        theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
+        phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
+        r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
+        r_ret = r * Ro + Rc
+        v = []
         if self.flux.V0 is not None:
             v = np.tile(self.flux.V0, (self.flux.Nevents, 1)) / np.linalg.norm(self.flux.V0)
         else:
             match self.flux.Mode:
                 case GeneratorModes.Inward:
-                    theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-                    phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-                    r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
-                    r_ret = r * Ro + Rc
                     if hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
                         v = self.generate_v_pitch(r_ret)
                     else:
@@ -83,10 +83,6 @@ class SphereSurf(AbsDistribution):
                         p = np.concatenate((-sin_theta * np.cos(phi), -sin_theta * np.sin(phi), -cos_theta))
                         v = np.concatenate([S[:, :, i] @ p[:, :, i] for i in range(self.flux.Nevents)], axis=1).T
                 case GeneratorModes.Outward:
-                    theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
-                    phi = 2 * np.pi * np.random.rand(self.flux.Nevents, 1)
-                    r = np.concatenate((np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)), axis=1)
-                    r_ret = r * Ro + Rc
                     if hasattr(self.flux, "Bfield") and self.flux.Pitch is not None:
                         v = self.generate_v_pitch(r_ret)
                     else:
@@ -108,7 +104,7 @@ class SphereVol(AbsDistribution):
         self.Radius = Radius
         super().__init__(*args, **kwargs)
 
-    def GenerateCoordinates(self):
+    def generate_coordinates(self):
         Ro = self.Radius
         Rc = self.Center
         theta = np.arccos(1 - 2 * np.random.rand(self.flux.Nevents, 1))
@@ -144,7 +140,7 @@ class Disk(AbsDistribution):
         self.Width = Width
         super().__init__(*args, **kwargs)
 
-    def GenerateCoordinates(self):
+    def generate_coordinates(self):
         Ro = self.Radius
         Width = self.Width
         z = np.random.rand(self.flux.Nevents, 1)*Width/2 - Width/2
@@ -179,7 +175,7 @@ class UserInput(AbsDistribution):
         self.r = np.array(R0, ndmin=2)
         self.v = np.array(self.flux.V0, ndmin=2)
 
-    def GenerateCoordinates(self, *args, **kwargs):
+    def generate_coordinates(self, *args, **kwargs):
         if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
             raise ValueError("The number of initial coordinates and velocities does not correspond to the number of "
                              "particles")
@@ -192,4 +188,3 @@ class UserInput(AbsDistribution):
         V0 shape: {self.v.shape}"""
 
         return s
-
