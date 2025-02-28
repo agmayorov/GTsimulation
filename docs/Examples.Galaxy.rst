@@ -8,15 +8,14 @@ To give that kind of break condition, we define the `R_max`-the maxium distance,
 
 .. code-block:: python
 
-    BreakConditions = {'Rmax': 28.5*Units.kpc}
-    BCcenter = np.array([-8.5, 0, 0])*Units.kpc
+    BreakConditions = [{'Rmax': 28.5*Units.kpc}, np.array([-8.5, 0, 0])*Units.kpc]
 
 
 The trajectories are calculated in JF12mod field, without and distrubances in the field (as energy is too high and particles' diffusion is small).
 
 .. code-block:: python
 
-    Bfield = ["JF12mod", {"use_noise": False}]
+    Bfield = JF12mod(use_noise = False)
 
 
 We define the `Flux` parameter to initialize particles. Unlike the example in the Magnetosphere_ example the backtracking is achieved with `"Mode": "Outward"`, while there
@@ -27,13 +26,11 @@ we used `ForwardTrck=-1`. Nevertheless the two methods are equivalent.
 
 .. code-block:: python
 
-    Flux =  {"Spectrum": "Monolines", 
-            'Center': np.array([-8.5,  0. ,  0. ])*Units.kpc, 
-            'Radius': 0, 
-            'Nevents': 100, 
-            'Mode': 'Outward',
-            'T': 60e3*Units.PeV, 
-            'Names': 'pr'}
+    InitialFlux =  Flux(Spectrum = Monolines(energy=60e3*Units.PeV), 
+                        Distribution = SphereSurf(Center = np.array([-8.5,  0. ,  0. ])*Units.kpc, Radius=0),
+                        Nevents= 100, 
+                        Mode = 'Outward',
+                        Names = 'pr')
 
 .. code-block:: python
 
@@ -45,6 +42,9 @@ we used `ForwardTrck=-1`. Nevertheless the two methods are equivalent.
 
     from Global import Regions, Units
     from GT.Algos import BunemanBorisSimulator
+    from Particles import Flux
+    from Particles.Generators import Monolines, SphereSurf
+    from MagneticFields.Galaxy import JF12mod
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder")
@@ -57,18 +57,16 @@ we used `ForwardTrck=-1`. Nevertheless the two methods are equivalent.
 
     np.random.seed(seed)
     Region = Regions.Galaxy
-    Bfield = ["JF12mod", {"use_noise": False}]
+    Bfield = JF12mod(use_noise = False)
 
     Date = datetime(2008, 1, 1)
 
     Medium = None
-    Flux =  {"Spectrum": "Monolines", 
-            'Center': np.array([-8.5,  0. ,  0. ])*Units.kpc, 
-            'Radius': 0, 
-            'Nevents': 100, 
-            'Mode': 'Outward',
-            'T': 60e3*Units.PeV, 
-            'Names': 'pr'}
+    InitialFlux =  Flux(Spectrum = Monolines(energy=60e3*Units.PeV), 
+                        Distribution = SphereSurf(Center = np.array([-8.5,  0. ,  0. ])*Units.kpc, Radius=0),
+                        Nevents= 100, 
+                        Mode = 'Outward',
+                        Names = 'pr')
     UseDecay = False
     NuclearInteraction = None
 
@@ -79,10 +77,9 @@ we used `ForwardTrck=-1`. Nevertheless the two methods are equivalent.
 
     Verbose = True
 
-    BreakConditions = {'Rmax': 28.5*Units.kpc}
-    BCcenter = np.array([-8.5, 0, 0])*Units.kpc
+    BreakConditions = [{'Rmax': 28.5*Units.kpc}, np.array([-8.5, 0, 0])*Units.kpc]
 
-    simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=Flux, Num=int(100000000),
+    simulator = BunemanBorisSimulator(Date=Date, Region=Region, Bfield=Bfield, Medium=Medium, Particles=InitialFlux, Num=int(100000000),
                                     Step=1000000, Save=Save, Nfiles=Nfiles, Output=Output, Verbose=Verbose, UseDecay=UseDecay,
                                     InteractNUC=NuclearInteraction, BreakCondition=BreakConditions)
     simulator()

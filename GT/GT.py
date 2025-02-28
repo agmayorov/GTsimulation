@@ -19,30 +19,26 @@ from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
 
 
-
 class GTSimulator(ABC):
     """
     Description
 
     :param Region: The region of the in which the simulation is taken place. The parameter may have values as
                    `Global.Region.Magnetosphere`, `Global.Region.Heliosphere`, `Global.Region.Galaxy`.
-                   See :py:mod:`Global.regions`. If list the second element defines region specific parameters. See
-                   :py:mod:`Global.regions._AbsRegion.set_params`. Example: for the heliosphere one may pass
-                   `{"CalcAdditionalEnergy": True}` which will take into account the adibatic energy losses of the
-                   particles.
-    :type Region: Global.Region or list
+                   See :py:mod:`Global.regions`. See also :py:mod:`Global.regions._AbsRegion.set_params` for additional
+                   energy losses.
+                   Example: one mau need to take into account the adiabatic energy losses in the heliosphere.
+                   In that case they call `set_params(True)`.
+    :type Region: :py:mod:`Global.regions.Regions`
 
-    :param Bfield: The name of the magnetic field. It should be inside the package :py:mod:`MagneticFields` in the
-                   corresponding `Region`. To add some parameters use `list` format and pass the parameters as a `dict`.
-                   Example `[NAME, {"param1": value1, "param2": value2}]`
-    :type Bfield: str or list
+    :param Bfield: The magentic field object
+    :type Bfield: :py:mod:`MagneticFields.magnetic_field.AbsBfield`
 
     :param Efield: Electrical field. Similar to :ref:`Bfield`
-    :type Efield: str or list
+    :type Efield: None
 
-    :param Medium: The medium where particles may go into an interaction. Syntax similar to :ref:`Bfield`.
-                   See :py:mod:`Medium`.
-    :type Medium: str or list
+    :param Medium: The medium where particles may go into an interaction. See :py:mod:`Medium`.
+    :type Medium: :py:mod:`Medium.general_medium.GTGeneralMedium`
 
     :param Date: Date that is used to initialize the fields
     :type Date: datetime.datetime
@@ -50,17 +46,12 @@ class GTSimulator(ABC):
     :param RadLosses: a `bool` flag that turns the calculations of radiation losses of the particles on.
     :type RadLosses: bool
 
-    :param Particles: The parameter is responsible for the initial particle flux generation. Its value defines the
-                      energetic spectrum of the particles. Other parameters the type of particles, their number, e.t.c.
-                      The structure is similar  to :ref:`Bfield`. The list of available energy spectrums is available
-                      here :py:mod:`Particle.Generators.Spectrums`. For more information regarding flux also
-                      see :py:mod:`Particle.Flux`.
-
-                      **Note**: that instead of `Center` parameter `Transform` may be passed
-                      its value has the following form `[Name of the coordinate system, [coordinates]]`. Example
-                      `["LLA", [60, 70, 1000]]` (lat [degree], long [degree], alt [meters]).
-                      See :py:mod:`Global.regions._AbsRegion.transform` for available transforms to a given region.
-    :type Particles: str or list
+    :param Particles: The parameter is responsible for the initial particle flux generation. It defines the initial
+                      particle spectrum, distribution and chemical composition. See
+                      :py:mod:`Particle.Generators.Spectrums` and :py:mod:`Particle.Generators.Distributions` for
+                      available initial spectrums and distributions respectively. For more information regarding flux
+                      also see :py:mod:`Particle.Flux`.
+    :type Particles: :py:mod:`Particle.Flux`
 
     :param TrackParams: a 'bool' flag that turns the calculations of additional parameters in given region.
                 If 'True' all the additional parameters will be calculated. Other parameters that one doesn't need

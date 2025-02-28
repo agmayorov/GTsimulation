@@ -28,10 +28,10 @@ MagneticFields.Magnetosphere.Gauss module
    :undoc-members:
    :show-inheritance:
 
-MagneticFields.Magnetosphere.Summary module
+MagneticFields.Magnetosphere.Summed module
 -------------------------------------------
 
-.. automodule:: MagneticFields.Magnetosphere.Summary
+.. automodule:: MagneticFields.Magnetosphere.Summed
    :members:
    :undoc-members:
    :show-inheritance:

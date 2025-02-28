@@ -8,29 +8,14 @@ radius of earth, and the velocity along :math:`-\vec{r}`. Calculations are done 
 
 .. code-block:: python
 
-    Bfield = ["Gauss", {'model': "IGRF", "model_type": "core", "version": 13}]
+    Bfield = Gauss(model = "IGRF", model_type = core, version = 13)
+    InitialFlux = Flux(Spectrum = Monolines(energy = np.linspace(4.30, 6.00, 171) * Units.GeV),
+                       Distribution = SphereSurf(Center = np.array([0.8139, 0, 0.6829]) * Units.RE, V0 = np.array([-0.8139, 0, -0.6829]), Radius=0)
+                       Names = "apr",
+                       Nevents = 171)
 
-where the first element, is
-the set of magentic fields calculated via *Gauss* parameters, and the `'model': "IGRF"`, tells GT to use the parameters for
-IGRF (an alternative for the magentic field is `Bfield = "Dipole"`, where we consider the magnetic field of a dipole),
-`Flux` parameters which defines the kinetic energies of the particles
 
-.. code-block:: python
-
-    "T": np.linspace(4.30, 6.00, 171) * Units.GeV
-their velocity
-
-.. code-block:: python
-
-    "V0": np.array([-0.8139, 0, -0.6829])
-
-and the initial position
-
-.. code-block:: python
-
-    {"Center": np.array([0.8139, 0, 0.6829]) * Units.RE, "Radius": 0}
-
-The particles are generated on the surface of a sphere centered in the `Center` and radius of `Radius`.
+Overall the codes looks like:
 
 .. code-block:: python
 
@@ -42,17 +27,16 @@ The particles are generated on the surface of a sphere centered in the `Center` 
     from GT.Algos import BunemanBorisSimulator
 
     Region = Regions.Magnetosphere
-    Bfield = ["Gauss", {'model': "IGRF", "model_type": "core", "version": 13}]
+    Bfield = Gauss(model = "IGRF", model_type = core, version = 13)
     Date = datetime(2006, 6, 15)
 
     Medium = None
+        
+    InitialFlux = Flux(Spectrum = Monolines(energy = np.linspace(4.30, 6.00, 171) * Units.GeV),
+                       Distribution = SphereSurf(Center = np.array([0.8139, 0, 0.6829]) * Units.RE, V0 = np.array([-0.8139, 0, -0.6829]), Radius=0)
+                       Names = "apr",
+                       Nevents = 171)
 
-    Flux = {"T": np.linspace(4.30, 6.00, 171) * Units.GeV,
-            "Names": "apr",
-            "Center": np.array([0.8139, 0, 0.6829]) * Units.RE,
-            "Radius": 0,
-            "V0": np.array([-0.8139, 0, -0.6829]),
-            "Nevents": 171}
     UseDecay = False
     NuclearInteraction = None
 
@@ -64,7 +48,7 @@ The particles are generated on the surface of a sphere centered in the `Center` 
     simulator = BunemanBorisSimulator(Date=Date,
                                       Region=Region,
                                       Bfield=Bfield,
-                                      Particles=Flux,
+                                      Particles=InitialFlux,
                                       Num=int(5e7),
                                       Step=5e-6,
                                       Save=Save,
