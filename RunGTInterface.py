@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from Global import Units as U
+from GTsimulation.Global import Units as U
 from Interface import InterfaceGT
 
 parser = argparse.ArgumentParser()

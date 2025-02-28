@@ -1,0 +1,4 @@
+from .magnetic_field import AbsBfield
+import GTsimulation.MagneticFields.Magnetosphere
+import GTsimulation.MagneticFields.Heliosphere
+import GTsimulation.MagneticFields.Galaxy

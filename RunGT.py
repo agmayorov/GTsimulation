@@ -2,14 +2,14 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from Global import Regions
-from Global import Units as U
-from GT.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
-from MagneticFields.Magnetosphere import Gauss
-from Particle.Flux import Flux, FluxPitchPhase
-from Particle.Generators.Spectrums import Monolines
-from Particle.Generators.Distributions import SphereSurf
-from Medium.Magnetosphere import GTnrlmsis
+from GTsimulation.Global import Regions
+from GTsimulation.Global import Units as U
+from GTsimulation.GT.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
+from GTsimulation.MagneticFields.Magnetosphere import Gauss
+from GTsimulation.Particle.Flux import Flux, FluxPitchPhase
+from GTsimulation.Particle.Generators.Spectrums import Monolines
+from GTsimulation.Particle.Generators.Distributions import SphereSurf
+from GTsimulation.Medium.Magnetosphere import GTnrlmsis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int)
