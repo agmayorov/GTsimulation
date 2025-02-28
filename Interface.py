@@ -99,17 +99,19 @@ def __SetParticles(Particles, Bfield, Region):
         flux_class = getattr(importlib.import_module("Particle"), 'Flux')
     spectrum = Particles.pop("Spectrum", None)
     if spectrum is not None:
-        if hasattr(m, spectrum):
-            spectrum = getattr(m, spectrum)
-            Particles["Spectrum"] = spectrum
+        spectrum_name = spectrum.pop("Name", None)
+        if hasattr(m, spectrum_name):
+            spectrum_class = getattr(m, spectrum_name)
+            Particles["Spectrum"] = spectrum_class(**spectrum)
         else:
             raise Exception("No spectrum")
 
     distribution = Particles.pop("Distribution", None)
     if distribution is not None:
-        if hasattr(m, distribution):
-            distribution = getattr(m, distribution)
-            Particles["Distribution"] = distribution
+        distribution_name = distribution.pop("Name", None)
+        if hasattr(m, distribution_name):
+            distribution_class = getattr(m, distribution_name)
+            Particles["Distribution"] = distribution_class(**distribution)
         else:
             raise Exception("No Distribution")
     transform = Particles.pop("Transform", None)
