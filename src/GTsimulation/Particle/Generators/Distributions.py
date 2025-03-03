@@ -170,21 +170,19 @@ class Disk(AbsDistribution):
 
 
 class UserInput(AbsDistribution):
-    def __init__(self, R0=np.zeros((1, 3)), *args, **kwargs):
+    def __init__(self, R0=np.zeros((1, 3)), V0=np.zeros((1, 3)), *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.r = np.array(R0, ndmin=2)
-        self.v = np.array(self.flux.V0, ndmin=2)
+        self.v = np.array(V0, ndmin=2)
 
     def generate_coordinates(self, *args, **kwargs):
         if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
             raise ValueError("The number of initial coordinates and velocities does not correspond to the number of "
                              "particles")
-
         return self.r, self.v
 
     def to_string(self):
         s = f"""User Input
         R0 shape: {self.r.shape}
         V0 shape: {self.v.shape}"""
-
         return s
