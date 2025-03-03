@@ -147,3 +147,19 @@ class Uniform(ContinuumSpectrum):
         s = f"""Uniform"""
         s_super = super().to_string()
         return s + s_super
+
+
+class UserInput(AbsSpectrum):
+    def __init__(self, energy=0., *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.energy = np.array(energy)
+
+    def generate_energy_spectrum(self, *args, **kwargs):
+        if self.energy.size != self.flux.Nevents:
+            raise ValueError("The number of initial energies does not correspond to the number of particles")
+        return self.energy
+
+    def to_string(self):
+        s = f"""User Input
+        Energy size: {self.energy.size}"""
+        return s
