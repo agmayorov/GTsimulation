@@ -3,12 +3,12 @@ from collections.abc import Sequence, Iterable
 import numpy as np
 
 from Particle.Generators import GeneratorModes
-from Particle.Generators import Monolines, SphereSurf
+from Particle.Generators import AbsDistribution, AbsSpectrum
 from Particle.Particle import CRParticle, Particle
 
 
 class Flux(Sequence):
-    def __init__(self, Spectrum=Monolines, Distribution=SphereSurf, Names='pr', Nevents: int = 1, ToMeters=1, V0=None,
+    def __init__(self, Spectrum: AbsSpectrum, Distribution: AbsDistribution, Names='pr', Nevents: int = 1, ToMeters=1, V0=None,
                  Mode: GeneratorModes | str = GeneratorModes.Inward, *args, **kwargs):
         self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes[Mode]
         self.Nevents = Nevents
