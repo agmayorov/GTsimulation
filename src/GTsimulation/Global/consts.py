@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 
+
 class Constants:
     c = 2.99792458e8  # Speed of light in m/s
     e = 1.602176634e-19  # Elementary charge in C
@@ -70,6 +71,22 @@ class Units:
     GeV = gigaelectronvolt
     TeV = teraelectronvolt
     PeV = petaelectronvolt
+
+    # Rigidity / Potential
+    megavolt = 1
+    volt = 1e-6 * megavolt
+    kilovolt = 1e-3 * megavolt
+    gigavolt = 1e3 * megavolt
+    teravolt = 1e6 * megavolt
+    petavolt = 1e9 * megavolt
+
+    # Symbols
+    V = volt
+    kV = kilovolt
+    MV = megavolt
+    GV = gigavolt
+    TV = teravolt
+    PV = petavolt
 
     # Angles
     degree = 1
