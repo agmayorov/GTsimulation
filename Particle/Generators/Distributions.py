@@ -143,7 +143,7 @@ class Disk(AbsDistribution):
     def generate_coordinates(self):
         Ro = self.Radius
         Width = self.Width
-        z = np.random.rand(self.flux.Nevents, 1)*Width/2 - Width/2
+        z = np.random.rand(self.flux.Nevents, 1)*Width - Width/2
         b_max = 1/2 * Ro**2
         phi = np.random.rand(self.flux.Nevents, 1)*2*np.pi
         b = np.random.rand(self.flux.Nevents, 1) * b_max
