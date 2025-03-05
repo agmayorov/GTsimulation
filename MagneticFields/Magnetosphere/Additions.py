@@ -38,7 +38,7 @@ def FieldLine(simulator, Rinp, sgn):
 
     scale = 1e3 * 6370e3 / np.linalg.norm(Rinp)
 
-    while np.linalg.norm(rline[s, :]) > Units.RE2m:
+    while np.linalg.norm(rline[s, :]) > Units.RE:
         B1, B2, B3 = simulator.Bfield.GetBfield(rline[s, 0], rline[s, 1], rline[s, 2])
         B = np.sqrt(B1 ** 2 + B2 ** 2 + B3 ** 2)
         d1 = sgn * B1 / B
@@ -46,7 +46,7 @@ def FieldLine(simulator, Rinp, sgn):
         d3 = sgn * B3 / B
 
         bline = np.append(bline, np.array([[B1, B2, B3]]), axis=0)
-        rline = np.append(rline, rline[s, :] + Units.RE2m * np.array([[d1, d2, d3]]) / scale, axis=0)
+        rline = np.append(rline, rline[s, :] + Units.RE * np.array([[d1, d2, d3]]) / scale, axis=0)
         s += 1
 
     return rline[1:], bline[1:]
@@ -76,7 +76,7 @@ def GetLarmorRadius(T0, Hn, Z, M, pitch):
 
 
 def GetLshell(I2, Hm):
-    RE = Units.RE2m
+    RE = Units.RE
     k0 = 31100 * 1e-5  # Gauss * RE^3
     k0 *= 1e-4 * RE ** 3  # Tesla * m^3
 
@@ -115,7 +115,6 @@ def GetLshell(I2, Hm):
     return Lshell
 
 
-# TODO finish save option
 def GetTrackParams(Simulator, RetArr_i):
     R = RetArr_i["Track"]["Coordinates"]
     H = RetArr_i["Track"]["Bfield"]
@@ -157,12 +156,12 @@ def GetTrackParams(Simulator, RetArr_i):
             n += 1
         i += 1
 
-    num_mirror = None
-    num_eq_pitch = None
+    num_mirror = np.array([0])
+    num_eq_pitch = np.array([0])
     Hm = None
     Heq = None
     pitch_eq = None
-    num_B0 = None
+    num_B0 = np.array([0])
 
     if a.size > 0:
         num_mirror = np.zeros(a.size, dtype=int)
@@ -184,13 +183,13 @@ def GetTrackParams(Simulator, RetArr_i):
         d = np.argmax(Hn[num_eq_1:])
         num_mirror[-1] = num_eq_1 + d
         if num_mirror.size == 0:
-            num_mirror = None
+            num_mirror = np.array([0])
         else:
             num_mirror = np.unique(num_mirror)
             Hm = Hn[num_mirror]
 
         if num_eq_pitch.size == 0:
-            num_eq_pitch = None
+            num_eq_pitch = np.array([0])
             Heq = None
             pitch_eq = None
         else:
@@ -198,7 +197,7 @@ def GetTrackParams(Simulator, RetArr_i):
             pitch_eq = pitch[num_eq_pitch]
 
         if num_B0.size == 0:
-            num_B0 = None
+            num_B0 = np.array([0])
 
     MirrorPoints = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
 
@@ -286,9 +285,9 @@ def GetTrackParams(Simulator, RetArr_i):
         GuidingCentre["parBeq"] = parBeq
         GuidingCentre["parBB0"] = parBBo
 
-        parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1,
-                                                      Simulator.ParamDict["Date"])
-        parL = np.linalg.norm(parReqNew) / Units.RE2m
+        parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1, Simulator.Bfield.g,
+                                                      Simulator.Bfield.h)
+        parL = np.linalg.norm(parReqNew) / Units.RE
 
         GuidingCentre["parL"] = parL
         GuidingCentre["Req"] = Req
@@ -296,8 +295,9 @@ def GetTrackParams(Simulator, RetArr_i):
         GuidingCentre["BB0"] = BBo
 
         if Bn.size > 0:
-            ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, Simulator.ParamDict["Date"])
-            L = np.linalg.norm(ReqNew) / Units.RE2m
+            ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, Simulator.Bfield.g,
+                                                       Simulator.Bfield.h)
+            L = np.linalg.norm(ReqNew) / Units.RE
         GuidingCentre["L"] = L
 
         GuidingCentre = GuidingCentre | {"Rline": Rline, "Bline": Bline}
@@ -456,8 +456,9 @@ def FindParticleOrigin(Simulator, RetArr_i):
     UseDecay = Simulator.UseDecay
     InteractNUC = Simulator.InteractNUC
     Save = [1, {"Energy": True, "Bfield": True}]
-    if isinstance(Particles, list):
-        Particles[1]["Nevents"] = 1
+
+    Particles.Nevents = 1
+
     BreakCondition = Simulator.ParamDict["BreakCondition"]
     if BreakCondition is None:
         BreakCondition = {"MaxRev": 5}
@@ -486,8 +487,8 @@ def FindParticleOrigin(Simulator, RetArr_i):
             if not isinstance(Particles, list):
                 Particles = [Particles, {"Center": Rf, "V0": Vf}]
             else:
-                Particles[1]["Center"] = Rf
-                Particles[1]["V0"] = Vf
+                Particles.Center = Rf
+                Particles.V0 = Vf
             fGTsim = copy.deepcopy(Simulator)
             fGTsim.__init__(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step,
                             Save=Save, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
@@ -500,13 +501,10 @@ def FindParticleOrigin(Simulator, RetArr_i):
         else:
             if b == 3:
                 s = -1
-                if not isinstance(Particles, list):
-                    Particles = [Particles, {"Center": Rb, "V0": Vb}]
-                else:
-                    Particles[1]["Center"] = Rb
-                    Particles[1]["V0"] = Vb
+                Particles.Center = Rb
+                Particles.V0 = Vb
 
-                bGTsim.RefreshParams(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Save=Save,
+                bGTsim.__init__(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Save=Save,
                                      Step=Step, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
                                      IsFirstRun=False, ForwardTrck=-1, UseDecay=UseDecay, InteractNUC=InteractNUC)
                 bGTtrack = bGTsim()
