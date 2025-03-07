@@ -152,7 +152,7 @@ class Uniform(ContinuumSpectrum):
 class UserInput(AbsSpectrum):
     def __init__(self, energy=0., *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.energy = np.array(energy)
+        self.energy = np.array(energy, ndmin=1)
 
     def generate_energy_spectrum(self, *args, **kwargs):
         if self.energy.size != self.flux.Nevents:

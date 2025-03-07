@@ -13,9 +13,11 @@ from MagneticFields import AbsBfield
 from Medium import GTGeneralMedium
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
+from Particle.Generators import Distributions, Spectrums
 from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
 warnings.simplefilter("always")
+
 
 class GTSimulator(ABC):
     """
@@ -670,11 +672,11 @@ class GTSimulator(ABC):
                                 # Parameters for recursive call of GT
                                 params = self.ParamDict.copy()
                                 params["Date"] += datetime.timedelta(seconds=TotTime)
-                                params["Particles"] = Flux(Names=name_p,
-                                                           T=T_p,
-                                                           Center=r_interaction,
-                                                           Radius=0,
-                                                           V0=V_p)
+                                params["Particles"] = Flux(
+                                    Distribution=Distributions.UserInput(R0=r_interaction, V0=V_p),
+                                    Spectrum=Spectrums.UserInput(energy=T_p),
+                                    Names=name_p
+                                )
                                 if PDGcode_p in self.InteractNUC.get("ExcludeParticleList",
                                                                      []) or T_p < self.InteractNUC.get("Emin", 0):
                                     params["Num"] = 1
@@ -810,11 +812,11 @@ class GTSimulator(ABC):
                 name_p = p["Name"]
 
                 params = self.ParamDict.copy()
-                params["Particles"] = Flux(Names=name_p,
-                                           T=T_p,
-                                           Center=r_p,
-                                           Radius=0,
-                                           V0=V_p)
+                params["Particles"] = Flux(
+                    Distribution=Distributions.UserInput(R0=r_p, V0=V_p),
+                    Spectrum=Spectrums.UserInput(energy=T_p),
+                    Names=name_p
+                )
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                 new_process = self.__class__(**params)
                 new_process.__gen = Gen + 1

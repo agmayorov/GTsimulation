@@ -1,15 +1,15 @@
 import numpy as np
 import warnings
 
-warnings.simplefilter("always")
-
 from enum import Enum
 from abc import ABC, abstractmethod
 from numba import jit
 from pyproj import Transformer
 
 from Particle import CRParticle, Flux
+from Particle.Generators import Distributions, Spectrums
 from Interaction import G4Shower
+warnings.simplefilter("always")
 
 
 class _AbsRegion(ABC):
@@ -142,11 +142,11 @@ class _Magnetosphere(_AbsRegion):
                             warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
                             continue
                         params = simulator.ParamDict.copy()
-                        params["Particles"] = Flux(Names=name_p,
-                                                   T=p['KineticEnergy'],
-                                                   Center=p['Position'],
-                                                   Radius=0,
-                                                   V0=p['MomentumDirection'])
+                        params["Particles"] = Flux(
+                            Distribution=Distributions.UserInput(R0=p['Position'], V0=p['MomentumDirection']),
+                            Spectrum=Spectrums.UserInput(energy=p['KineticEnergy']),
+                            Names=name_p
+                        )
                         if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
                             params["Medium"] = None
                             params["InteractNUC"] = None
