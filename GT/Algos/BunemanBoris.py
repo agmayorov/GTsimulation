@@ -27,9 +27,9 @@ class BunemanBorisSimulator(GTSimulator):
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def __algo(E, H, M, T, V, q, c):
+    def __algo(E, H, M, T_particle, V, q, c):
         H_norm = np.linalg.norm(H)
-        Yp = T / M + 1
+        Yp = T_particle / M + 1
         if H_norm == 0:
             return V, Yp, Yp
         Ui = Yp * V
