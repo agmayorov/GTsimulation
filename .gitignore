@@ -9,6 +9,7 @@ test*
 
 Interaction/Atmosphere
 Interaction/MatterLayer
+Interaction/DecayGenerator
 
 RunGT_*
 Scripts/Galaxy/medium

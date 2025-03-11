@@ -65,7 +65,8 @@ def G4Interaction(PDG, E, m, rho, w):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    cmd = f"'{path}'/MatterLayer {PDG} {E} {m} {rho} {' '.join(map(str, w))}"
+    seed = np.random.randint(2147483647)
+    cmd = f"'{path}'/MatterLayer {seed} {PDG} {E} {m} {rho} {' '.join(map(str, w))}"
     result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
@@ -136,7 +137,8 @@ def G4Decay(PDG, E):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    cmd = f"'{path}'/DecayGenerator {PDG} {E}"
+    seed = np.random.randint(2147483647)
+    cmd = f"'{path}'/DecayGenerator {seed} {PDG} {E}"
     result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
@@ -232,7 +234,8 @@ def G4Shower(PDG, E, r, v, date):
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
-    cmd = f"'{path}'/Atmosphere {PDG} {E} {r[0] / 1e3} {r[1] / 1e3} {r[2] / 1e3} {v[0]} {v[1]} {v[2]} {earth_radius} {doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}"
+    seed = np.random.randint(2147483647)
+    cmd = f"'{path}'/Atmosphere {seed} {PDG} {E} {r[0] / 1e3} {r[1] / 1e3} {r[2] / 1e3} {v[0]} {v[1]} {v[2]} {earth_radius} {doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}"
     result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))

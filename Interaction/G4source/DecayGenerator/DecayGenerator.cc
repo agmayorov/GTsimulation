@@ -4,8 +4,6 @@
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
 
-#include <chrono>
-
 #ifdef USE_VISUALIZATION
   #include "G4UImanager.hh"
   #include "G4UIExecutive.hh"
@@ -17,19 +15,20 @@ using namespace DecayGenerator;
 int main(int argc, char* argv[])
 {
   // Read input
-  // Input example: ./DecayGenerator 15 500
+  // Input example: ./DecayGenerator 0 15 500
   if (argc != 3) {
     G4cout << "Wrong number of input parameters" << G4endl;
     return 0;
   }
   // Read values of input variables
-  G4int particlePDG = atoi(argv[1]); // PDG code of particle
-  G4double energy   = atof(argv[2]); // MeV
+  G4long seed       = atol(argv[1]);
+  G4int particlePDG = atoi(argv[2]); // PDG code of particle
+  G4double energy   = atof(argv[3]); // MeV
   G4cout << "Input particlePDG: " << particlePDG << "\n"
-         << "Input energy: " << energy << " MeV" << G4endl;
+         << "Input energy: " << energy << " MeV" << "\n\n"
+         << "Seed: " << seed << "\n" << G4endl;
 
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
-  auto seed = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   CLHEP::HepRandom::setTheSeed(seed);
 
   // Construct RunManager and initialize G4 kernel
