@@ -49,7 +49,7 @@ class GTSimulator(ABC):
     :param Particles: The parameter is responsible for the initial particle flux generation. It defines the initial
                       particle spectrum, distribution and chemical composition. See
                       :py:mod:`Particle.Generators.Spectrums` and :py:mod:`Particle.Generators.Distributions` for
-                      available initial spectrums and distributions respectively. For more information regarding flux
+                      available initial spectra and distributions respectively. For more information regarding flux
                       also see :py:mod:`Particle.Flux`.
     :type Particles: :py:mod:`Particle.Flux`
 
@@ -513,6 +513,7 @@ class GTSimulator(ABC):
                     len(self.Medium.chemical_element_list)), 0, 0
                 LocalPathDenVector = np.empty(0)
                 LocalCoordinate = np.empty([0, 3])
+                LocalVelocity = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
             Step = self.Step
@@ -616,6 +617,7 @@ class GTSimulator(ABC):
                         LocalPathDen += PathDen
                         LocalPathDenVector = np.append(LocalPathDenVector, LocalPathDen)
                         LocalCoordinate = np.append(LocalCoordinate, r[None, :], axis=0)
+                        LocalVelocity = np.append(LocalVelocity, Vm[None, :], axis=0)
 
                 # Decay
                 if tau and not self.IsPrimDeath:
@@ -626,7 +628,7 @@ class GTSimulator(ABC):
 
                 # Nuclear Interaction
                 if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not self.IsPrimDeath:
-                    # Construct Rotation Matrix & Save velosity before possible interaction
+                    # Construct Rotation Matrix & Save velocity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal,
                                                        LocalChemComp / nLocal)
@@ -642,6 +644,7 @@ class GTSimulator(ABC):
                             len(self.Medium.chemical_element_list)), 0, 0
                         LocalPathDenVector = np.empty(0)
                         LocalCoordinate = np.empty([0, 3])
+                        LocalVelocity = np.empty([0, 3])
                     else:
                         # Death due to ionization losses or nuclear interaction
                         self.IsPrimDeath = True
@@ -650,14 +653,14 @@ class GTSimulator(ABC):
                                 print(
                                     f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
                                 print(secondary)
-                            # Cordinates of interaction point in XYZ
+                            # Coordinates of interaction point in XYZ
                             path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (
                                     LocalDen * 1e-3 / nLocal)  # Path in cylinder [g/cm2]
                             r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
+                            v_interaction = LocalVelocity[np.argmax(LocalPathDenVector > path_den_cylinder), :]
+                            rotationMatrix = vecRotMat(np.array([0, 0, 1]), v_interaction / np.linalg.norm(v_interaction))
                             for p in secondary:
                                 V_p = rotationMatrix @ p['MomentumDirection']
-                                # TODO: possible wrong using of rotation matrix for secondary particles
-                                # because this rotation matrix do not correspond to r_interaction point
                                 T_p = p['KineticEnergy']
                                 PDGcode_p = p["PDGcode"]
                                 # Try to find a particle (TODO: REMOVE IN THE FUTURE)
@@ -713,7 +716,6 @@ class GTSimulator(ABC):
                     lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i,
                                                                              a_, b_)
 
-                # if i % (self.Num // 100) == 0:
                 brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
                 if brck[0] or self.IsPrimDeath:
