@@ -585,19 +585,17 @@ class GTSimulator(ABC):
                 Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
 
                 if self.UseRadLosses[1]:
-                    synch_record.add_iteration(T,
-                                               np.array(self.Bfield.GetBfield(r[0], r[1], r[2])),
-                                               Vm, Step)
-                if not self.UseRadLosses[0]:
-                    T = M * (Yp - 1)
-                    Vm = Vp
-                else:
+                    synch_record.add_iteration(T, np.array(self.Bfield.GetBfield(r[0], r[1], r[2])), Vm, Step)
+                if self.UseRadLosses[0]:
                     Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
                                                                                    Step, self.ForwardTracing,
                                                                                    self.UseRadLosses[1:], particle, Gen,
                                                                                    Constants,
                                                                                    synch_record)
                     prod_tracks.extend(new_photons)
+                elif M > 0:
+                    T = M * (Yp - 1)
+                    Vm = Vp
 
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
