@@ -9,7 +9,7 @@ from pyproj import Transformer
 from .settings import path_geant4
 
 
-def G4Interaction(PDG, E, m, rho, w):
+def G4Interaction(PDG, E, m, rho, element_name, element_abundance):
     """
     The function calls executable binary program that calculate interaction of the charge particle
     with matter at a given path length and outputs information about secondary particles.
@@ -32,8 +32,11 @@ def G4Interaction(PDG, E, m, rho, w):
     :param rho: Density of medium [g/cm^3]
     :type rho: float
 
-    :param w: Medium composition, sum must be equal 1
-    :type w: float or array_like
+    :param element_name: List of chemical elements that make up the medium
+    :type element_name: list
+
+    :param element_abundance: Medium composition, sum must be equal 1
+    :type element_abundance: array_like
 
     :return: primary
 
@@ -57,16 +60,15 @@ def G4Interaction(PDG, E, m, rho, w):
     """
 
     # Argument checking
-    if np.sum(w) < 0.999:
-        raise ValueError('G4Int: total sum of medium fractions is not equal 1')
-    # Fractions of H, He, N, O, Ar
-    if len(w) != 5:
-        raise ValueError('G4Int: wrong number of fractions (atmosphere)')
+    if len(element_name) != len(element_abundance):
+        raise ValueError('The number of elements does not correspond to the number of their fractions')
+    if not 0.999 < np.sum(element_abundance) < 1.001:
+        raise ValueError('Total sum of medium fractions is not equal to 1')
 
     # Calling an executable binary program
     path = os.path.dirname(__file__)
     seed = np.random.randint(2147483647)
-    cmd = f"'{path}'/MatterLayer {seed} {PDG} {E} {m} {rho} {' '.join(map(str, w))}"
+    cmd = f"'{path}'/MatterLayer {seed} {PDG} {E} {m} {rho} {' '.join([f'{n} {a}' for n, a in zip(element_name, element_abundance)])}"
     result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
@@ -224,7 +226,7 @@ def G4Shower(PDG, E, r, v, date):
     # Calculating input parameters
     geo_to_lla = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
                                       {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
-    lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
+    lon, lat, alt = geo_to_lla.transform(*r, radians=False)
     earth_radius = (np.linalg.norm(r) - alt) / 1e3 # m -> km
     # day of year (from 1 to 365 or 366)
     doy = date.timetuple().tm_yday

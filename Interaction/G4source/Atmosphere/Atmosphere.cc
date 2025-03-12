@@ -18,8 +18,8 @@ int main(int argc, char* argv[])
   // Read input
   // Input example: ./Atmosphere 0 2212 10000 0 0 6480 0 0 -1 6400 1 0 0 0 150 150 4
   if (argc != 17) {
-    G4cout << "Wrong number of input parameters" << G4endl;
-    return 0;
+    G4cerr << "Wrong number of input parameters" << G4endl;
+    return 3;
   }
   // Read values of input variables
   G4long seed          = atol(argv[1]);

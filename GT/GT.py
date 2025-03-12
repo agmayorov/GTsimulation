@@ -509,8 +509,8 @@ class GTSimulator(ABC):
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.InteractNUC is not None:
-                LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(
-                    len(self.Medium.chemical_element_list)), 0, 0
+                LocalDen, nLocal, LocalPathDen = 0, 0, 0
+                LocalChemComp = np.zeros(len(self.Medium.get_element_list()))
                 LocalPathDenVector = np.empty(0)
                 LocalCoordinate = np.empty([0, 3])
                 LocalVelocity = np.empty([0, 3])
@@ -606,13 +606,13 @@ class GTSimulator(ABC):
 
                 # Medium
                 if self.Medium is not None:
-                    self.Medium.calculate_model(r_new[0], r_new[1], r_new[2])
+                    self.Medium.calculate_model(*r_new)
                     Den = self.Medium.get_density()  # kg/m3
                     PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
                     TotPathDen += PathDen  # g/cm2
                     if self.InteractNUC is not None and Den > 0:
                         LocalDen += Den
-                        LocalChemComp += self.Medium.get_chemical_element_abundance()
+                        LocalChemComp += self.Medium.get_element_abundance()
                         nLocal += 1
                         LocalPathDen += PathDen
                         LocalPathDenVector = np.append(LocalPathDenVector, LocalPathDen)
@@ -631,7 +631,7 @@ class GTSimulator(ABC):
                     # Construct Rotation Matrix & Save velocity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal,
-                                                       LocalChemComp / nLocal)
+                                                       self.Medium.get_element_list(), LocalChemComp / nLocal)
                     T = primary['KineticEnergy']
                     if T > 0:
                         V_norm = Constants.c * np.sqrt(1 - (M / (T + M)) ** 2)
@@ -640,8 +640,8 @@ class GTSimulator(ABC):
                     Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
                     if T > 0 and T > 1:  # Cut particles with T < 1 MeV
                         # Only ionization losses
-                        LocalDen, LocalChemComp, nLocal, LocalPathDen = 0, np.zeros(
-                            len(self.Medium.chemical_element_list)), 0, 0
+                        LocalDen, nLocal, LocalPathDen = 0, 0, 0
+                        LocalChemComp = np.zeros(len(self.Medium.get_element_list()))
                         LocalPathDenVector = np.empty(0)
                         LocalCoordinate = np.empty([0, 3])
                         LocalVelocity = np.empty([0, 3])

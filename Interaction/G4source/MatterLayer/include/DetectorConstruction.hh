@@ -17,18 +17,15 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
     DetectorConstruction(G4double thickness, G4double density, \
-      G4double w_H, G4double w_He, G4double w_N, G4double w_O, G4double w_Ar);
+      std::vector<G4String> elementName, std::vector<G4double> elementAbundance);
     ~DetectorConstruction();
-    virtual G4VPhysicalVolume* Construct() override;
+    virtual G4VPhysicalVolume *Construct() override;
 
   private:
     G4double fThickness;
     G4double fDensity;
-    G4double fW_H;
-    G4double fW_He;
-    G4double fW_N;
-    G4double fW_O;
-    G4double fW_Ar;
+    std::vector<G4String> fElementName;
+    std::vector<G4double> fElementAbundance;
 };
 
 }
