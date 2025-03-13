@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 {
   // Read input
   // Input example: ./Atmosphere 0 2212 10000 0 0 6480 0 0 -1 6400 1 0 0 0 150 150 4
-  if (argc != 17) {
+  if (argc != 18) {
     G4cerr << "Wrong number of input parameters" << G4endl;
     return 3;
   }

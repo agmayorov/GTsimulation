@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 {
   // Read input
   // Input example: ./DecayGenerator 0 15 500
-  if (argc != 3) {
+  if (argc != 4) {
     G4cerr << "Wrong number of input parameters" << G4endl;
     return 3;
   }
