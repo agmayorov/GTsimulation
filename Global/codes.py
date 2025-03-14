@@ -27,15 +27,15 @@ BreakIndex = {-1: "Loop", 0: "Xmin", 1: "Ymin", 2: "Zmin", 3: "Rmin", 4: "Dist2P
 BreakDef = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
 BreakMetric = np.s_[:-1]
 
-SaveCode = {"Coordinates": np.s_[0:3:1],
-            "Velocities": np.s_[3:6:1],
-            "Efield": np.s_[6:9:1],
-            "Bfield": np.s_[9:12:1],
-            "Angles": 12,
-            "Path": 13,
-            "Density": 14,
-            "Clock": 15,
-            "Energy": 16}
+SaveCode = {"Coordinates": (1, np.s_[0:3:1]),
+            "Velocities": (2, np.s_[3:6:1]),
+            "Efield": (3, np.s_[6:9:1]),
+            "Bfield": (4, np.s_[9:12:1]),
+            "Angles": (5, 12),
+            "Path": (6, 13),
+            "Density": (7, 14),
+            "Clock": (8, 15),
+            "Energy": (9, 16)}
 """
 The parameters that can be saved along the path and the corresponding indices in the matrix.
 """

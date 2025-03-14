@@ -267,6 +267,8 @@ class GTSimulator(ABC):
         self.Output = Output
         self.Npts = 2
         self.Save = SaveDef.copy()
+        self.SaveCode = dict([(key, SaveCode[key][1]) for key in SaveCode.keys()])
+        self.SaveColumnLen = 17
         if self.Verbose:
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_file_num.npy")
@@ -443,6 +445,29 @@ class GTSimulator(ABC):
         if isinstance(Save, list):
             for saves in Save[1].keys():
                 self.Save[saves] = Save[1][saves]
+
+        sorted_keys = sorted(SaveCode, key = lambda x: SaveCode[x][0])
+        for i, key in enumerate(sorted_keys):
+            if not self.Save[key]:
+                val = SaveCode[key][1]
+                num = 0
+                self.SaveCode[key] = None
+                if isinstance(val, int):
+                    num = 1
+                elif isinstance(val, slice):
+                    num = val.stop - val.start
+
+                self.SaveColumnLen -= num
+
+                for j in range(i + 1, len(sorted_keys)):
+                    val_ = self.SaveCode[sorted_keys[j]]
+                    if isinstance(val_, int):
+                        val_ -= num
+                    elif isinstance(val_, slice):
+                        val_ = np.s_[val_.start - num:val_.stop - num:1]
+                    self.SaveCode[sorted_keys[j]] = val_
+
+
         if self.Verbose:
             for saves in self.Save.keys():
                 print(f"\t\t{saves}: {self.Save[saves]}")
@@ -517,7 +542,7 @@ class GTSimulator(ABC):
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
             Step = self.Step
-            Saves = np.zeros((self.Npts + 1, 17))
+            Saves = np.zeros((self.Npts + 1, self.SaveColumnLen))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
@@ -692,9 +717,9 @@ class GTSimulator(ABC):
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                                  SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
-                                  SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
-                                  SaveCode["Clock"], SaveCode["Energy"],
+                                  self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
+                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"], self.SaveCode["Density"],
+                                  self.SaveCode["Clock"], self.SaveCode["Energy"],
                                   SaveCoord,
                                   SaveVel,
                                   SaveE,
@@ -721,9 +746,9 @@ class GTSimulator(ABC):
                 if brck[0] or self.IsPrimDeath:
                     if brk != -1:
                         self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                                      SaveCode["Coordinates"], SaveCode["Velocities"], SaveCode["Efield"],
-                                      SaveCode["Bfield"], SaveCode["Angles"], SaveCode["Path"], SaveCode["Density"],
-                                      SaveCode["Clock"], SaveCode["Energy"],
+                                      self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
+                                      self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"], self.SaveCode["Density"],
+                                      self.SaveCode["Clock"], self.SaveCode["Energy"],
                                       SaveCoord,
                                       SaveVel,
                                       SaveE,
@@ -754,23 +779,23 @@ class GTSimulator(ABC):
 
             track = {}
             if SaveCoord:
-                track['Coordinates'] = Saves[:, SaveCode["Coordinates"]]
+                track['Coordinates'] = Saves[:, self.SaveCode["Coordinates"]]
             if SaveVel:
-                track["Velocities"] = Saves[:, SaveCode["Velocities"]]
+                track["Velocities"] = Saves[:, self.SaveCode["Velocities"]]
             if SaveE:
-                track["Efield"] = Saves[:, SaveCode["Efield"]]
+                track["Efield"] = Saves[:, self.SaveCode["Efield"]]
             if SaveB:
-                track["Bfield"] = Saves[:, SaveCode["Bfield"]]
+                track["Bfield"] = Saves[:, self.SaveCode["Bfield"]]
             if SaveA:
-                track["Angles"] = Saves[:, SaveCode["Angles"]]
+                track["Angles"] = Saves[:, self.SaveCode["Angles"]]
             if SaveP:
-                track["Path"] = Saves[:, SaveCode["Path"]]
+                track["Path"] = Saves[:, self.SaveCode["Path"]]
             if SaveC:
-                track["Clock"] = Saves[:, SaveCode["Clock"]]
+                track["Clock"] = Saves[:, self.SaveCode["Clock"]]
             if SaveT:
-                track["Energy"] = Saves[:, SaveCode["Energy"]]
+                track["Energy"] = Saves[:, self.SaveCode["Energy"]]
             if SaveD:
-                track["Density"] = Saves[:, SaveCode["Density"]]
+                track["Density"] = Saves[:, self.SaveCode["Density"]]
 
             RetArr.append({"Track": track,
                            "BC": {"WOut": brk, "lon_total": lon_total},
@@ -845,7 +870,7 @@ class GTSimulator(ABC):
         return V_norm, r_new, TotPathLen, TotTime
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
+    # @jit(fastmath=True, nopython=True)
     def SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                  CordCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, EnCode,
                  SaveCoord,
