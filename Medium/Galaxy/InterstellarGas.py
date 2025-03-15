@@ -18,10 +18,13 @@ class InterstellarGas(GTGeneralMedium):
         self.n_HI, self.n_H2 = self.__calculate_b_field(x / Units.kpc, y / Units.kpc, z / Units.kpc)
 
     def get_density(self):
-        return self.n_HI * 1e6 * 1.67e-27 + self.n_H2 * 1e6 * 2 * 1.67e-27
+        return self.n_HI * 1e6 * 1.67e-27 + self.n_H2 * 1e6 * 2 * 1.67e-27 # kg/m3
+
+    def get_element_list(self):
+        return ['H']
 
     def get_element_abundance(self):
-        pass
+        return np.array([1])
 
     def to_string(self):
         return self.model
@@ -85,6 +88,7 @@ class InterstellarGas(GTGeneralMedium):
 
         # Convert cartesian to polar coordinates
         theta, r = np.arctan2(y, x), np.sqrt(x ** 2 + y ** 2)
+        theta += np.pi # rotate the model so that the sun is at the point [-8.5, 0, 0] kpc
 
         # --- Warped disk ---
         # Radial profile
