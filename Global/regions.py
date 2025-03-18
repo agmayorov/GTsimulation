@@ -152,7 +152,11 @@ class _Magnetosphere(_AbsRegion):
                             params["InteractNUC"] = None
                         new_process = simulator.__class__(**params)
                         new_process._GTSimulator__gen = gen + 1
-                        prod_tracks.append(new_process.CallOneFile()[0])
+                        track = new_process.CallOneFile()[0]
+                        track["Particle"]["R0"] = p['VertexPosition']
+                        track["Particle"]["V0"] = p['VertexMomentumDirection']
+                        track["Particle"]["T0"] = p['VertexKineticEnergy']
+                        prod_tracks.append(track)
 
 
 class Regions(Enum):

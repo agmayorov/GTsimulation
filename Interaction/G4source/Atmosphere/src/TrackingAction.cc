@@ -29,16 +29,20 @@ void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
       aTrack->GetStep()->GetPostStepPoint()->GetStepStatus() == fWorldBoundary) {
     if (fFirstSecondaryParticle) {
       G4cout << "\nInformation about the secondary particles:\n"
-             << "Name,PDGcode,Mass,Charge,KineticEnergy[MeV],MomentumDirection,Position[m]" << G4endl;
+             << "Name,PDGcode,Mass,Charge,Position[m],MomentumDirection,KineticEnergy[MeV],"
+             << "VertexPosition[m],VertexMomentumDirection,VertexKineticEnergy[MeV]" << G4endl;
       fFirstSecondaryParticle = false;
     }
     std::cout << aTrack->GetParticleDefinition()->GetParticleName() << ","
               << aTrack->GetParticleDefinition()->GetPDGEncoding() << ","
               << aTrack->GetParticleDefinition()->GetPDGMass() << ","
               << aTrack->GetParticleDefinition()->GetPDGCharge() << ","
-              << aTrack->GetKineticEnergy()/MeV << ","
+              << aTrack->GetPosition()/m << ","
               << aTrack->GetMomentumDirection() << ","
-              << aTrack->GetPosition()/m << std::endl;
+              << aTrack->GetKineticEnergy()/MeV << ","
+              << aTrack->GetVertexPosition()/m << ","
+              << aTrack->GetVertexMomentumDirection() << ","
+              << aTrack->GetVertexKineticEnergy()/MeV << std::endl;
   }
 }
 

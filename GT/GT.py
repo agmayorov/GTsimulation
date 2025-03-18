@@ -799,7 +799,8 @@ class GTSimulator(ABC):
 
             RetArr.append({"Track": track,
                            "BC": {"WOut": brk, "lon_total": lon_total},
-                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "T0": particle.T, "Gen": Gen},
+                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "Gen": Gen,
+                                        "R0": particle.coordinates, "V0": particle.velocities, "T0": particle.T},
                            "Child": prod_tracks})
 
             # TODO refactor

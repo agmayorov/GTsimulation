@@ -162,12 +162,11 @@ def G4Decay(PDG, E):
 def G4Shower(PDG, E, r, v, date):
     """
     The function calls executable binary program that calculates interaction of the charged particle
-    with atmospheric column of height h and outputs information about secondary (albedo) particles.
+    with the Earth's atmosphere and outputs information about secondary (albedo) particles.
 
-    The program creates a cylindrical column of air, which is divided into layers layers of 1 km thick.
-    The air density for each layer is assumed to be constant and is calculated from the
-    atmospheric model NRLMSISE-00. When a particle enters the atmosphere at an angle, the horizontal
-    velocity component is directed along the X axis in the coordinate system of the cylinder.
+    The program creates a spherical layer with a thickness of 80 + 0.5 km, which is divided into layers
+    with a thickness of 1 km. The air density for each layer is assumed to be constant and is calculated
+    using the atmospheric model NRLMSISE-00. All calculations are carried out in the GEO coordinate system.
 
     :param PDG: Particle PDG code
     :type PDG: int
@@ -208,19 +207,25 @@ def G4Shower(PDG, E, r, v, date):
 
             - Charge - Charge
 
-            - KineticEnergy - Kinetic energy of the particle [MeV]
+            - Position - Coordinates of the secondary (albedo) particle in GEO [m]
 
             - MomentumDirection - Direction of the velocity of the particle in GEO [unit vector]
 
-            - Position - Coordinates of the secondary (albedo) particle in GEO [m]
+            - KineticEnergy - Kinetic energy of the particle [MeV]
+
+            - VertexPosition - Coordinates of the secondary (albedo) particle in GEO at the birth point [m]
+
+            - VertexMomentumDirection - Direction of the velocity of the particle in GEO at the birth point [unit vector]
+
+            - VertexKineticEnergy - Kinetic energy of the particle at the birth point [MeV]
 
     :rtype primary: structured ndarray
     :rtype secondary: structured ndarray
 
     Examples:
-        ``primary, secondary = G4Shower(2212, 10e3, 95, 10, 1, 0, 0, 0, 150, 150, 4)``
+        ``primary, secondary = G4Shower(2212, 10e3, [6378137 + 80000, 0, 0], [-1, 0, 1], datetime(2020, 1, 1)``
 
-        ``primary, secondary = G4Shower(1000020040, 20e3, 80, 30, 365, 43200, -80, 270, 200, 210, 80)``
+        ``primary, secondary = G4Shower(1000020040, 20e3, [0, 0, 6356752 + 60000], [0, 1, -2], datetime(2014, 1, 1)``
     """
 
     # Calculating input parameters
@@ -255,8 +260,9 @@ def G4Shower(PDG, E, r, v, date):
     # Reading information about the secondary particles
     secondary = np.array([])
     if s != -1:
-        dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position'],
-                          'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8']})
+        dtype = np.dtype({'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'Position', 'MomentumDirection', 'KineticEnergy',
+                                    'VertexPosition', 'VertexMomentumDirection', 'VertexKineticEnergy'],
+                          'formats': ['U32', 'i4', 'f8', 'i4', '(3,)f8', '(3,)f8', 'f8', '(3,)f8', '(3,)f8', 'f8']})
         secondary = np.genfromtxt(StringIO(output[s:].replace('(', '').replace(')', '')), dtype, delimiter=",", skip_header=2)
         if secondary.size > 0 and secondary.ndim == 0:
             secondary = np.array([secondary])
