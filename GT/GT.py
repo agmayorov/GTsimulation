@@ -271,7 +271,7 @@ class GTSimulator(ABC):
         self.SaveColumnLen = 17
         if self.Verbose:
             print(f"\tNumber of files: {self.Nfiles}")
-            print(f"\tOutput file name: {self.Output}_file_num.npy")
+            print(f"\tOutput file name: {self.Output}_num.npy")
         self.__SetSave(Save)
         if self.Verbose:
             print()
@@ -500,9 +500,9 @@ class GTSimulator(ABC):
                     np.save(f"{self.Output}_{i}.npy", RetArr)
                 if self.Verbose:
                     print("\tFile saved!")
+                RetArr.clear()
             else:
                 Track.append(RetArr)
-            del RetArr
 
         if self.Verbose:
             print("Simulation completed!")
