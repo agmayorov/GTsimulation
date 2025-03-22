@@ -658,13 +658,10 @@ class GTSimulator(ABC):
                     primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal,
                                                        self.Medium.get_element_list(), LocalChemComp / nLocal)
                     T = primary['KineticEnergy']
-                    if T > 0:
-                        V_norm = Constants.c * np.sqrt(1 - (M / (T + M)) ** 2)
-                    else:
-                        V_norm = 0
-                    Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
                     if T > 0 and T > 1:  # Cut particles with T < 1 MeV
                         # Only ionization losses
+                        V_norm = Constants.c * np.sqrt(1 - (M / (T + M)) ** 2)
+                        Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
                         LocalDen, nLocal, LocalPathDen = 0, 0, 0
                         LocalChemComp = np.zeros(len(self.Medium.get_element_list()))
                         LocalPathDenVector = np.empty(0)
