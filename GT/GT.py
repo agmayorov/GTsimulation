@@ -514,8 +514,8 @@ class GTSimulator(ABC):
         RetArr = []
         status = "Done"
 
-        SaveCoord = self.Save["Coordinates"]
-        SaveVel = self.Save["Velocities"]
+        SaveR = self.Save["Coordinates"]
+        SaveV = self.Save["Velocities"]
         SaveE = self.Save["Efield"]
         SaveB = self.Save["Bfield"]
         SaveA = self.Save["Angles"]
@@ -715,17 +715,9 @@ class GTSimulator(ABC):
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                   self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
-                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"], self.SaveCode["Density"],
-                                  self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                  SaveCoord,
-                                  SaveVel,
-                                  SaveE,
-                                  SaveB,
-                                  SaveA,
-                                  SaveP,
-                                  SaveD,
-                                  SaveC,
-                                  SaveT)
+                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
+                                  self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
+                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
                     i_save += 1
                 r = r_new
 
@@ -744,17 +736,9 @@ class GTSimulator(ABC):
                     if brk != -1:
                         self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
-                                      self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"], self.SaveCode["Density"],
-                                      self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                      SaveCoord,
-                                      SaveVel,
-                                      SaveE,
-                                      SaveB,
-                                      SaveA,
-                                      SaveP,
-                                      SaveD,
-                                      SaveC,
-                                      SaveT)
+                                      self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
+                                      self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
+                                      SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
                         i_save += 1
                     if self.IsPrimDeath:
                         brk = self.__brck_index["Death"]
@@ -775,9 +759,9 @@ class GTSimulator(ABC):
             Saves = Saves[:i_save]
 
             track = {}
-            if SaveCoord:
+            if SaveR:
                 track['Coordinates'] = Saves[:, self.SaveCode["Coordinates"]]
-            if SaveVel:
+            if SaveV:
                 track["Velocities"] = Saves[:, self.SaveCode["Velocities"]]
             if SaveE:
                 track["Efield"] = Saves[:, self.SaveCode["Efield"]]
@@ -878,20 +862,11 @@ class GTSimulator(ABC):
     @staticmethod
     # @jit(fastmath=True, nopython=True)
     def SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                 CordCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, EnCode,
-                 SaveCoord,
-                 SaveVel,
-                 SaveE,
-                 SaveB,
-                 SaveA,
-                 SaveP,
-                 SaveD,
-                 SaveC,
-                 SaveT
-                 ):
-        if SaveCoord:
-            Saves[i_save, CordCode] = r
-        if SaveVel:
+                 RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode,
+                 SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT):
+        if SaveR:
+            Saves[i_save, RCode] = r
+        if SaveV:
             Saves[i_save, VCode] = Vm / V_norm
         if SaveE:
             Saves[i_save, ECode] = E
@@ -906,7 +881,7 @@ class GTSimulator(ABC):
         if SaveC:
             Saves[i_save, CCode] = TotTime
         if SaveT:
-            Saves[i_save, EnCode] = T
+            Saves[i_save, TCode] = T
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
