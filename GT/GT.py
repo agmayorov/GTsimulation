@@ -835,8 +835,13 @@ class GTSimulator(ABC):
                 V_p = rotationMatrix @ p['MomentumDirection']
                 r_p = r
                 T_p = p['KineticEnergy']
-                name_p = p["Name"]
-
+                PDGcode_p = p["PDGcode"]
+                # Try to find a particle (TODO: REMOVE IN THE FUTURE)
+                try:
+                    name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
+                except:
+                    warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
+                    continue
                 params = self.ParamDict.copy()
                 params["Particles"] = Flux(
                     Distribution=Distributions.UserInput(R0=r_p, V0=V_p),
@@ -844,6 +849,9 @@ class GTSimulator(ABC):
                     Names=name_p
                 )
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
+                if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
+                    params["Medium"] = None
+                    params["InteractNUC"] = None
                 new_process = self.__class__(**params)
                 new_process.__gen = Gen + 1
                 prod_tracks.append(new_process.CallOneFile()[0])
