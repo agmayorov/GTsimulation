@@ -34,7 +34,8 @@ class ContinuumSpectrum(AbsSpectrum):
         return []
 
     def to_string(self):
-        s = f"""Minimal Energy: {self.energy_min}
+        s = f"""
+        Minimal Energy: {self.energy_min}
         Maximal Energy: {self.energy_max}"""
         return s
 

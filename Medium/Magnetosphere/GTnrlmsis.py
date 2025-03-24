@@ -60,4 +60,5 @@ class GTnrlmsis(GTGeneralMedium):
         return e
 
     def to_string(self):
-        return f"{self.model}-{self.version}"
+        return f"""{self.model}
+        Version: {self.version}"""

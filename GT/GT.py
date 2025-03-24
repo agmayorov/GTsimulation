@@ -2,7 +2,7 @@ import math
 import os
 import numpy as np
 import datetime
-
+import json
 import warnings
 
 from numba import jit
@@ -212,16 +212,8 @@ class GTSimulator(ABC):
                  InteractNUC: None | dict = None,
                  ):
 
-        self.__names = self.__init__.__code__.co_varnames[1:]
-        self.__vals_str = []
-        self.__vals = []
-        for self.__v in self.__names:
-            self.__vals_str.append(str(eval(self.__v)))
-            self.__vals.append(eval(self.__v))
-        self.ParamDict = dict(zip(self.__names, self.__vals))
-        self.ParamSave = dict(zip(self.__names, self.__vals_str))
-
-        del self.__names, self.__vals
+        self.ParamDict = locals().copy()
+        del self.ParamDict['self']
 
         self.Verbose = Verbose
         if self.Verbose:
@@ -488,8 +480,19 @@ class GTSimulator(ABC):
                 folder = os.sep.join(file[:-1])
                 if len(file) != 1 and not os.path.isdir(folder):
                     os.mkdir(folder)
-                with open(f'{self.Output}_params.txt', 'w') as file:
-                    file.write(str(self.ParamSave))
+                def custom_serializer(obj):
+                    if isinstance(obj, (AbsBfield, GTGeneralMedium)):
+                        lines = [el.strip() for el in str(obj).strip().split('\n')]
+                        return [lines[0], dict([el.split(': ') for el in lines[1:]])]
+                    if isinstance(obj, Flux):
+                        return dict([el.strip().split(': ') for el in str(obj).strip().split('\n')])
+                    if isinstance(obj, Regions):
+                        return str(obj)
+                    if isinstance(obj, datetime.datetime):
+                        return obj.isoformat()
+                    raise TypeError(f"Type {type(obj)} not serializable")
+                with open(f'{self.Output}_params.json', 'w') as file:
+                    json.dump(self.ParamDict, file, default=custom_serializer, indent=4)
 
             RetArr = self.CallOneFile()
 
