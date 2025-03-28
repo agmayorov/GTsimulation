@@ -12,19 +12,8 @@ class Summed(AbsBfield):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.ModelName = "Summary"
-        self.models = []
+        self.models = models
         self.Date = date
-        module_name = f"MagneticFields.{self.Region.name}"
-        module = importlib.import_module(module_name)
-        for m in models:
-            class_name = m if not isinstance(m, list) else m[0]
-            params = {"date": self.Date,
-                      **({} if not isinstance(m, list) else m[1])}
-            if hasattr(module, class_name):
-                B = getattr(module, class_name)
-                self.models.append(B(**params))
-            else:
-                raise Exception("No such field")
 
     def CalcBfield(self, x, y, z, **kwargs):
         Bx_s, By_s, Bz_s = 0, 0, 0
