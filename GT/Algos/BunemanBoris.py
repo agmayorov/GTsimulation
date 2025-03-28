@@ -6,24 +6,24 @@ from Global import Constants
 
 
 class BunemanBorisSimulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X):
+    def AlgoStep(self, T, M, q, V, X, H, E):
         x, y, z = X
-        if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
-            if len(H.shape) == 2:
-                H = H[:, 0]
-        else:
-            H = np.zeros(3)
-
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
+        # if self.Bfield is not None:
+        #     H = np.array(self.Bfield.GetBfield(x, y, z))
+        #     if len(H.shape) == 2:
+        #         H = H[:, 0]
+        # else:
+        #     H = np.zeros(3)
+        #
+        # if self.Efield is not None:
+        #     E = np.array(self.Efield.GetEfield(x, y, z))
+        # else:
+        #     E = np.zeros(3)
         c = Constants.c
         if M != 0:
-            return *self.__algo(E, H, M, T, V, q, c), H, E
+            return self.__algo(E, H, M, T, V, q, c) #, H, E
         else:
-            return V, 0, 0, H, E
+            return V, 0, 0#, H, E
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
