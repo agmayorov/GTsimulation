@@ -81,8 +81,13 @@ class GTSimulator(ABC):
     :param Num: The number of simulation steps
     :type Num: int
 
-    :param Step: The time step of simulation in seconds
-    :type Step: float
+    :param Step: The time step of simulation in seconds. If `dict` one should pass:\n
+        1. `UseAdaptiveStep`: `True`/`False` --- whether to use adaptive time step\n
+        2. `InitialStep`: `float` --- The initial time step in seconds\n
+        3. `MinLarmorRad`: `int` --- The minimal number of points during on the larmor radius\n
+        4. `MaxLarmorRad`: `int` --- The maximal number of points during on the larmor radius\n
+        5. `LarmorRad`:  `int` --- The fixed number of points, in case when the user needs to update time step during each step
+    :type Step: float or dict
 
     :param Nfiles: Number of files if `int`, otherwise the `list` of file numbers (e.g. `Nfiles = [5, 10, 20]`, then
                    3 files are numerated as 5, 10, 20). If :ref:`Particles` creates a flux of `Nevents` particles then
@@ -224,11 +229,12 @@ class GTSimulator(ABC):
             print(f"\tDate: {self.Date}")
             print()
 
-        self.Step = Step
-        self.Num = int(Num)
+        self.Step = None
+        self.UseAdaptiveStep = False
+        self.__SetStep(Step)
 
+        self.Num = int(Num)
         if self.Verbose:
-            print(f"\tTime step: {self.Step}")
             print(f"\tNumber of steps: {self.Num}")
             print()
 
@@ -302,6 +308,42 @@ class GTSimulator(ABC):
         self.index = 0
         if self.Verbose:
             print("Simulator created!\n")
+
+    def __SetStep(self, Step):
+        if isinstance(Step, (int, float)):
+            self.Step = Step
+            if self.Verbose:
+                print(f"\tTime step: {self.Step}")
+
+        elif isinstance(Step, dict):
+            self.UseAdaptiveStep = Step.get("UseAdaptiveStep", False)
+            self.Step = Step.get("InitialStep", 1)
+            N = Step.get("LarmorRad", None)
+            if N is not None:
+                self.N1 = self.N2 = N
+            else:
+                self.N1 = Step.get("MinLarmorRad", 600)
+                self.N2 = Step.get("MaxLarmorRad", 600)
+
+            assert isinstance(self.UseAdaptiveStep, bool)
+            assert isinstance(self.Step, (int, float))
+            assert isinstance(self.N1, int) and isinstance(self.N2, int)
+            assert self.N1<=self.N2
+
+        if self.Verbose:
+            if not self.UseAdaptiveStep:
+                print(f"\tTime step: {self.Step}")
+            else:
+                print(f"\tUsing adaptive time step: True")
+                print(f"\tInitial time step: {self.Step}")
+                if N is None:
+                    print(f"\tMinimal number of steps in larmor radius: {self.N1}")
+                    print(f"\tMaximal number of steps in larmor radius: {self.N2}")
+                else:
+                    print(f"Number of steps in larmor radius: {N}")
+
+        else:
+            raise Exception("Step should be numeric or dict")
 
     def __SetUseRadLosses(self, RadLosses):
         if isinstance(RadLosses, bool):
@@ -544,7 +586,6 @@ class GTSimulator(ABC):
                 LocalVelocity = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
-            Step = self.Step
             Saves = np.zeros((self.Npts + 1, self.SaveColumnLen))
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
@@ -567,17 +608,33 @@ class GTSimulator(ABC):
 
             Q = particle.Z * Constants.e
             M = particle.M
-            E = particle.E
+            m = M*Units.MeV2kg
+            Energy = particle.E
             T = particle.T
+
+            V_normalized = np.array(particle.velocities)  # unit vector of velocity (beta vector)
+            V_norm = Constants.c * np.sqrt(Energy ** 2 - M ** 2) / Energy  # scalar speed [m/s]
+            Vm = V_norm * V_normalized  # vector of velocity [m/s]
+
+            r = np.array(particle.coordinates)
+            r_old = r
+
+            if self.Bfield is not None:
+                B = np.array(self.Bfield.GetBfield(*r))
+                if len(B.shape) == 2:
+                    B = B[:, 0]
+            else:
+                B = np.zeros(3)
+
+            if self.Efield is not None:
+                E = np.array(self.Efield.GetEfield(*r))
+            else:
+                E = np.zeros(3)
+
+            Step = self.Step
 
             if Q == 0:
                 Step *= 1e2
-
-            r = np.array(particle.coordinates)
-
-            V_normalized = np.array(particle.velocities)  # unit vector of velocity (beta vector)
-            V_norm = Constants.c * np.sqrt(E ** 2 - M ** 2) / E  # scalar speed [m/s]
-            Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
             if self.Verbose:
                 print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
@@ -593,7 +650,7 @@ class GTSimulator(ABC):
             # Calculation of EAS for magnetosphere
             self.Region.value.do_before_loop(self, Gen, prod_tracks)
 
-            q = Step * Q / 2 / (M * Units.MeV2kg) if M != 0 else 0
+            q = Step * Q / 2 / m if M != 0 else 0
             brk = BreakCode["Loop"]
 
             Num = self.Num
@@ -609,12 +666,24 @@ class GTSimulator(ABC):
             if self.Verbose:
                 print(f"\t\t\tCalculating: ", end=' ')
             for i in range(Num):
+                if i % Nsave == 0 or i == Num - 1 or i_save == 0:
+                    self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                  self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
+                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
+                                  self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
+                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
+                    i_save += 1
+
+                if self.UseAdaptiveStep:
+                    Step = self.AdaptStep(Q, m, B, Vm, T, M, Step, self.N1, self.N2)
+                    q = Step * Q / 2 / m
+
                 PathLen = V_norm * Step
 
-                Vp, Yp, Ya, B, E = self.AlgoStep(T, M, q, Vm, r)
+                Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r, B, E)
 
                 if self.UseRadLosses[1]:
-                    synch_record.add_iteration(T, np.array(self.Bfield.GetBfield(r[0], r[1], r[2])), Vm, Step)
+                    synch_record.add_iteration(T, B, Vm, Step)
                 if self.UseRadLosses[0]:
                     Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
                                                                                    Step, self.ForwardTracing,
@@ -629,12 +698,12 @@ class GTSimulator(ABC):
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c)
-
-                V_norm, r_new, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+                r_old = r
+                V_norm, r, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 
                 # Medium
                 if self.Medium is not None:
-                    self.Medium.calculate_model(*r_new)
+                    self.Medium.calculate_model(*r)
                     Den = self.Medium.get_density()  # kg/m3
                     PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
                     TotPathDen += PathDen  # g/cm2
@@ -715,14 +784,17 @@ class GTSimulator(ABC):
                                 new_process.__gen = Gen + 1
                                 prod_tracks.append(new_process.CallOneFile()[0])
 
-                if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                                  self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
-                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
-                                  self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
-                    i_save += 1
-                r = r_new
+                if self.Bfield is not None:
+                    B = np.array(self.Bfield.GetBfield(*r))
+                    if len(B.shape) == 2:
+                        B = B[:, 0]
+                else:
+                    B = np.zeros(3)
+
+                if self.Efield is not None:
+                    E = np.array(self.Efield.GetEfield(*r))
+                else:
+                    E = np.zeros(3)
 
                 # TODO the code is region specific
                 # Full revolution
@@ -737,7 +809,7 @@ class GTSimulator(ABC):
                 brk = brck[1]
                 if brck[0] or self.IsPrimDeath:
                     if brk != -1:
-                        self.SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                        self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                                       self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
                                       self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
                                       self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
@@ -864,7 +936,7 @@ class GTSimulator(ABC):
 
     @staticmethod
     # @jit(fastmath=True, nopython=True)
-    def SaveStep(r_new, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
                  RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode,
                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT):
         if SaveR:
@@ -876,7 +948,7 @@ class GTSimulator(ABC):
         if SaveB:
             Saves[i_save, BCode] = B
         if SaveA:
-            Saves[i_save, ACode] = np.arctan2(np.linalg.norm(np.cross(r, r_new)), np.dot(r, r_new))
+            Saves[i_save, ACode] = np.arctan2(np.linalg.norm(np.cross(r_old, r)), np.dot(r, r_old))
         if SaveP:
             Saves[i_save, PCode] = TotPathLen
         if SaveD:
@@ -912,6 +984,19 @@ class GTSimulator(ABC):
 
         return Vm, T
 
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def AdaptStep(q, m, B, V, T, M, dt, N1, N2):
+        Y = T/M + 1
+        B_n = np.linalg.norm(B)
+        costheta = B @ V/(np.linalg.norm(V)*B_n)
+        sintheta = np.sqrt(1 - costheta**2)
+        T = Y * m * sintheta / (np.abs(q) * B_n)
+        if N1 <= T/dt <= N2:
+            return dt
+
+        return T/np.sqrt(N1*N2)
+
     @abstractmethod
-    def AlgoStep(self, T, M, q, Vm, r):
+    def AlgoStep(self, T, M, q, Vm, r, H, E):
         pass

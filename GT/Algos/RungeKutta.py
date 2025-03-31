@@ -6,31 +6,32 @@ from Global import Constants
 
 
 class RungeKutta4Simulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X):
+    def AlgoStep(self, T, M, q, V, X, H1, E):
         x, y, z = X
         vx, vy, vz = V
         dt = self.Step
         if self.Bfield is not None:
-            H1 = np.array(self.Bfield.GetBfield(x, y, z))
+            # H1 = np.array(self.Bfield.GetBfield(x, y, z))
             H2 = np.array(self.Bfield.GetBfield(x + vx * dt / 2, y + vy * dt / 2, z + vz * dt / 2))
             H3 = np.array(self.Bfield.GetBfield(x + vx * dt, y + vy * dt, z + vz * dt))
             if len(H1.shape) == 2:
-                H1 = H1[:, 0]
+                # H1 = H1[:, 0]
                 H2 = H2[:, 0]
                 H3 = H3[:, 0]
         else:
-            H1 = np.zeros(3)
+            # H1 = np.zeros(3)
             H2 = np.zeros(3)
             H3 = np.zeros(3)
 
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
+        # if self.Efield is not None:
+        #     E = np.array(self.Efield.GetEfield(x, y, z))
+        # else:
+        #     E = np.zeros(3)
+
         if M != 0:
-            return *self.__algo(H1, H2, H3, M, T, V, q, dt), H1, E
+            return self.__algo(H1, H2, H3, M, T, V, q, dt)#, H1, E
         else:
-            return V, 0, 0, H1, E
+            return V, 0, 0#, H1, E
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
@@ -49,7 +50,7 @@ class RungeKutta4Simulator(GTSimulator):
 
 
 class RungeKutta6Simulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X):
+    def AlgoStep(self, T, M, q, V, X, H1, E):
         x, y, z = X
         vx, vy, vz = V
         dt = self.Step
@@ -63,7 +64,7 @@ class RungeKutta6Simulator(GTSimulator):
                       [0, 9 / 8, -3 / 8, -3 / 4, 1 / 2, 0, 0],
                       [9 / 44, -9 / 11, 63 / 44, 18 / 11, 0, -16 / 11, 0]])
         if self.Bfield is not None:
-            H1 = np.array(self.Bfield.GetBfield(x, y, z))
+            # H1 = np.array(self.Bfield.GetBfield(x, y, z))
             H2 = np.array(self.Bfield.GetBfield(x + vx * dt * c[1], y + vy * dt * c[1], z + vz * dt * c[1]))
             H3 = np.array(self.Bfield.GetBfield(x + vx * dt * c[2], y + vy * dt * c[2], z + vz * dt * c[2]))
             H4 = H2
@@ -79,7 +80,7 @@ class RungeKutta6Simulator(GTSimulator):
                 H6 = H6[:, 0]
                 H7 = H7[:, 0]
         else:
-            H1 = np.zeros(3)
+            # H1 = np.zeros(3)
             H2 = np.zeros(3)
             H3 = np.zeros(3)
             H4 = np.zeros(3)
@@ -87,17 +88,17 @@ class RungeKutta6Simulator(GTSimulator):
             H6 = np.zeros(3)
             H7 = np.zeros(3)
 
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
+        # if self.Efield is not None:
+        #     E = np.array(self.Efield.GetEfield(x, y, z))
+        # else:
+        #     E = np.zeros(3)
         if M != 0:
-            return *self.__algo(H1, H2, H3, H4, H5, H6, H7, a, b, M, T, V, q, dt), H1, E
+            return self.__algo(H1, H2, H3, H4, H5, H6, H7, a, b, M, T, V, q, dt)#, H1, E
         else:
-            return V, 0, 0, H1, E
+            return V, 0, 0#, H1, E
 
     @staticmethod
-    # @jit(nopython=True, fastmath=True)
+    @jit(nopython=True, fastmath=True)
     def __algo(H1, H2, H3, H4, H5, H6, H7, a, b, M, T, V, q, dt):
         Yp = T / M + 1
         p = 2 * q / (Yp * dt)
