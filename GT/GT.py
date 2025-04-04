@@ -533,8 +533,13 @@ class GTSimulator(ABC):
                     if isinstance(obj, datetime.datetime):
                         return obj.isoformat()
                     raise TypeError(f"Type {type(obj)} not serializable")
+                def custom_serializer_safe(obj):
+                    return str(obj)
                 with open(f'{self.Output}_params.json', 'w') as file:
-                    json.dump(self.ParamDict, file, default=custom_serializer, indent=4)
+                    try:
+                        json.dump(self.ParamDict, file, default=custom_serializer, indent=4)
+                    except:
+                        json.dump(self.ParamDict, file, default=custom_serializer_safe, indent=4)
 
             RetArr = self.CallOneFile()
 
