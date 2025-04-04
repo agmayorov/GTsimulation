@@ -155,29 +155,31 @@ def geo2mag(x, y, z, j):
     return X, Y, Z
 
 
-# @jit(fastmath=True, nopython=True)
+@jit(fastmath=True, nopython=True)
 def geo2gsm(x, y, z, Year, DoY, Secs, d):
     S, GST, _ = DirectionEarthtoSun(Year, DoY, Secs)
-    D = np.dot(np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-                [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                [0, 0, 1]], dtype=np.float64), np.array([0.068589929661063, -0.186019809236783, 0.980148994857721]))
+    mat = np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0.],
+                    [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0.],
+                    [0., 0., 1.]])
+    D = mat @ np.array([0.068589929661063, -0.186019809236783, 0.980148994857721], dtype=mat.dtype)
     a = np.cross(D, S)
     Y = a / np.sqrt(np.sum(a ** 2))
     Z = np.cross(S, Y)
 
-    if np.ndim(x) > 1 and x.shape[1] == 1:
-        x = np.transpose(x)
-        y = np.transpose(y)
-        z = np.transpose(z)
+    # if np.ndim(x) > 1 and x.shape[1] == 1:
+    #     x = np.transpose(x)
+    #     y = np.transpose(y)
+    #     z = np.transpose(z)
+
+    SYZ = np.zeros((3, 3), dtype=mat.dtype)
+    SYZ[0, :] = S
+    SYZ[1, :] = Y
+    SYZ[2, :] = Z
 
     if d == 1:
-        vec = np.vstack((S, Y, Z)) @ (np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-                                               [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                                               [0, 0, 1]]) @ np.vstack((x, y, z)))
+        vec = SYZ @ (mat @ np.array([[x], [y], [z]], dtype=mat.dtype))
     else:
-        vec = np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-                        [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                        [0, 0, 1]]).T @ (np.vstack((S, Y, Z)).T @ np.vstack((x, y, z)))
+        vec = mat.T @ (SYZ.T @ np.array([[x], [y], [z]], dtype=mat.dtype))
 
     vec = vec.T
 
