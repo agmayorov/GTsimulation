@@ -591,7 +591,7 @@ class GTSimulator(ABC):
                 LocalVelocity = np.empty([0, 3])
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
             particle = self.Particles[self.index]
-            Saves = np.zeros((self.Npts + 1, self.SaveColumnLen))
+            Saves = []
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
             tau = self.UseDecay * particle.tau
@@ -621,6 +621,7 @@ class GTSimulator(ABC):
             V_norm = Constants.c * np.sqrt(Energy ** 2 - M ** 2) / Energy  # scalar speed [m/s]
             Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
+            r0 = np.array(particle.coordinates)
             r = np.array(particle.coordinates)
             r_old = r
 
@@ -672,7 +673,9 @@ class GTSimulator(ABC):
                 print(f"\t\t\tCalculating: ", end=' ')
             for i in range(Num):
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
+                    sv = np.zeros(self.SaveColumnLen)
                     self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                  self.SaveColumnLen,
                                   self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
                                   self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
                                   self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
@@ -810,11 +813,12 @@ class GTSimulator(ABC):
                     lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i,
                                                                              a_, b_)
 
-                brck = self.CheckBreak(r, Saves[0, :3], BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
+                brck = self.CheckBreak(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
                 if brck[0] or self.IsPrimDeath:
                     if brk != -1:
                         self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+                                      self.SaveColumnLen,
                                       self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
                                       self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
                                       self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
@@ -836,7 +840,7 @@ class GTSimulator(ABC):
                 print(f"\t\tEvent No {self.index + 1} of {len(self.Particles)} in {timer() - st} seconds")
             if self.Verbose:
                 print()
-            Saves = Saves[:i_save]
+            Saves = np.array(Saves)
 
             track = {}
             if SaveR:
@@ -941,27 +945,30 @@ class GTSimulator(ABC):
 
     @staticmethod
     # @jit(fastmath=True, nopython=True)
-    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
+    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves, ColLen,
                  RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode,
                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT):
+        sv = np.zeros(ColLen)
         if SaveR:
-            Saves[i_save, RCode] = r
+            sv[RCode] = r
         if SaveV:
-            Saves[i_save, VCode] = Vm / V_norm
+            sv[VCode] = Vm / V_norm
         if SaveE:
-            Saves[i_save, ECode] = E
+            sv[ECode] = E
         if SaveB:
-            Saves[i_save, BCode] = B
+            sv[BCode] = B
         if SaveA:
-            Saves[i_save, ACode] = np.arctan2(np.linalg.norm(np.cross(r_old, r)), np.dot(r, r_old))
+            sv[ACode] = np.arctan2(np.linalg.norm(np.cross(r_old, r)), np.dot(r, r_old))
         if SaveP:
-            Saves[i_save, PCode] = TotPathLen
+            sv[PCode] = TotPathLen
         if SaveD:
-            Saves[i_save, DCode] = TotPathDen
+            sv[DCode] = TotPathDen
         if SaveC:
-            Saves[i_save, CCode] = TotTime
+            sv[CCode] = TotTime
         if SaveT:
-            Saves[i_save, TCode] = T
+            sv[TCode] = T
+
+        Saves.append(sv)
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
