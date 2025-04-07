@@ -3,7 +3,6 @@ Copied from https://github.com/tsssss/geopack/blob/master/geopack/t96.py
 """
 
 import numpy as np
-from scipy import special
 from numba import jit
 
 @jit(fastmath=True, nopython=True)
@@ -178,8 +177,8 @@ def cylharm(a, x, y, z):
     for i in range(3):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
-        xj0 = special.j0(dzeta)
-        xj1 = special.j1(dzeta)
+        xj0 = bes0(dzeta)
+        xj1 = bes1(dzeta)
         xexp = np.exp(xksi)
         bx = bx - a[i] * xj1 * xexp * sinfi
         by = by + a[i] * (2 * xj1 / dzeta - xj0) * xexp * sinfi * cosfi
@@ -188,8 +187,8 @@ def cylharm(a, x, y, z):
     for i in range(3, 6):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
-        xj0 = special.j0(dzeta)
-        xj1 = special.j1(dzeta)
+        xj0 = bes0(dzeta)
+        xj1 = bes1(dzeta)
         xexp = np.exp(xksi)
         brho = (xksi * xj0 - (dzeta ** 2 + xksi - 1) * xj1 / dzeta) * xexp * sinfi
         bphi = (xj0 + xj1 / dzeta * (xksi - 1)) * xexp * cosfi
@@ -224,8 +223,8 @@ def cylhar1(a, x, y, z):
     for i in range(3):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
-        xj0 = special.j0(dzeta)
-        xj1 = special.j1(dzeta)
+        xj0 = bes0(dzeta)
+        xj1 = bes1(dzeta)
         xexp = np.exp(xksi)
         brho = xj1 * xexp
         bx = bx - a[i] * xj0 * xexp
@@ -235,8 +234,8 @@ def cylhar1(a, x, y, z):
     for i in range(3, 6):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
-        xj0 = special.j0(dzeta)
-        xj1 = special.j1(dzeta)
+        xj0 = bes0(dzeta)
+        xj1 = bes1(dzeta)
         xexp = np.exp(xksi)
         brho = (dzeta * xj0 + xksi * xj1) * xexp
         bx = bx + a[i] * (dzeta * xj1 - xj0 * (xksi + 1)) * xexp
@@ -1948,3 +1947,28 @@ def dipole(ps, x, y, z):
     bz = q * ((p + t - 2 * u) * cps - v * sps)
 
     return bx, by, bz
+
+@jit(fastmath=True, nopython=True)
+def bes0(x):
+    if abs(x) < 3.0:
+        x32 = (x / 3.0) ** 2
+        bes0_val = 1.0 - x32 * (2.2499997 - x32 * (1.2656208 - x32 * (0.3163866 - x32 * (0.0444479 - x32 * (0.0039444 - x32 * 0.00021)))))
+    else:
+        xd3 = 3.0 / x
+        f0 = 0.79788456 - xd3 * (0.00000077 + xd3 * (0.00552740 + xd3 * (0.00009512 - xd3 * (0.00137237 - xd3 * (0.00072805 - xd3 * 0.00014476)))))
+        t0 = x - 0.78539816 - xd3 * (0.04166397 + xd3 * (0.00003954 - xd3 * (0.00262573 - xd3 * (0.00054125 + xd3 * (0.00029333 - xd3 * 0.00013558)))))
+        bes0_val = f0 / np.sqrt(x) * np.cos(t0)
+    return bes0_val
+
+@jit(fastmath=True, nopython=True)
+def bes1(x):
+    if abs(x) < 3.0:
+        x32 = (x / 3.0) ** 2
+        bes1xm1 = 0.5 - x32 * (0.56249985 - x32 * (0.21093573 - x32 * (0.03954289 - x32 * (0.00443319 - x32 * (0.00031761 - x32 * 0.00001109)))))
+        bes1_val = bes1xm1 * x
+    else:
+        xd3 = 3.0 / x
+        f1 = 0.79788456 + xd3 * (0.00000156 + xd3 * (0.01659667 + xd3 * (0.00017105 - xd3 * (0.00249511 - xd3 * (0.00113653 - xd3 * 0.00020033)))))
+        t1 = x - 2.35619449 + xd3 * (0.12499612 + xd3 * (0.0000565 - xd3 * (0.00637879 - xd3 * (0.00074348 + xd3 * (0.00079824 - xd3 * 0.00029166)))))
+        bes1_val = f1 / np.sqrt(x) * np.cos(t1)
+    return bes1_val
