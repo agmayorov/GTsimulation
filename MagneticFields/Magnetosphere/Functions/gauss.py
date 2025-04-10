@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 
-def LoadGaussCoeffs(npyfile: str, date: datetime.datetime):
+def LoadGaussCoeffs(npyfile: str | os.PathLike, date: datetime.datetime):
     year = date.year
     y = year + (date - datetime.datetime(year, 1, 1)).days / (365 + float(
         (not bool(year % 4) and bool(year % 100)) or not bool(year % 4)))
