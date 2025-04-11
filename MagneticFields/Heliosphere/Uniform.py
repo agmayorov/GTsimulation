@@ -65,7 +65,7 @@ class Uniform(AbsBfield):
         Bx = np.real(np.fft.ifft(X_m))
         By = np.real(np.fft.ifft(Y_m))
 
-        return Bx, By
+        return 0.54*Bx, 0.54*By
 
     def calc_spectrum_slab(self, k_par):
         return self._calc_spectrum_slab(k_par, self.nu, self.p, self.l0_slab, self.l1_slab, self.l2_slab, self.l3_slab)
@@ -85,23 +85,24 @@ class Uniform(AbsBfield):
     def _generate_2d(self):
         N = self.Ny
         x_max = y_max = 2 * self.l0_2d
-        k = 2 * np.pi / x_max * np.arange(N) + 1e-12
+        kx = 2 * np.pi / x_max * np.arange(N) + 1e-12
+        ky = 2 * np.pi / y_max * np.arange(N) + 1e-12
+        k = np.linalg.norm(np.array(np.meshgrid(kx, ky)), axis=0)
+        kx, ky = np.meshgrid(kx, ky)
         P_m = self.calc_spectrum_2d(k)
         A_m = P_m / k ** 3
 
         h = x_max / N
-        X_m = 1.j * k * N * np.sqrt(A_m * A_m[np.newaxis].T) / (2 * h) * \
-              np.exp(1.j * np.random.rand(N) * 2 * np.pi) * \
+        Z_m = np.sqrt(N * A_m / (2 * h)) * np.exp(1.j * np.random.rand(N) * 2 * np.pi) * \
               np.exp(1.j * np.random.rand(N)[np.newaxis].T * 2 * np.pi)
 
-        Y_m = 1.j * k[np.newaxis].T * N * np.sqrt(A_m * A_m[np.newaxis].T) / (2 * h) * \
-              np.exp(1.j * np.random.rand(N) * 2 * np.pi) * \
-              np.exp(1.j * np.random.rand(N)[np.newaxis].T * 2 * np.pi)
+        X_m = ky * Z_m
+        Y_m = -kx * Z_m
 
         Bx = np.real(np.fft.ifftn(X_m))
         By = np.real(np.fft.ifftn(Y_m))
 
-        return 17.6 * Bx, 17.6 * By  # in order for anisotropy (2d/slab) to be 80%/20%
+        return 183*Bx, 183*By  # in order for anisotropy (2d/slab) to be 80%/20%
 
     def calc_spectrum_2d(self, k_perp):
         return self._calc_spectrum_2d(k_perp, self.nu, self.q, self.l0_slab, self.l1_slab, self.l3_slab)
@@ -203,9 +204,9 @@ if __name__ == "__main__":
 
     print("2d/slab: ", P_2d_total / P_slab_total)
 
-    BT2 = np.mean(Bx_slab ** 2) + np.mean(Bx_2d ** 2)
-    print(np.mean(Bx_slab ** 2))
-    print(np.mean(Bx_2d ** 2))
+    BT2 = np.mean(Bx_slab ** 2) + np.mean(Bx_2d ** 2) + np.mean(By_slab ** 2) + np.mean(By_2d ** 2)
+    print(np.mean(Bx_slab ** 2) + np.mean(By_slab ** 2))
+    print(np.mean(Bx_2d ** 2) + np.mean(By_2d ** 2))
     print(BT2)
 
     print(field.CalcBfield(5, 4, 2))
