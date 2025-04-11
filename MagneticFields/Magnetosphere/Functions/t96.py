@@ -3,7 +3,8 @@ Copied from https://github.com/tsssss/geopack/blob/master/geopack/t96.py
 """
 
 import numpy as np
-from numba import jit
+from numba import jit, prange
+
 
 @jit(fastmath=True, nopython=True)
 def t96(parmod, ps, x, y, z):
@@ -174,7 +175,7 @@ def cylharm(a, x, y, z):
 
     bx, by, bz = [0.] * 3
 
-    for i in range(3):
+    for i in prange(3):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
         xj0 = bes0(dzeta)
@@ -184,7 +185,7 @@ def cylharm(a, x, y, z):
         by = by + a[i] * (2 * xj1 / dzeta - xj0) * xexp * sinfi * cosfi
         bz = bz + a[i] * (xj1 / dzeta * si2co2 - xj0 * sinfi2) * xexp
 
-    for i in range(3, 6):
+    for i in prange(3, 6):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
         xj0 = bes0(dzeta)
@@ -220,7 +221,7 @@ def cylhar1(a, x, y, z):
 
     bx, by, bz = [0.] * 3
 
-    for i in range(3):
+    for i in prange(3):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
         xj0 = bes0(dzeta)
@@ -231,7 +232,7 @@ def cylhar1(a, x, y, z):
         by = by + a[i] * brho * cosfi
         bz = bz + a[i] * brho * sinfi
 
-    for i in range(3, 6):
+    for i in prange(3, 6):
         dzeta = rho / a[i + 6]
         xksi = x / a[i + 6]
         xj0 = bes0(dzeta)
@@ -363,15 +364,15 @@ def shlcar3x3(a, x, y, z, sps):
     hx, hy, hz = [0.] * 3
 
     l = 0
-    for m in range(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
-        for i in range(3):
+    for m in prange(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
+        for i in prange(3):
             p = a[36 + i]
             q = a[42 + i]
             cypi = np.cos(y / p)
             cyqi = np.cos(y / q)
             sypi = np.sin(y / p)
             syqi = np.sin(y / q)
-            for k in range(3):
+            for k in prange(3):
                 r = a[39 + k]
                 s = a[45 + k]
                 szrk = np.sin(z / r)
@@ -382,7 +383,7 @@ def shlcar3x3(a, x, y, z, sps):
                 sqqs = np.sqrt(1 / q ** 2 + 1 / s ** 2)
                 epr = np.exp(x * sqpr)
                 eqs = np.exp(x * sqqs)
-                for n in range(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
+                for n in prange(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
                     if m == 0:
                         if n == 0:
                             dx = -sqpr * epr * cypi * szrk
@@ -468,7 +469,7 @@ def ringcurr96(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzsx, dzsz, zsw
 
     [bx, by, bz] = [0.] * 3
 
-    for i in range(2):
+    for i in prange(2):
         bi = beta[i]
         s1 = np.sqrt((dzetas + bi) ** 2 + (rhos + bi) ** 2)
         s2 = np.sqrt((dzetas + bi) ** 2 + (rhos - bi) ** 2)
@@ -537,7 +538,7 @@ def taildisk(x, y, z, cpss, spss, dpsrr, xs, dxsx, dxsy, dxsz, dzetas, ddzetadx,
 
     bx, by, bz = [0.] * 3
 
-    for i in range(4):
+    for i in prange(4):
         bi = beta[i]
 
         s1 = np.sqrt((dzetas + bi) ** 2 + (rhos + bi) ** 2)
@@ -773,14 +774,14 @@ def birk1tot_02(ps, x, y, z):
     if loc == 1:
         xi = [x, y, z, ps]
         d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
-        for i in range(26):
+        for i in prange(26):
             bx = bx + c1[i] * d1[0, i]
             by = by + c1[i] * d1[1, i]
             bz = bz + c1[i] * d1[2, i]
     elif loc == 2:
         xi = [x, y, z, ps]
         d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
-        for i in range(79):
+        for i in prange(79):
             bx = bx + c2[i] * d2[0, i]
             by = by + c2[i] * d2[1, i]
             bz = bz + c2[i] * d2[2, i]
@@ -803,7 +804,7 @@ def birk1tot_02(ps, x, y, z):
         d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
         # bx1,by1,bz1 are field components in the northern boundary point
         bx1, by1, bz1 = [0.] * 3
-        for i in range(26):
+        for i in prange(26):
             bx1 = bx1 + c1[i] * d1[0, i]
             by1 = by1 + c1[i] * d1[1, i]
             bz1 = bz1 + c1[i] * d1[2, i]
@@ -818,7 +819,7 @@ def birk1tot_02(ps, x, y, z):
         d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
         # bx2,by2,bz2 are field components in the southern boundary point
         bx2, by2, bz2 = [0.] * 3
-        for i in range(79):
+        for i in prange(79):
             bx2 = bx2 + c2[i] * d2[0, i]
             by2 = by2 + c2[i] * d2[1, i]
             bz2 = bz2 + c2[i] * d2[2, i]
@@ -849,7 +850,7 @@ def birk1tot_02(ps, x, y, z):
         d2 = condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout)
         # bx1,by1,bz1 are field components in the northern boundary point
         bx1, by1, bz1 = [0.] * 3
-        for i in range(79):
+        for i in prange(79):
             bx1 = bx1 + c2[i] * d2[0, i]
             by1 = by1 + c2[i] * d2[1, i]
             bz1 = bz1 + c2[i] * d2[2, i]
@@ -864,7 +865,7 @@ def birk1tot_02(ps, x, y, z):
         d1 = diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr)
         # bx2,by2,bz2 are field components in the southern boundary point
         bx2, by2, bz2 = [0.] * 3
-        for i in range(26):
+        for i in prange(26):
             bx2 = bx2 + c1[i] * d1[0, i]
             by2 = by2 + c1[i] * d1[1, i]
             bz2 = bz2 + c1[i] * d1[2, i]
@@ -913,7 +914,7 @@ def diploop1(xi, xx1, yy1, tilt, xcentre, radius, dipx, dipy, rh, dr):
     sps = np.sin(ps)
     d = np.empty((3, 26))
 
-    for i in range(12):
+    for i in prange(12):
         r2 = (xx1[i] * dipx) ** 2 + (yy1[i] * dipy) ** 2
         r = np.sqrt(r2)
         rmrh = r - rh
@@ -1133,7 +1134,7 @@ def condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout):
     cnh = 1 / tnh
 
     # init d[:,0:5]
-    for m in range(5):
+    for m in prange(5):
         m1 = m + 1
         bt = m1 * cf[m] / (r * s) * (tnh ** m1 + cnh ** m1)
         bf = -0.5 * m1 * sf[m] / r * (tnh ** m / ch ** 2 - cnh ** m / sh ** 2)
@@ -1149,7 +1150,7 @@ def condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout):
     zsm = z * cps + x * sps
 
     # init d[:,5:32] and d[:,32:59]
-    for i in range(9):
+    for i in prange(9):
         if (i == 2) | (i == 4) | (i == 5):
             xd = xx2[i] * scalein
             yd = yy2[i] * scalein
@@ -1196,7 +1197,7 @@ def condip1(xi, xx2, yy2, zz2, dx, scalein, scaleout):
         d[2, iz] = sps * ((bz1z + bz2z - bz3z - bz4z) * cps - (bx1z + bx2z - bx3z - bx4z) * sps)
 
     # init d[59:69] and d[69:79]
-    for i in range(5):
+    for i in prange(5):
         zd = zz2[i + 9]
         bx1x, by1x, bz1x, bx1y, by1y, bz1y, bx1z, by1z, bz1z = dipxyz(xsm, y, zsm - zd)
         bx2x, by2x, bz2x, bx2y, by2y, bz2y, bx2z, by2z, bz2z = dipxyz(xsm, y, zsm + zd)
@@ -1266,13 +1267,13 @@ def birk1shld(ps, x, y, z):
     s3ps = 4 * cps ** 2 - 1
 
     l = 0
-    for m in range(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
-        for i in range(4):
+    for m in prange(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
+        for i in prange(4):
             cypi = np.cos(y * rp[i])
             cyqi = np.cos(y * rq[i])
             sypi = np.sin(y * rp[i])
             syqi = np.sin(y * rq[i])
-            for k in range(4):
+            for k in prange(4):
                 szrk = np.sin(z * rr[k])
                 czsk = np.cos(z * rs[k])
                 czrk = np.cos(z * rr[k])
@@ -1281,7 +1282,7 @@ def birk1shld(ps, x, y, z):
                 sqqs = np.sqrt(rq[i] ** 2 + rs[k] ** 2)
                 epr = np.exp(x * sqpr)
                 eqs = np.exp(x * sqqs)
-                for n in range(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
+                for n in prange(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
                     if m == 0:
                         if n == 0:
                             hx = -sqpr * epr * cypi * szrk
@@ -1354,13 +1355,13 @@ def birk2shl(x, y, z, ps):
     hx, hy, hz = [0.] * 3
 
     l = 0
-    for m in range(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
-        for i in range(2):
+    for m in prange(2):  # m=1 for 1st sum (perp symmetry), m=2 for 2nd sum (parallel symmetry)
+        for i in prange(2):
             cypi = np.cos(y / p[i])
             cyqi = np.cos(y / q[i])
             sypi = np.sin(y / p[i])
             syqi = np.sin(y / q[i])
-            for k in range(2):
+            for k in prange(2):
                 szrk = np.sin(z / r[k])
                 czsk = np.cos(z / s[k])
                 czrk = np.cos(z / r[k])
@@ -1369,7 +1370,7 @@ def birk2shl(x, y, z, ps):
                 sqqs = np.sqrt(1 / q[i] ** 2 + 1 / s[k] ** 2)
                 epr = np.exp(x * sqpr)
                 eqs = np.exp(x * sqqs)
-                for n in range(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
+                for n in prange(2):  # n=1 for the 1st part of each coefficient, n=2 for 2nd
                     if m == 0:
                         if n == 0:
                             dx = -sqpr * epr * cypi * szrk
@@ -1827,7 +1828,7 @@ def bconic(x, y, z, nmax):
     tnh = sh / ch
     cnh = 1 / tnh
 
-    for m in range(nmax):
+    for m in prange(nmax):
         m1 = m + 1
         cfm = cfm1 * cf - sfm1 * sf
         sfm = cfm1 * sf + sfm1 * cf
@@ -1909,10 +1910,10 @@ def intercon(x, y, z):
     l = 0
     bx, by, bz = [0.] * 3
     # "perpendicular" kind of symmetry only
-    for i in range(3):
+    for i in prange(3):
         cypi = np.cos(y * rp[i])
         sypi = np.sin(y * rp[i])
-        for k in range(3):
+        for k in prange(3):
             szrk = np.sin(z * rr[k])
             czrk = np.cos(z * rr[k])
             sqpr = np.sqrt(rp[i] ** 2 + rr[k] ** 2)
