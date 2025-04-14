@@ -4,7 +4,7 @@ import numpy as np
 
 from Global import Units, Regions
 from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere.Functions import transformations, t89, t96, gauss
+from MagneticFields.Magnetosphere.Functions import transformations, t89, t96, t15B, gauss
 
 
 class Tsyganenko(AbsBfield):
@@ -17,20 +17,24 @@ class Tsyganenko(AbsBfield):
 
     :param date: Date for model initialization (default: 2000-01-01)
     :type date: datetime.datetime
-    :param ModCode: Model version selector (89 or 96)
-    :type ModCode: int
+    :param ModCode: Model version selector (89, 96, 15B)
+    :type ModCode: str
     :param kwargs: Additional arguments for base class
     :raises ValueError: If date is outside model's valid range
     """
     ToMeters = Units.RE2m
 
-    def __init__(self, date: datetime = datetime(2000, 1, 1), ModCode=96, **kwargs):
+    def __init__(self, date: datetime = datetime(2000, 1, 1), ModCode="96", **kwargs):
         super().__init__(**kwargs)
         self.ModelName = "Tsyganenko"
         self.Region = Regions.Magnetosphere
         self.Units = "RE"
-        self.mod_code = ModCode
-        self.T_input = np.load(Path(__file__).resolve().parent.joinpath("Data", "T_input_short.npy"))
+        self.mod_code = str(ModCode)
+        self.T_input = None
+        if self.mod_code == '15B':
+            self.T_input = np.load(Path(__file__).resolve().parent.joinpath("Data", "T_input15B_short.npy"))
+        else:
+            self.T_input = np.load(Path(__file__).resolve().parent.joinpath("Data", "T_input_short.npy"))
         if not self.T_input['date'][0] <= date <= self.T_input['date'][-1]:
             raise ValueError(f"Input date must be between {self.T_input['date'][0]} and {self.T_input['date'][-1]}.")
         self.Date = date
@@ -42,7 +46,7 @@ class Tsyganenko(AbsBfield):
         self.sec = self.Date.second + 60 * self.Date.minute + 3600 * self.Date.hour
         self.DTnum = self.Date.toordinal()  # + 366
         self.ps = self._get_psi()
-        self.iopt = self._get_ind()
+        self.parmod = self._get_ind()
 
     def _get_psi(self):
         self.g, self.h, _ = gauss.LoadGaussCoeffs(Path(__file__).resolve().parent.joinpath("IGRF13", "igrf13coeffs.npy"), self.Date)
@@ -55,20 +59,25 @@ class Tsyganenko(AbsBfield):
     def _get_ind(self):
         ia = np.argmax(self.T_input['date'] >= self.Date)
         match self.mod_code:
-            case 89:
+            case "89":
                 return self.T_input['T89_input'][ia]
-            case 96:
+            case "96":
                 return self.T_input['T96_input'][ia].astype(np.float32)
+            case "15B":
+                return self.T_input["T15B_input"][ia].astype(np.float32)
             case _:
                 return None
 
     def CalcBfield(self, x, y, z, **kwargs):
         X, Y, Z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, 1)
         Bx, By, Bz = 0, 0, 0
-        if self.mod_code == 89:
-            Bx, By, Bz = t89.t89(self.iopt, self.ps, X, Y, Z)
-        elif self.mod_code == 96:
-            Bx, By, Bz = t96.t96(self.iopt, self.ps, X, Y, Z)
+        if self.mod_code == "89":
+            Bx, By, Bz = t89.t89(self.parmod, self.ps, X, Y, Z)
+        elif self.mod_code == "96":
+            Bx, By, Bz = t96.t96(self.parmod, self.ps, X, Y, Z)
+        elif self.mod_code == "15B":
+            Bx, By, Bz = t15B.t15B(self.parmod, self.ps, X, Y, Z)
+
         Bx, By, Bz = transformations.geo2gsm(Bx, By, Bz, self.year, self.doy, self.sec, 0)
         return Bx, By, Bz
 
