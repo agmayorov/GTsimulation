@@ -274,7 +274,6 @@ class GTSimulator(ABC):
         if self.Verbose:
             print()
 
-
         self.Bfield = None
         self.Efield = None
         self.__SetEMFF(Bfield, Efield)
@@ -314,7 +313,6 @@ class GTSimulator(ABC):
             self.Step = Step
             if self.Verbose:
                 print(f"\tTime step: {self.Step}")
-
         elif isinstance(Step, dict):
             self.UseAdaptiveStep = Step.get("UseAdaptiveStep", False)
             self.Step = Step.get("InitialStep", 1)
@@ -324,11 +322,12 @@ class GTSimulator(ABC):
             else:
                 self.N1 = Step.get("MinLarmorRad", 600)
                 self.N2 = Step.get("MaxLarmorRad", 600)
-
             assert isinstance(self.UseAdaptiveStep, bool)
             assert isinstance(self.Step, (int, float))
             assert isinstance(self.N1, int) and isinstance(self.N2, int)
             assert self.N1<=self.N2
+        else:
+            raise Exception("Step should be numeric or dict")
 
         if self.Verbose:
             if not self.UseAdaptiveStep:
@@ -341,9 +340,6 @@ class GTSimulator(ABC):
                     print(f"\tMaximal number of steps in larmor radius: {self.N2}")
                 else:
                     print(f"Number of steps in larmor radius: {N}")
-
-        else:
-            raise Exception("Step should be numeric or dict")
 
     def __SetUseRadLosses(self, RadLosses):
         if isinstance(RadLosses, bool):
@@ -501,7 +497,6 @@ class GTSimulator(ABC):
                         val_ = np.s_[val_.start - num:val_.stop - num:1]
                     self.SaveCode[sorted_keys[j]] = val_
 
-
         if self.Verbose:
             for saves in self.Save.keys():
                 print(f"\t\t{saves}: {self.Save[saves]}")
@@ -510,10 +505,7 @@ class GTSimulator(ABC):
         Track = []
         if self.Verbose:
             print("Launching simulation...")
-        if isinstance(self.Nfiles, int):
-            file_nums = np.arange(self.Nfiles)
-        else:
-            file_nums = self.Nfiles
+        file_nums = np.arange(self.Nfiles) if isinstance(self.Nfiles, int) else self.Nfiles
         for (idx, i) in enumerate(file_nums):
             if self.IsFirstRun:
                 print(f"\tFile number {i}. No {idx+1} file out of {len(file_nums)}")
@@ -614,28 +606,18 @@ class GTSimulator(ABC):
             Q = particle.Z * Constants.e
             M = particle.M
             m = M*Units.MeV2kg
-            Energy = particle.E
             T = particle.T
 
             V_normalized = np.array(particle.velocities)  # unit vector of velocity (beta vector)
-            V_norm = Constants.c * np.sqrt(Energy ** 2 - M ** 2) / Energy  # scalar speed [m/s]
+            V_norm = Constants.c * np.sqrt(particle.E ** 2 - M ** 2) / particle.E  # scalar speed [m/s]
             Vm = V_norm * V_normalized  # vector of velocity [m/s]
 
             r0 = np.array(particle.coordinates)
             r = np.array(particle.coordinates)
             r_old = r
 
-            if self.Bfield is not None:
-                B = np.array(self.Bfield.GetBfield(*r))
-                if len(B.shape) == 2:
-                    B = B[:, 0]
-            else:
-                B = np.zeros(3)
-
-            if self.Efield is not None:
-                E = np.array(self.Efield.GetEfield(*r))
-            else:
-                E = np.zeros(3)
+            B = np.array(self.Bfield.GetBfield(*r)) if self.Bfield is not None else np.zeros(3)
+            E = np.array(self.Efield.GetEfield(*r)) if self.Efield is not None else np.zeros(3)
 
             Step = self.Step
 
@@ -643,8 +625,7 @@ class GTSimulator(ABC):
                 Step *= 1e2
 
             if self.Verbose:
-                print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], "
-                      f"Z = {self.Particles[self.index].Z})")
+                print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], Z = {self.Particles[self.index].Z})")
                 print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
                       f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf} [GV]")
                 print(f"\t\t\tCoordinates: {r} [m]")
@@ -792,17 +773,8 @@ class GTSimulator(ABC):
                                 new_process.__gen = Gen + 1
                                 prod_tracks.append(new_process.CallOneFile()[0])
 
-                if self.Bfield is not None:
-                    B = np.array(self.Bfield.GetBfield(*r))
-                    if len(B.shape) == 2:
-                        B = B[:, 0]
-                else:
-                    B = np.zeros(3)
-
-                if self.Efield is not None:
-                    E = np.array(self.Efield.GetEfield(*r))
-                else:
-                    E = np.zeros(3)
+                B = np.array(self.Bfield.GetBfield(*r)) if self.Bfield is not None else np.zeros(3)
+                E = np.array(self.Efield.GetEfield(*r)) if self.Efield is not None else np.zeros(3)
 
                 # TODO the code is region specific
                 # Full revolution
@@ -999,15 +971,15 @@ class GTSimulator(ABC):
     @staticmethod
     @jit(nopython=True, fastmath=True)
     def AdaptStep(q, m, B, V, T, M, dt, N1, N2):
-        Y = T/M + 1
+        Y = T / M + 1
         B_n = np.linalg.norm(B)
-        costheta = B @ V/(np.linalg.norm(V)*B_n)
-        sintheta = np.sqrt(1 - costheta**2)
-        T = Y * m * sintheta / (np.abs(q) * B_n)
-        if N1 <= T/dt <= N2:
+        cos_theta = B @ V / (np.linalg.norm(V) * B_n)
+        sin_theta = np.sqrt(1 - cos_theta ** 2)
+        T = Y * m * sin_theta / (np.abs(q) * B_n)
+        if N1 <= T / dt <= N2:
             return dt
 
-        return T/np.sqrt(N1*N2)
+        return T / np.sqrt(N1*N2)
 
     @abstractmethod
     def AlgoStep(self, T, M, q, Vm, r, H, E):
