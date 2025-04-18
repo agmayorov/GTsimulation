@@ -56,7 +56,7 @@ class ParkerUniform(Parker):
                                             A_rad, alpha_rad, delta_rad,
                                             A_azimuth, alpha_azimuth, delta_azimuth,
                                             A_2D, alpha_2D, delta_2D,
-                                            rs, k, dk, self.use_slab, self.use_2d)
+                                            rs, k, dk, self.use_slab, self.use_2d, self.coeff_2d)
 
         Bx += self.magnitude * self.coeff_noise * Bx_n
         By += self.magnitude * self.coeff_noise * By_n
@@ -71,7 +71,7 @@ class ParkerUniform(Parker):
                     A_rad, alpha_rad, delta_rad,
                     A_azimuth, alpha_azimuth, delta_azimuth,
                     A_2d, alpha_2d, delta_2d,
-                    rs, k, dk, use_slab, use_2d):
+                    rs, k, dk, use_slab, use_2d, component_2d):
         """
         doi.org/10.3847/1538-4357/aca892/meta
         """
@@ -154,7 +154,7 @@ class ParkerUniform(Parker):
                 coeff_slab = 1. #5.546/2 #1 / 2
 
             if use_2d:
-                coeff_2d = 0.00185
+                coeff_2d = component_2d
 
             Bx_helio += coeff_2d*Bx_2d + coeff_slab * Bx_slab
             By_helio += coeff_2d*By_2d + coeff_slab * By_slab

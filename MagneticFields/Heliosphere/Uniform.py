@@ -9,7 +9,8 @@ from MagneticFields import AbsBfield
 
 
 class Uniform(AbsBfield):
-    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, **kwargs):
+    ToMeters = Units.AU2m
+    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.54, coeff_2d = 183, **kwargs):
         super().__init__(**kwargs)
 
         self.Region = Regions.Heliosphere
@@ -21,6 +22,9 @@ class Uniform(AbsBfield):
         self.use_noise = use_noise
         self.use_2d = use_2d
         self.use_slab = use_slab
+
+        self.coeff_slab = coeff_slab
+        self.coeff_2d = coeff_2d
 
         self.q = 1  # 2d energy spectral index
         self.nu = 5 / 3  # slab/2d inertial range spectral index
@@ -65,7 +69,7 @@ class Uniform(AbsBfield):
         Bx = np.real(np.fft.ifft(X_m))
         By = np.real(np.fft.ifft(Y_m))
 
-        return 0.54*Bx, 0.54*By
+        return self.coeff_slab*Bx, self.coeff_slab*By
 
     def calc_spectrum_slab(self, k_par):
         return self._calc_spectrum_slab(k_par, self.nu, self.p, self.l0_slab, self.l1_slab, self.l2_slab, self.l3_slab)
@@ -102,7 +106,7 @@ class Uniform(AbsBfield):
         Bx = np.real(np.fft.ifftn(X_m))
         By = np.real(np.fft.ifftn(Y_m))
 
-        return 183*Bx, 183*By  # in order for anisotropy (2d/slab) to be 80%/20%
+        return self.coeff_2d*Bx, self.coeff_2d*By  # in order for anisotropy (2d/slab) to be 80%/20%
 
     def calc_spectrum_2d(self, k_perp):
         return self._calc_spectrum_2d(k_perp, self.nu, self.q, self.l0_slab, self.l1_slab, self.l3_slab)
@@ -168,7 +172,7 @@ class Uniform(AbsBfield):
         return Bx, By
 
     def to_string(self):
-        s = f"""Parker
+        s = f"""Uniform
             Regular: {self.use_reg}
             Noise: {self.use_noise}
             """
@@ -176,12 +180,15 @@ class Uniform(AbsBfield):
         if self.use_noise:
             s += f"""
             Using Slab: {self.use_slab}
-            Using 2D: {self.use_2d}"""
+            Coeff Slab: {self.coeff_slab}
+            Using 2D: {self.use_2d}
+            Coeff 2D: {self.coeff_2d}"""
 
         return s
 
 
 if __name__ == "__main__":
+    # field = Uniform(coeff_slab=0.25, coeff_2d=26000)
     field = Uniform()
     Bx_slab = field.Bx_slab
     By_slab = field.By_slab
