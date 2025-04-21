@@ -8,13 +8,13 @@ from Global import Units, Regions
 from MagneticFields import AbsBfield
 
 
-class Uniform(AbsBfield):
+class UniformHelio(AbsBfield):
     ToMeters = Units.AU2m
     def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.54, coeff_2d = 183, **kwargs):
         super().__init__(**kwargs)
 
         self.Region = Regions.Heliosphere
-        self.ModelName = "Uniform"
+        self.ModelName = "UniformHelio"
         self.Units = "AU"
 
         self.B0 = 6
@@ -172,7 +172,7 @@ class Uniform(AbsBfield):
         return Bx, By
 
     def to_string(self):
-        s = f"""Uniform
+        s = f"""{self.ModelName}
             Regular: {self.use_reg}
             Noise: {self.use_noise}
             """
@@ -188,8 +188,8 @@ class Uniform(AbsBfield):
 
 
 if __name__ == "__main__":
-    # field = Uniform(coeff_slab=0.25, coeff_2d=26000)
-    field = Uniform()
+    field = UniformHelio(coeff_slab=0.54, coeff_2d=5000)
+    # field = UniformHelio()
     Bx_slab = field.Bx_slab
     By_slab = field.By_slab
 

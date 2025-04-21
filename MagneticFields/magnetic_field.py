@@ -8,9 +8,9 @@ class AbsBfield(ABC):
     ToMeters = 1
 
     def __init__(self, use_tesla=True, use_meters=True, **kwargs):
-        self.Region = None
+        self.Region = Regions.Undefined
         self.ModelName = None
-        self.Units = None
+        self.Units = 'm'
         self.use_tesla = use_tesla
         self.use_meters = use_meters
 

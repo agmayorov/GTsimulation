@@ -50,6 +50,16 @@ class _AbsRegion(ABC):
     def do_before_loop(*args, **kwargs):
         pass
 
+class _Undefined(_AbsRegion):
+
+    @staticmethod
+    def additions(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def checkSave(*args, **kwargs):
+        pass
+
 
 class _Heliosphere(_AbsRegion):
     @staticmethod
@@ -163,3 +173,4 @@ class Regions(Enum):
     Magnetosphere = _Magnetosphere
     Heliosphere = _Heliosphere
     Galaxy = _Galaxy
+    Undefined = _Undefined

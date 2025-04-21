@@ -197,7 +197,7 @@ class GTSimulator(ABC):
     def __init__(self,
                  Bfield: None | AbsBfield = None,
                  Efield=None,
-                 Region: None | Regions = None,
+                 Region: Regions = Regions.Undefined,
                  Medium: None | GTGeneralMedium = None,
                  Date=datetime.datetime(2008, 1, 1),
                  RadLosses: bool | list = False,
