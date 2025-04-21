@@ -6,7 +6,7 @@ from Global import Constants
 
 
 class BunemanBorisSimulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X, H, E):
+    def AlgoStep(self, T, M, q, V, X, H, E, Step):
         x, y, z = X
         # if self.Bfield is not None:
         #     H = np.array(self.Bfield.GetBfield(x, y, z))
@@ -21,24 +21,36 @@ class BunemanBorisSimulator(GTSimulator):
         #     E = np.zeros(3)
         c = Constants.c
         if M != 0:
-            return self.__algo(E, H, M, T, V, q, c) #, H, E
+            return self.__algo(E, H, M, T, V, q, c, Step) #, H, E
         else:
             return V, 0, 0#, H, E
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
-    def __algo(E, H, M, T_particle, V, q, c):
+    def __algo(E, H, M, T_particle, V, q, c, step):
         H_norm = np.linalg.norm(H)
         Yp = T_particle / M + 1
         if H_norm == 0:
-            return V, Yp, Yp
+            return V, Yp, Yp, step
         Ui = Yp * V
 
-        TT = Yp * np.tan(q * H_norm / Yp)
+        # Check smallness of an argument
+        step_tmp = step
+        q_tmp = q
+        check_value = 1.0
+        if q_tmp * H_norm / Yp % (2*np.pi) >= check_value:
+            power = 10
+            for attempt in range(3):
+                step_tmp /= power
+                q_tmp /= power
+                if q_tmp * H_norm / Yp % (2*np.pi) < check_value:
+                    break
+        assert q_tmp * H_norm / Yp % (2*np.pi) < check_value, 'Inappropriate timestep!'
+
+        TT = Yp * np.tan(q_tmp * H_norm / Yp)
 
         T = TT * H / H_norm
-
-        U = np.cross(V, T) + 2 * q * E + Ui
+        U = np.cross(V, T) + 2 * q_tmp * E + Ui
 
         UU = (np.dot(U, T)) ** 2 / c ** 2
         YY = np.sqrt(1 + np.linalg.norm(U) ** 2 / c ** 2)
@@ -49,7 +61,7 @@ class BunemanBorisSimulator(GTSimulator):
         Yp = np.sqrt(0.5 * (S + np.sqrt(S ** 2 + 4 * (TT ** 2 + UU))))
         Ya = 0.5 * (Ym + Yp)
 
-        tt = np.tan(q * H_norm / Yp)
+        tt = np.tan(q_tmp * H_norm / Yp)
 
         t = tt * H / H_norm
 
@@ -57,5 +69,4 @@ class BunemanBorisSimulator(GTSimulator):
 
         Vp = s / Yp * (U + t * np.dot(U, t) + np.cross(U, t))
 
-        return Vp, Yp, Ya
-        # return Vp, Yp, Ya
+        return Vp, Yp, Ya, step_tmp

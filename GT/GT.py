@@ -126,7 +126,6 @@ class GTSimulator(ABC):
 
         2.2. lon_total:
 
-        2.3. status
     3. Particle: Information about the particle
         3.1. PDG: Its PDG code
 
@@ -554,7 +553,6 @@ class GTSimulator(ABC):
     def CallOneFile(self):
         self.Particles.Generate()
         RetArr = []
-        status = "Done"
 
         SaveR = self.Save["Coordinates"]
         SaveV = self.Save["Velocities"]
@@ -669,7 +667,7 @@ class GTSimulator(ABC):
 
                 PathLen = V_norm * Step
 
-                Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r, B, E)
+                Vp, Yp, Ya, Step_tmp = self.AlgoStep(T, M, q, Vm, r, B, E, Step)
 
                 if self.UseRadLosses[1]:
                     synch_record.add_iteration(T, B, Vm, Step)
@@ -688,7 +686,7 @@ class GTSimulator(ABC):
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c)
                 r_old = r
-                V_norm, r, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+                V_norm, r, TotPathLen, TotTime = self.Update(PathLen, Step_tmp, TotPathLen, TotTime, Vm, r)
 
                 # Medium
                 if self.Medium is not None:
@@ -800,7 +798,6 @@ class GTSimulator(ABC):
                         brk = self.__brck_index["Death"]
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
-                    status = "DefaultBC_" + f'{self.__index_brck[brk]}'
                     break
 
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:
@@ -851,7 +848,6 @@ class GTSimulator(ABC):
                     if self.Verbose:
                         print("Done")
 
-                # TODO find differences with MATLAB
                 # Particles in magnetosphere (Part 2)
                 if self.ParticleOriginIsOn and self.IsFirstRun:
                     if self.Verbose:
@@ -982,5 +978,5 @@ class GTSimulator(ABC):
         return T / np.sqrt(N1*N2)
 
     @abstractmethod
-    def AlgoStep(self, T, M, q, Vm, r, H, E):
+    def AlgoStep(self, T, M, q, Vm, r, H, E, Step):
         pass
