@@ -1,3 +1,4 @@
+import os
 import datetime
 import numpy as np
 from numba import jit
@@ -20,7 +21,9 @@ class Dipole(AbsBfield):
         self.units = units
         self.psi = psi
 
-        coefs = np.load("MagneticFields/Magnetosphere/Data/HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
+        path = os.path.dirname(os.path.realpath(__file__))
+
+        coefs = np.load(f"{path}{os.sep}Data{os.sep}HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
         self.g10sm = np.poly1d(coefs["g10_fit"])
         self.g11sm = np.poly1d(coefs["g11_fit"])
         self.h11sm = np.poly1d(coefs["h11_fit"])
