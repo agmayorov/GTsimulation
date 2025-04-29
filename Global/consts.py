@@ -6,8 +6,9 @@ class Constants:
     c = 2.99792458e8  # Speed of light in m/s
     e = 1.602176634e-19  # Elementary charge in C
 
-    hbar = 6.582119514e-22  # MeV*s
-    hbarc = 197.3269788  # MeV*fm
+    h = 6.62607015e-34  # Planck constant in J·s
+    hbar = 6.582119514e-22  # MeV·s
+    hbarc = 197.3269788  # MeV·fm
 
     ao = 0.5291772086e-8  # Bohr radius of hydrogen, cm
 
@@ -41,20 +42,32 @@ class Units:
 
     # System of units
     # Length
-    meters = 1
-    kilometers = 1e3 * meters
-    earthradius = 6378137.1 * meters
-    parsec = 3.08567758149e16 * meters
+    meter = 1
+    kilometer = 1e3 * meter
+    earthradius = 6378137.1 * meter
+    parsec = 3.08567758149e16 * meter
     kiloparsec = 1e3 * parsec
-    astronomicalunits = 149.597870700e9 * meters
-
+    astronomicalunit = 149.597870700e9 * meter
     # Symbols
-    m = meters
-    km = kilometers
+    m = meter
+    km = kilometer
     RE = earthradius
     pc = parsec
     kpc = kiloparsec
-    AU = astronomicalunits
+    AU = astronomicalunit
+
+    # Time
+    second = 1
+    millisecond = 1e-3 * second
+    microsecond = 1e-6 * second
+    nanosecond = 1e-9 * second
+    day = 86400 * second
+    year = 365.25 * day
+    # Symbols
+    s = second
+    ms = millisecond
+    us = microsecond
+    ns = nanosecond
 
     # Energy
     megaelectronvolt = 1
@@ -63,7 +76,6 @@ class Units:
     gigaelectronvolt = 1e3 * megaelectronvolt
     teraelectronvolt = 1e6 * megaelectronvolt
     petaelectronvolt = 1e9 * megaelectronvolt
-
     # Symbols
     eV = electronvolt
     keV = kiloelectronvolt
@@ -79,7 +91,6 @@ class Units:
     gigavolt = 1e3 * megavolt
     teravolt = 1e6 * megavolt
     petavolt = 1e9 * megavolt
-
     # Symbols
     V = volt
     kV = kilovolt
@@ -91,7 +102,6 @@ class Units:
     # Angles
     degree = 1
     radian = 180 / np.pi
-
     # Symbols
     deg = degree
     rad = radian
