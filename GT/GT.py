@@ -152,7 +152,7 @@ class GTSimulator(ABC):
 
                 NumEqPitch: Indexes of trajectory where particle crosses the magnetic equator
 
-                NumB0:
+                NumB0: An array of trajectory points with the minimum value of the magnetic field strength
 
                 Hmirr: The value of the magnetic field at the mirror points
 
@@ -229,6 +229,7 @@ class GTSimulator(ABC):
             print(f"\tDate: {self.Date}")
             print()
 
+        self.StepParams = Step
         self.Step = None
         self.UseAdaptiveStep = False
         self.__SetStep(Step)
@@ -339,7 +340,7 @@ class GTSimulator(ABC):
                     print(f"\tMinimal number of steps in larmor radius: {self.N1}")
                     print(f"\tMaximal number of steps in larmor radius: {self.N2}")
                 else:
-                    print(f"Number of steps in larmor radius: {N}")
+                    print(f"\tNumber of steps in larmor radius: {N}")
 
     def __SetUseRadLosses(self, RadLosses):
         if isinstance(RadLosses, bool):
@@ -665,6 +666,8 @@ class GTSimulator(ABC):
 
                 if self.UseAdaptiveStep:
                     Step = self.AdaptStep(Q, m, B, Vm, T, M, Step, self.N1, self.N2)
+                    if i == 0:
+                        self.Step = Step
                     q = Step * Q / 2 / m
 
                 PathLen = V_norm * Step
@@ -845,7 +848,7 @@ class GTSimulator(ABC):
                 # Particles in magnetosphere (Part 1)
                 if self.TrackParamsIsOn:
                     if self.Verbose:
-                        print("\t\t\tGet trajectory parameters ...", end=' ')
+                        print("\t\t\tCalculating additional parameters ...", end=' ')
                     TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
                     RetArr[self.index]["Additions"] = TrackParams_i
                     if self.Verbose:
@@ -855,7 +858,7 @@ class GTSimulator(ABC):
                 # Particles in magnetosphere (Part 2)
                 if self.ParticleOriginIsOn and self.IsFirstRun:
                     if self.Verbose:
-                        print("\t\t\tGet particle origin ...", end=' ')
+                        print("\t\t\tFinding particle origin ...", end=' ')
                     origin = Additions.FindParticleOrigin(self, RetArr[self.index])
                     RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
                     if self.Verbose:

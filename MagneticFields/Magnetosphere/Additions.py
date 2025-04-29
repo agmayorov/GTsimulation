@@ -230,7 +230,7 @@ def GetTrackParams(Simulator, RetArr_i):
     if I2 is not None and I2.size == 0:
         I2 = None
 
-    # Lshell
+    # L-shell
     Lshell = None
     if I2 is not None:
         Lshell = GetLshell(I2, Hm)
@@ -451,8 +451,8 @@ def FindParticleOrigin(Simulator, RetArr_i):
     Region = Simulator.Region
     Bfield = Simulator.Bfield
     Particles = Simulator.Particles
-    Num = Simulator.ParamDict["Num"]
-    Step = Simulator.ParamDict["Step"]
+    Num = Simulator.Num
+    Step = Simulator.StepParams
     UseDecay = Simulator.UseDecay
     InteractNUC = Simulator.InteractNUC
     Save = [1, {"Energy": True, "Bfield": True}]
@@ -484,11 +484,8 @@ def FindParticleOrigin(Simulator, RetArr_i):
         # Trace extension
         if f == 3:
             s = 1
-            if not isinstance(Particles, list):
-                Particles = [Particles, {"Center": Rf, "V0": Vf}]
-            else:
-                Particles.Center = Rf
-                Particles.V0 = Vf
+            Particles.Center = Rf
+            Particles.V0 = Vf
             fGTsim = copy.deepcopy(Simulator)
             fGTsim.__init__(Date=Date, Region=Region, Bfield=Bfield, Particles=Particles, Num=Num, Step=Step,
                             Save=Save, BreakCondition=BreakCondition, TrackParams=True, ParticleOrigin=False,
