@@ -2,49 +2,72 @@ from collections.abc import Sequence, Iterable
 
 import numpy as np
 
-from Particle.Generators import GeneratorModes
-from Particle.Generators import AbsDistribution, AbsSpectrum
-from Particle.Particle import CRParticle, Particle
+from Particle.Generators import AbsDistribution, AbsSpectrum, GeneratorModes
+from Particle.Particle import CRParticle
 
 
 class Flux(Sequence):
-    def __init__(self, Spectrum: AbsSpectrum, Distribution: AbsDistribution, Names='pr', Nevents: int = 1, ToMeters=1, V0=None,
-                 Mode: GeneratorModes | str = GeneratorModes.Inward, *args, **kwargs):
+    def __init__(self, Spectrum: AbsSpectrum, Distribution: AbsDistribution, Names=None, PDGcode=None, Nevents: int = 1,
+                 V0=None, Mode: GeneratorModes | str = GeneratorModes.Inward, *args, **kwargs):
         self.Mode = Mode if isinstance(Mode, GeneratorModes) else GeneratorModes[Mode]
         self.Nevents = Nevents
-        self.ToMeters = ToMeters
-        self.Names = Names
+        self.name = Names
+        self.pdg_code = PDGcode
         self.V0 = V0
         self.particles = []
+        self.r = []
+        self.v = []
         self.kinetic_energy = None
         self._spectrum = Spectrum
         self._spectrum.flux = self
         self._distribution = Distribution
         self._distribution.flux = self
-        # self.Generate()
 
-    def Generate(self):
-        self.generate_coordinates()
-        self.GenerateParticles()
-        self.generate_energy_spectrum()
+    def generate(self):
         self.particles.clear()
+        self.generate_particles()
+        self.generate_coordinates()
+        self.generate_energy_spectrum()
         for i in range(self.Nevents):
-            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
+            self.particles[i].r = self.r[i]
+            self.particles[i].v = self.v[i]
+            self.particles[i].T = self.kinetic_energy[i]
 
-    def generate_energy_spectrum(self, *args, **kwargs):
-        self.kinetic_energy = self._spectrum.generate_energy_spectrum(*args, **kwargs)
-
-    def GenerateParticles(self):
-        if isinstance(self.Names, (Iterable, Sequence)) and not isinstance(self.Names, str):
-            if len(self.Names) == self.Nevents:
-                self.ParticleNames = self.Names
+    def generate_particles(self):
+        if self.name is None and self.pdg_code is None:
+            self.name = ['proton'] * self.Nevents
+            self.pdg_code = [2212] * self.Nevents
+            self.particles = [CRParticle(PDG=2212)] * self.Nevents
+        elif self.name is not None and self.pdg_code is None:
+            if isinstance(self.name, (Iterable, Sequence)) and not isinstance(self.name, str):
+                if len(self.name) == self.Nevents:
+                    unique_name, index_inverse = np.unique(self.name, return_inverse=True)
+                    unique_particles = [CRParticle(Name=name) for name in unique_name]
+                    self.particles = [unique_particles[index] for index in index_inverse]
+                    self.pdg_code = [particle.PDG for particle in self.particles]
+                else:
+                    raise Exception("Wrong number of particles")
             else:
-                raise Exception("Wrong number of particles")
+                self.particles = [CRParticle(Name=self.name)] * self.Nevents
+                self.pdg_code = [CRParticle(Name=self.name).PDG] * self.Nevents
         else:
-            self.ParticleNames = [self.Names] * self.Nevents
+            if isinstance(self.pdg_code, (Iterable, Sequence)) and not isinstance(self.pdg_code, int):
+                if len(self.pdg_code) == self.Nevents:
+                    unique_pdg_code, index_inverse = np.unique(self.pdg_code, return_inverse=True)
+                    unique_particles = [CRParticle(PDG=pdg_code) for pdg_code in unique_pdg_code]
+                    self.particles = [unique_particles[index] for index in index_inverse]
+                    self.name = [particle.Name for particle in self.particles]
+                else:
+                    raise Exception("Wrong number of particles")
+            else:
+                self.particles = [CRParticle(PDG=self.pdg_code)] * self.Nevents
+                self.name = [CRParticle(PDG=self.pdg_code).Name] * self.Nevents
 
     def generate_coordinates(self, *args, **kwargs):
         self.r, self.v = self._distribution.generate_coordinates(*args, **kwargs)
+
+    def generate_energy_spectrum(self, *args, **kwargs):
+        self.kinetic_energy = self._spectrum.generate_energy_spectrum(*args, **kwargs)
 
     def __getitem__(self, item):
         return self.particles[item]
@@ -55,14 +78,13 @@ class Flux(Sequence):
     def to_string(self):
         s = f"""
         Number of particles: {self.Nevents}"""
-        if self.Names is not None:
+        if self.name is not None:
             s += f"""
-        Particles: {self.Names}"""
+        Particles: {np.unique(self.name)}"""
         s += f"""
         V: {self.V0 if self.V0 is not None else 'Isotropic'}
         Spectrum: {str(self._spectrum)}
         Distribution: {str(self._distribution)}"""
-
         return s
 
     def __str__(self):
@@ -81,7 +103,6 @@ class FluxPitchPhase(Flux):
         s1 = f"""
         Pitch Angle: {self.Pitch} [rad]
         Phase Angles: {self.Phase} [rad]"""
-
         return s + s1
 
 
@@ -112,15 +133,11 @@ class GyroCenterFlux(Flux):
         self.B = bfield.GetBfield(*self.coo_gyr)
         self.Bm = np.linalg.norm(self.B)
 
-    def Generate(self):
-        self.GenerateParticles()
+    def generate(self):
+        self.generate_particles()
         self.generate_energy_spectrum()
-        masses = np.zeros(self.Nevents)
-        charges = np.zeros(self.Nevents)
-        for i in range(self.Nevents):
-            p = Particle(self.ParticleNames[i])
-            masses[i] = p.M
-            charges[i] = p.Z
+        masses = np.array([particle.M for particle in self.particles])
+        charges = np.array([particle.Z for particle in self.particles])
 
         r_lar = self.larmor(self.kinetic_energy, self.Bm, masses, charges, self.pitchd.flatten())[:, np.newaxis]
         B3 = self.B/self.Bm
@@ -135,7 +152,9 @@ class GyroCenterFlux(Flux):
         self.v = init_v
         self.r = init_coo
         for i in range(self.Nevents):
-            self.particles.append(CRParticle(r=self.r[i], v=self.v[i], T=self.kinetic_energy[i], Name=self.ParticleNames[i]))
+            self.particles[i].r = self.r[i]
+            self.particles[i].v = self.v[i]
+            self.particles[i].T = self.kinetic_energy[i]
 
     @staticmethod
     def larmor(T, Bm, M, Z, pitchd):
@@ -157,7 +176,4 @@ class GyroCenterFlux(Flux):
         GyroCenter Coordinates: {self.coo_gyr} [m]
         Pitch Angle: {self.pitchd} [deg]
         Phase Angles: {self.phased} [deg]"""
-
         return s + s1
-
-

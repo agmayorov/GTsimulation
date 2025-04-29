@@ -29,7 +29,7 @@ Medium = GTnrlmsis(date=Date, version=0)
 Particles = Flux(
     Spectrum = Monolines(energy = 1.5 * U.GeV),
     Distribution = SphereSurf(Radius = 10 * U.RE),
-    Names = "pr",
+    Names = "proton",
     Nevents = 10
 )
 # Particles = FluxPitchPhase(
@@ -38,9 +38,9 @@ Particles = Flux(
 #     Phase = np.pi / 6,
 #     Spectrum = Monolines(energy = 20 * U.GeV),
 #     Distribution = SphereSurf(Radius = 0, Center = np.array([1.2, 0, 0]) * U.RE),
-#     Names='pr',
-#     Nevents=20,
-#     Mode="Outward"
+#     Names = "proton",
+#     Nevents = 20,
+#     Mode = "Outward"
 # )
 
 UseDecay = False

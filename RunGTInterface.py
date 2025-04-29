@@ -1,5 +1,4 @@
 import argparse
-import os
 from datetime import datetime
 
 import numpy as np
@@ -25,7 +24,7 @@ Medium = ["GTnrlmsis", {"version": 0}]
 Particles = {
     "Spectrum": {"Name": "Monolines", "energy": 1.5 * U.GeV},
     "Distribution": {"Name": "SphereSurf", "Radius": 10 * U.RE},
-    "Names": "pr",
+    "Names": "proton",
     "Nevents": 10
 }
 # Particles = ["FluxPitchPhase", {
@@ -33,7 +32,7 @@ Particles = {
 #     "Phase": np.pi / 6,
 #     "Spectrum": {"Name": "Monolines", "energy": 20 * U.GeV},
 #     "Distribution": {"Name":  "SphereSurf", "Radius": 0, "Center": np.array([1.2, 0, 0]) * U.RE},
-#     "Names": 'pr',
+#     "Names": "proton",
 #     "Nevents": 20,
 #     "Mode": "Outward"
 # }]

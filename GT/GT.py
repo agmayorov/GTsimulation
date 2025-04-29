@@ -553,7 +553,7 @@ class GTSimulator(ABC):
             return Track
 
     def CallOneFile(self):
-        self.Particles.Generate()
+        self.Particles.generate()
         RetArr = []
         status = "Done"
 
@@ -587,11 +587,11 @@ class GTSimulator(ABC):
             Saves = []
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
-            tau = self.UseDecay * particle.tau
+            tau = particle.tau
             rnd_dec = 0
             self.IsPrimDeath = False
             prod_tracks = []
-            if tau:
+            if self.UseDecay:
                 rnd_dec = np.random.rand()
                 if self.Verbose:
                     print(f"\t\t\tUse Decay: {self.UseDecay}")
@@ -709,8 +709,8 @@ class GTSimulator(ABC):
                         LocalVelocity = np.append(LocalVelocity, Vm[None, :], axis=0)
 
                 # Decay
-                if tau and not self.IsPrimDeath:
-                    lifetime = tau * (T / M + 1)
+                if self.UseDecay and not self.IsPrimDeath:
+                    lifetime = tau * (T / M + 1) if M > 0 else np.inf
                     if rnd_dec > np.exp(-TotTime / lifetime):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
                         self.IsPrimDeath = True

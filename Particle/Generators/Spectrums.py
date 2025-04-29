@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from Particle.GeneratorCR import GetGCRflux
-from Particle.GetNucleiProp import GetNucleiProp
 from Particle.functions import convert_units
 
 
@@ -71,7 +70,7 @@ class PowerSpectrum(ContinuumSpectrum):
     def generate_energy_spectrum(self):
         energy = np.zeros(self.flux.Nevents)
         for s in range(self.flux.Nevents):
-            a, z, m, *_ = GetNucleiProp(self.flux.ParticleNames[s])
+            z, a, m = self.flux.particles[s].Z, self.flux.particles[s].A, self.flux.particles[s].M
             if self.energy_range_units != self.base:
                 energy_range_s = convert_units(self.energy_range, self.energy_range_units, self.base, m, a, z)
             else:
@@ -104,9 +103,9 @@ class ForceField(ContinuumSpectrum):
     def generate_energy_spectrum(self):
         energy = np.zeros(self.flux.Nevents)
         # partitioning by particle species
-        unique_particle, index_inverse, count = np.unique(self.flux.ParticleNames, return_inverse=True, return_counts=True)
-        for i, particle in enumerate(unique_particle):
-            a, z, m, *_ = GetNucleiProp(particle)
+        unique_name, index, index_inverse, count = np.unique(self.flux.name, return_index=True, return_inverse=True, return_counts=True)
+        for i, particle in enumerate(unique_name):
+            z, a, m = self.flux.particles[index[i]].Z, self.flux.particles[index[i]].A, self.flux.particles[index[i]].M
             if self.energy_range_units != 'T':
                 energy_range_s = convert_units(self.energy_range, self.energy_range_units, 'T', m, a, z)
             else:
