@@ -29,8 +29,8 @@ class Flux(Sequence):
         self.generate_coordinates()
         self.generate_energy_spectrum()
         for i in range(self.Nevents):
-            self.particles[i].r = self.r[i]
-            self.particles[i].v = self.v[i]
+            self.particles[i].coordinates = self.r[i]
+            self.particles[i].velocities = self.v[i]
             self.particles[i].T = self.kinetic_energy[i]
 
     def generate_particles(self):
