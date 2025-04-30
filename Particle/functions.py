@@ -65,7 +65,7 @@ def GetAntiParticle(particle):
     particle.Z *= -1
     particle.PDG *= -1
 
-    if particle.Name[0] == 'a':
-        particle.Name = particle.Name[1:]
+    if particle.Name.startswith('anti_'):
+        particle.Name = particle.Name[5:]
     else:
-        particle.Name = 'a' + particle.Name
+        particle.Name = f'anti_{particle.Name}'

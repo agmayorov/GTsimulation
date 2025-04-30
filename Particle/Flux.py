@@ -32,6 +32,7 @@ class Flux(Sequence):
             self.particles[i].coordinates = self.r[i]
             self.particles[i].velocities = self.v[i]
             self.particles[i].T = self.kinetic_energy[i]
+            self.particles[i].E = self.kinetic_energy[i] + self.particles[i].M
 
     def generate_particles(self):
         if self.name is None and self.pdg_code is None:
@@ -152,9 +153,10 @@ class GyroCenterFlux(Flux):
         self.v = init_v
         self.r = init_coo
         for i in range(self.Nevents):
-            self.particles[i].r = self.r[i]
-            self.particles[i].v = self.v[i]
+            self.particles[i].coordinates = self.r[i]
+            self.particles[i].velocities = self.v[i]
             self.particles[i].T = self.kinetic_energy[i]
+            self.particles[i].E = self.kinetic_energy[i] + self.particles[i].M
 
     @staticmethod
     def larmor(T, Bm, M, Z, pitchd):
