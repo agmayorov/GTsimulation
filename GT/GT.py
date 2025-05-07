@@ -855,13 +855,13 @@ class GTSimulator(ABC):
 
                 # Particles in magnetosphere (Part 2)
                 if self.ParticleOriginIsOn and self.IsFirstRun:
-                        if self.Verbose:
-                            print("\t\t\tFinding particle origin ...", end=' ')
-                        origin = Additions.FindParticleOrigin(self, RetArr[self.index])
-                        RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
-                        if self.Verbose:
-                            print(origin.name)
-                            print()
+                    if self.Verbose:
+                        print("\t\t\tFinding particle origin ...", end=' ')
+                    origin = Additions.FindParticleOrigin(self, RetArr[self.index])
+                    RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
+                    if self.Verbose:
+                        print(origin.name)
+                        print()
 
         return RetArr
 
