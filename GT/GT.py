@@ -124,9 +124,6 @@ class GTSimulator(ABC):
     2. BC: The parameters regarding the simulation end.
         2.1. WOut: The code of break. See :py:mod:`Global.codes.BreakIndex`
 
-        2.2. lon_total:
-
-        2.3. status
     3. Particle: Information about the particle
         3.1. PDG: Its PDG code
 
@@ -157,12 +154,13 @@ class GTSimulator(ABC):
                 Hmirr: The value of the magnetic field at the mirror points
 
                 Heq: The value of the magnetic field at the magnetic equator
-            Lshell:
+            L-shell:
                 L: L-shell calculated on the basis of second invariant and the field at the mirror point
 
                 Lgen: L-shell calculated at every magnetic equator point
+            LonTotal: the angle of rotation of the particle around the Earth
 
-            GuidingCentre:
+            GuidingCenter:
                 LR: Larmor radius of a particle
 
                 LRNit:
@@ -312,8 +310,6 @@ class GTSimulator(ABC):
     def __SetStep(self, Step):
         if isinstance(Step, (int, float)):
             self.Step = Step
-            if self.Verbose:
-                print(f"\tTime step: {self.Step}")
         elif isinstance(Step, dict):
             self.UseAdaptiveStep = Step.get("UseAdaptiveStep", False)
             self.Step = Step.get("InitialStep", 1)
@@ -364,17 +360,15 @@ class GTSimulator(ABC):
             print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
 
     def __SetAdditions(self, TrackParams):
-        if not isinstance(TrackParams, list):
+        if isinstance(TrackParams, bool):
             self.TrackParamsIsOn = TrackParams
             if self.TrackParamsIsOn:
                 self.TrackParams.update((key, True) for key in self.TrackParams)
-        else:
-            self.TrackParamsIsOn = TrackParams[0]
-            if self.TrackParamsIsOn:
-                self.TrackParams.update((key, True) for key in self.TrackParams)
-            for add in TrackParams[1].keys():
+        elif isinstance(TrackParams, dict):
+            self.TrackParamsIsOn = True
+            for add in TrackParams.keys():
                 assert add in self.TrackParams.keys(), f'No such option as "{add}" is allowed'
-                self.TrackParams[add] = TrackParams[1][add]
+                self.TrackParams[add] = TrackParams[add]
 
     def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
         self.UseDecay = UseDecay
@@ -781,12 +775,12 @@ class GTSimulator(ABC):
 
                 # TODO the code is region specific
                 # Full revolution
-                if (self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]) and \
-                        self.Region == Regions.Magnetosphere:
-                    a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.Bfield.g,
-                                                                            self.Bfield.h)
-                    lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions, i,
-                                                                             a_, b_)
+                if self.Region == Regions.Magnetosphere:
+                    if self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
+                        a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.Bfield.g,
+                                                                                self.Bfield.h)
+                        lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions,
+                                                                                 i, a_, b_)
 
                 brck = self.CheckBreak(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
@@ -838,7 +832,7 @@ class GTSimulator(ABC):
                 track["Density"] = Saves[:, self.SaveCode["Density"]]
 
             RetArr.append({"Track": track,
-                           "BC": {"WOut": brk, "lon_total": lon_total},
+                           "BC": {"WOut": brk},
                            "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "Gen": Gen,
                                         "R0": particle.coordinates, "V0": particle.velocities, "T0": particle.T},
                            "Child": prod_tracks})
@@ -850,20 +844,24 @@ class GTSimulator(ABC):
                     if self.Verbose:
                         print("\t\t\tCalculating additional parameters ...", end=' ')
                     TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
+
+                    if self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
+                        TrackParams_i["LonTotal"] = lon_total
+
                     RetArr[self.index]["Additions"] = TrackParams_i
+
                     if self.Verbose:
                         print("Done")
 
-                # TODO find differences with MATLAB
                 # Particles in magnetosphere (Part 2)
                 if self.ParticleOriginIsOn and self.IsFirstRun:
-                    if self.Verbose:
-                        print("\t\t\tFinding particle origin ...", end=' ')
-                    origin = Additions.FindParticleOrigin(self, RetArr[self.index])
-                    RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
-                    if self.Verbose:
-                        print(origin.name)
-                        print()
+                        if self.Verbose:
+                            print("\t\t\tFinding particle origin ...", end=' ')
+                        origin = Additions.FindParticleOrigin(self, RetArr[self.index])
+                        RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
+                        if self.Verbose:
+                            print(origin.name)
+                            print()
 
         return RetArr
 

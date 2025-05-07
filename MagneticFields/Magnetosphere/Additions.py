@@ -116,6 +116,16 @@ def GetLshell(I2, Hm):
 
 
 def GetTrackParams(Simulator, RetArr_i):
+    # Change save settings due to dependencies
+    if Simulator.TrackParams["GuidingCenter"]:
+        Simulator.TrackParams["PitchAngles"] = True
+    if Simulator.TrackParams["Lshell"]:
+        Simulator.TrackParams["Invariants"] = True
+    if Simulator.TrackParams["Invariants"]:
+        Simulator.TrackParams["MirrorPoints"] = True
+    if Simulator.TrackParams["MirrorPoints"]:
+        Simulator.TrackParams["PitchAngles"] = True
+
     R = RetArr_i["Track"]["Coordinates"]
     H = RetArr_i["Track"]["Bfield"]
     M = RetArr_i["Particle"]["M"]
@@ -135,110 +145,132 @@ def GetTrackParams(Simulator, RetArr_i):
     VdotH = np.sum(V * H, axis=1)
 
     # First invariant
-    I1 = M * Y ** 2 * (Vn ** 2 - (VdotH / Hn) ** 2) / (2 * Hn)
+    Invariants = {}
+    if Simulator.TrackParams["Invariants"]:
+        I1 = M * Y ** 2 * (Vn ** 2 - (VdotH / Hn) ** 2) / (2 * Hn)
+        Invariants["I1"] = I1
 
     VndotHn = Vn * Hn
 
     # Pitch angles
-    pitch = np.arccos(VdotH / VndotHn) / np.pi * 180
+    PitchAngles = {}
+    if Simulator.TrackParams["PitchAngles"]:
+        pitch = np.arccos(VdotH / VndotHn) / np.pi * 180
+        PitchAngles["pitch"] = pitch
 
     # Mirror points
-    a = pitch[1:] - 90
-    a = np.where((pitch[:-1] - 90) * a < 0)[0]
-    pitch_bound_tol = 0.4
-    n = 0
+    MirrorPoints = {}
+    if Simulator.TrackParams["PitchAngles"] or Simulator.TrackParams["MirrorPoints"]:
+        a = pitch[1:] - 90
+        a = np.where((pitch[:-1] - 90) * a < 0)[0]
+        pitch_bound_tol = 0.4
+        n = 0
 
-    i = 0
-    while i < a.size - 1:
-        if np.max(np.abs(pitch[a[n]:a[n + 1]] - 90)) < pitch_bound_tol:
-            a = np.delete(a, n + 1)
-        else:
-            n += 1
-        i += 1
+        i = 0
+        while i < a.size - 1:
+            if np.max(np.abs(pitch[a[n]:a[n + 1]] - 90)) < pitch_bound_tol:
+                a = np.delete(a, n + 1)
+            else:
+                n += 1
+            i += 1
 
-    num_mirror = np.array([0])
-    num_eq_pitch = np.array([0])
-    Hm = None
-    Heq = None
-    pitch_eq = None
-    num_B0 = np.array([0])
+        num_mirror = np.array([0])
+        num_eq_pitch = np.array([0])
+        Hm = None
+        Heq = None
+        pitch_eq = None
+        num_B0 = np.array([0])
 
-    if a.size > 0:
-        num_mirror = np.zeros(a.size, dtype=int)
-        num_eq_pitch = np.zeros(a.size - 1, dtype=int)
-        num_B0 = np.zeros(a.size - 1, dtype=int)
+        if a.size > 0:
+            num_mirror = np.zeros(a.size, dtype=int)
+            num_eq_pitch = np.zeros(a.size - 1, dtype=int)
+            num_B0 = np.zeros(a.size - 1, dtype=int)
 
-        num_eq_1 = 0
-        for i in range(a.size - 1):
-            b = np.argmax(np.abs(pitch[a[i]:a[i + 1]] - 90))
-            num_eq_2 = a[i] + b
-            d = np.argmax(Hn[num_eq_1:num_eq_2 + 1])
-            num_mirror[i] = num_eq_1 + d
-            num_eq_1 = num_eq_2
-            num_eq_pitch[i] = num_eq_2
+            num_eq_1 = 0
+            for i in range(a.size - 1):
+                b = np.argmax(np.abs(pitch[a[i]:a[i + 1]] - 90))
+                num_eq_2 = a[i] + b
+                d = np.argmax(Hn[num_eq_1:num_eq_2 + 1])
+                num_mirror[i] = num_eq_1 + d
+                num_eq_1 = num_eq_2
+                num_eq_pitch[i] = num_eq_2
 
-            min_index = np.argmin(Hn[a[i]:a[i + 1] + 1])
-            num_B0[i] = a[i] + min_index
+                min_index = np.argmin(Hn[a[i]:a[i + 1] + 1])
+                num_B0[i] = a[i] + min_index
 
-        d = np.argmax(Hn[num_eq_1:])
-        num_mirror[-1] = num_eq_1 + d
-        if num_mirror.size == 0:
-            num_mirror = np.array([0])
-        else:
-            num_mirror = np.unique(num_mirror)
-            Hm = Hn[num_mirror]
+            d = np.argmax(Hn[num_eq_1:])
+            num_mirror[-1] = num_eq_1 + d
+            if num_mirror.size == 0:
+                num_mirror = np.array([0])
+            else:
+                num_mirror = np.unique(num_mirror)
+                Hm = Hn[num_mirror]
 
-        if num_eq_pitch.size == 0:
-            num_eq_pitch = np.array([0])
-            Heq = None
-            pitch_eq = None
-        else:
-            Heq = Hn[num_eq_pitch]
-            pitch_eq = pitch[num_eq_pitch]
+            if num_eq_pitch.size == 0:
+                num_eq_pitch = np.array([0])
+                Heq = None
+                pitch_eq = None
+            else:
+                Heq = Hn[num_eq_pitch]
+                pitch_eq = pitch[num_eq_pitch]
 
-        if num_B0.size == 0:
-            num_B0 = np.array([0])
+            if num_B0.size == 0:
+                num_B0 = np.array([0])
 
-    MirrorPoints = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
+        if Simulator.TrackParams["MirrorPoints"]:
+            MirrorPoints = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
+        if Simulator.TrackParams["PitchAngles"]:
+            PitchAngles = {"Pitch": pitch, "PitchEq": pitch_eq}
+
+    if len(MirrorPoints) == 0:
+        MirrorPoints = None
+    if len(PitchAngles) == 0:
+        PitchAngles = None
 
     # Second invariant
-    I2 = None
-    if num_mirror is not None:
-        I2 = np.zeros(num_mirror.size - 1)
-        I2_tol = 0.2
-
-        for i in range(num_mirror.size - 1):
-            HmTmp = max(Hm[i], Hm[i + 1])
-            H_coil = Hn[num_mirror[i]:num_mirror[i + 1]]
-            b = np.array([R[:, 0][num_mirror[i] + 1:num_mirror[i + 1] + 1],
-                          R[:, 1][num_mirror[i] + 1:num_mirror[i + 1] + 1],
-                          R[:, 2][num_mirror[i] + 1:num_mirror[i + 1] + 1]])
-            S = b - np.array([R[:, 0][num_mirror[i]:num_mirror[i + 1]],
-                              R[:, 1][num_mirror[i]:num_mirror[i + 1]],
-                              R[:, 2][num_mirror[i]:num_mirror[i + 1]]])
-
-            I2[i] = np.sum(np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
-                                                                 S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
-                                                                 S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]])
-                                                                / H_coil))
-
-        if I2.size == 0:
-            I2 = None
-        else:
-            I2 = I2[I2 > I2_tol * np.max(I2)]
-
-    if I2 is not None and I2.size == 0:
+    if Simulator.TrackParams["Invariants"]:
         I2 = None
+        if num_mirror is not None:
+            I2 = np.zeros(num_mirror.size - 1)
+            I2_tol = 0.2
+
+            for i in range(num_mirror.size - 1):
+                HmTmp = max(Hm[i], Hm[i + 1])
+                H_coil = Hn[num_mirror[i]:num_mirror[i + 1]]
+                b = np.array([R[:, 0][num_mirror[i] + 1:num_mirror[i + 1] + 1],
+                              R[:, 1][num_mirror[i] + 1:num_mirror[i + 1] + 1],
+                              R[:, 2][num_mirror[i] + 1:num_mirror[i + 1] + 1]])
+                S = b - np.array([R[:, 0][num_mirror[i]:num_mirror[i + 1]],
+                                  R[:, 1][num_mirror[i]:num_mirror[i + 1]],
+                                  R[:, 2][num_mirror[i]:num_mirror[i + 1]]])
+
+                I2[i] = np.sum(np.sqrt(1 - H_coil / HmTmp) * np.abs((S[0, :] * H[:, 0][num_mirror[i]:num_mirror[i + 1]] +
+                                                                     S[1, :] * H[:, 1][num_mirror[i]:num_mirror[i + 1]] +
+                                                                     S[2, :] * H[:, 2][num_mirror[i]:num_mirror[i + 1]])
+                                                                    / H_coil))
+
+            if I2.size == 0:
+                I2 = None
+            else:
+                I2 = I2[I2 > I2_tol * np.max(I2)]
+
+        if I2 is not None and I2.size == 0:
+            I2 = None
+
+        Invariants["I2"] = I2
+
+    if len(Invariants) == 0:
+        Invariants = None
 
     # L-shell
     Lshell = None
-    if I2 is not None:
-        Lshell = GetLshell(I2, Hm)
+    if Simulator.TrackParams["Lshell"]:
+        if I2 is not None:
+            Lshell = GetLshell(I2, Hm)
 
     # Guiding centre
     GuidingCentre = {}
-
-    if Simulator.IsFirstRun and Simulator.TrackParams["GuidingCentre"]:
+    if Simulator.IsFirstRun and Simulator.TrackParams["GuidingCenter"]:
         L = None
         parReq = None
         parBeq = None
@@ -305,10 +337,10 @@ def GetTrackParams(Simulator, RetArr_i):
     if len(GuidingCentre) == 0:
         GuidingCentre = None
 
-    TrackParams_i = {"Invariants": {"I1": I1, "I2": I2},
-                     "PitchAngles": {"Pitch": pitch, "PitchEq": pitch_eq},
+    TrackParams_i = {"Invariants": Invariants,
+                     "PitchAngles": PitchAngles,
                      "MirrorPoints": MirrorPoints,
-                     "Lshell": Lshell,
+                     "L-shell": Lshell,
                      "GuidingCentre": GuidingCentre}
 
     return TrackParams_i
