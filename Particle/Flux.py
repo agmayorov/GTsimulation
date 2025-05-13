@@ -1,3 +1,4 @@
+import copy
 from collections.abc import Sequence, Iterable
 
 import numpy as np
@@ -38,31 +39,34 @@ class Flux(Sequence):
         if self.name is None and self.pdg_code is None:
             self.name = ['proton'] * self.Nevents
             self.pdg_code = [2212] * self.Nevents
-            self.particles = [CRParticle(PDG=2212)] * self.Nevents
+            proton = CRParticle(PDG=2212)
+            self.particles = [copy.deepcopy(proton) for _ in range(self.Nevents)]
         elif self.name is not None and self.pdg_code is None:
             if isinstance(self.name, (Iterable, Sequence)) and not isinstance(self.name, str):
                 if len(self.name) == self.Nevents:
                     unique_name, index_inverse = np.unique(self.name, return_inverse=True)
                     unique_particles = [CRParticle(Name=name) for name in unique_name]
-                    self.particles = [unique_particles[index] for index in index_inverse]
+                    self.particles = [copy.deepcopy(unique_particles[index]) for index in index_inverse]
                     self.pdg_code = [particle.PDG for particle in self.particles]
                 else:
                     raise Exception("Wrong number of particles")
             else:
-                self.particles = [CRParticle(Name=self.name)] * self.Nevents
-                self.pdg_code = [CRParticle(Name=self.name).PDG] * self.Nevents
+                cr_particle = CRParticle(Name=self.name)
+                self.particles = [copy.deepcopy(cr_particle) for _ in range(self.Nevents)]
+                self.pdg_code = [cr_particle.PDG] * self.Nevents
         else:
             if isinstance(self.pdg_code, (Iterable, Sequence)) and not isinstance(self.pdg_code, int):
                 if len(self.pdg_code) == self.Nevents:
                     unique_pdg_code, index_inverse = np.unique(self.pdg_code, return_inverse=True)
                     unique_particles = [CRParticle(PDG=pdg_code) for pdg_code in unique_pdg_code]
-                    self.particles = [unique_particles[index] for index in index_inverse]
+                    self.particles = [copy.deepcopy(unique_particles[index]) for index in index_inverse]
                     self.name = [particle.Name for particle in self.particles]
                 else:
                     raise Exception("Wrong number of particles")
             else:
-                self.particles = [CRParticle(PDG=self.pdg_code)] * self.Nevents
-                self.name = [CRParticle(PDG=self.pdg_code).Name] * self.Nevents
+                cr_particle = CRParticle(PDG=self.pdg_code)
+                self.particles = [copy.deepcopy(cr_particle) for _ in range(self.Nevents)]
+                self.name = [cr_particle.Name] * self.Nevents
 
     def generate_coordinates(self, *args, **kwargs):
         self.r, self.v = self._distribution.generate_coordinates(*args, **kwargs)
