@@ -65,7 +65,7 @@ def GetEarthBfieldLine(simulator, rinp):
 def GetLarmorRadius(T0, Hn, Z, M, pitch):
     M /= Units.MeV2kg
 
-    # Magnetic field line of Guiding Centre
+    # Magnetic field line of guiding center
     gamma = (T0 + M) / M
     omega = np.abs(Z) * Constants.e * Hn / (gamma * M * Units.MeV2kg)
 
@@ -268,8 +268,8 @@ def GetTrackParams(Simulator, RetArr_i):
         if I2 is not None:
             Lshell = GetLshell(I2, Hm)
 
-    # Guiding centre
-    GuidingCentre = {}
+    # Guiding center
+    GuidingCenter = {}
     if Simulator.IsFirstRun and Simulator.TrackParams["GuidingCenter"]:
         L = None
         parReq = None
@@ -284,8 +284,8 @@ def GetTrackParams(Simulator, RetArr_i):
 
         LR = GetLarmorRadius(T0, Hn[0], Z, M, pitch[0])
         LRNit = 2 * np.pi * LR / (Vn[0] * Simulator.Step)
-        GuidingCentre["LR"] = LR
-        GuidingCentre["LRNit"] = LRNit
+        GuidingCenter["LR"] = LR
+        GuidingCenter["LRNit"] = LRNit
 
         if LRNit is not None:
             Nit = min(LRNit + 1, len(R))
@@ -313,35 +313,35 @@ def GetTrackParams(Simulator, RetArr_i):
         Beq = Bline[e, :]
         BBo = np.linalg.norm(H[0, :]) / np.linalg.norm(Beq)
 
-        GuidingCentre["parReq"] = parReq
-        GuidingCentre["parBeq"] = parBeq
-        GuidingCentre["parBB0"] = parBBo
+        GuidingCenter["parReq"] = parReq
+        GuidingCenter["parBeq"] = parBeq
+        GuidingCenter["parBB0"] = parBBo
 
         parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1, Simulator.Bfield.g,
                                                       Simulator.Bfield.h)
         parL = np.linalg.norm(parReqNew) / Units.RE
 
-        GuidingCentre["parL"] = parL
-        GuidingCentre["Req"] = Req
-        GuidingCentre["Beq"] = Beq
-        GuidingCentre["BB0"] = BBo
+        GuidingCenter["parL"] = parL
+        GuidingCenter["Req"] = Req
+        GuidingCenter["Beq"] = Beq
+        GuidingCenter["BB0"] = BBo
 
         if Bn.size > 0:
             ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, Simulator.Bfield.g,
                                                        Simulator.Bfield.h)
             L = np.linalg.norm(ReqNew) / Units.RE
-        GuidingCentre["L"] = L
+        GuidingCenter["L"] = L
 
-        GuidingCentre = GuidingCentre | {"Rline": Rline, "Bline": Bline}
+        GuidingCenter = GuidingCenter | {"Rline": Rline, "Bline": Bline}
 
-    if len(GuidingCentre) == 0:
-        GuidingCentre = None
+    if len(GuidingCenter) == 0:
+        GuidingCenter = None
 
     TrackParams_i = {"Invariants": Invariants,
                      "PitchAngles": PitchAngles,
                      "MirrorPoints": MirrorPoints,
                      "L-shell": Lshell,
-                     "GuidingCentre": GuidingCentre}
+                     "GuidingCenter": GuidingCenter}
 
     return TrackParams_i
 
