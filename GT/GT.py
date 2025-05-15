@@ -54,20 +54,19 @@ class GTSimulator(ABC):
     :type Particles: :py:mod:`Particle.Flux`
 
     :param TrackParams: a 'bool' flag that turns the calculations of additional parameters in given region.
-                If 'True' all the additional parameters will be calculated. Other parameters that one doesn't need
-                to calculate, can be turned off by passing a 'list' instead of 'bool'
-                where the second element is a 'dict' that's key is the parameter name and value is 'False'.
-                Example: [True, {'GuidingCentre': False}]. See :py:mod:`Global.regions._AbsRegion.SaveAdd`
-                for available parameters to a given region.
+                If 'True' all the additional parameters will be calculated. If one needs to calculate specific parameter,
+                he may pass a 'dict' instead of 'bool' with the names of a needed parts and the values of 'True'.
+                Example: {'Invariants': True, 'GuidingCenter': True}.
+                See :py:mod:`Global.regions._AbsRegion.SaveAdd` for available parameters to a given region.
 
                 **Note**: to calculate some of the additional parameters others must be calculated as well.
-    :type TrackParams: bool or list
+    :type TrackParams: bool or dict
 
     :param ParticleOrigin: a 'bool' flag that turns the calculations of particle's origin through the backtracing
     :type ParticleOrigin: bool
 
     :param IsFirstRun:
-    :param ForwardTrck: 1 refers to forward tracing, and -1 to the back tracing
+    :param ForwardTrck: 1 refers to forward tracing, and -1 to the backtracing
     :type ForwardTrck: 1 or -1
 
     :param Save: The number of steps that are saved. If the value is 0, then only staring
@@ -549,7 +548,6 @@ class GTSimulator(ABC):
     def CallOneFile(self):
         self.Particles.generate()
         RetArr = []
-        status = "Done"
 
         SaveR = self.Save["Coordinates"]
         SaveV = self.Save["Velocities"]
@@ -593,7 +591,7 @@ class GTSimulator(ABC):
 
             if self.ForwardTracing == -1:
                 if self.Verbose:
-                    print('\t\t\tBackTracing mode is ON')
+                    print('\t\t\tBacktracing mode is ON')
                     print('\t\t\tRedefinition of particle on antiparticle')
                 GetAntiParticle(particle)
                 particle.velocities = -particle.velocities
@@ -797,7 +795,6 @@ class GTSimulator(ABC):
                         brk = self.__brck_index["Death"]
                     if self.Verbose:
                         print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
-                    status = "DefaultBC_" + f'{self.__index_brck[brk]}'
                     break
 
                 if self.Verbose and (i / self.Num * 100) % 10 == 0:

@@ -99,7 +99,7 @@ class _Galaxy(_AbsRegion):
 
 class _Magnetosphere(_AbsRegion):
     SaveAdd = {"Invariants": False, "PitchAngles": False, "MirrorPoints": False, "Lshell": False,
-               "GuidingCentre": False}
+               "GuidingCenter": False}
 
     @staticmethod
     def additions(*args, **kwargs):
@@ -121,7 +121,7 @@ class _Magnetosphere(_AbsRegion):
 
     @staticmethod
     def checkSave(Simulator, Nsave):
-        Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCentre"] * (
+        Nsave_check = (Simulator.TrackParamsIsOn * Simulator.IsFirstRun * Simulator.TrackParams["GuidingCenter"] * (
                     Nsave != 1))
         assert Nsave_check != 1, "To calculate all additions correctly 'Nsave' parameter must be equal to 1"
 
