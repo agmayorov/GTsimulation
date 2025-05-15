@@ -1,5 +1,5 @@
 from .general_medium import GTGeneralMedium
-from .vacuum import GTVacuum
+from .uniform_medium import GTUniformMedium, GTVacuum
 import Medium.Galaxy
 # import Medium.Heliosphere
 import Medium.Magnetosphere

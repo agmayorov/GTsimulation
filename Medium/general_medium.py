@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
+from Global import Regions
+
 
 class GTGeneralMedium(ABC):
 
     def __init__(self):
-        self.region = None
+        self.region = Regions.Undefined
         self.model = None
         self.element_list = []
 
