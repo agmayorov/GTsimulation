@@ -1,3 +1,4 @@
+import os
 import datetime
 import scipy.io
 import numpy as np
@@ -65,8 +66,9 @@ class JF12mod(AbsBfield):
         self.z_halo_turb = 2.84
 
         # coeffs = np.load(f"Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.npy", allow_pickle=True).item(0)
+        path = os.path.dirname(os.path.realpath(__file__))
         coeffs = scipy.io.loadmat(
-            "MagneticFields/Galaxy/Data/G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat")
+            f"{path}/Data/G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat")
         self.Gx = coeffs["Gx"]
         self.Gy = coeffs["Gy"]
         self.Gz = coeffs["Gz"]
