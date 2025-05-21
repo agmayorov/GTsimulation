@@ -1,5 +1,4 @@
 import numpy as np
-import warnings
 
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -9,7 +8,6 @@ from pyproj import Transformer
 from Particle import CRParticle, Flux
 from Particle.Generators import Distributions, Spectrums
 from Interaction import G4Shower
-warnings.simplefilter("always")
 
 
 class _AbsRegion(ABC):
@@ -144,20 +142,13 @@ class _Magnetosphere(_AbsRegion):
                         print(f"EAS ~ {secondary.size} secondaries")
                         print(secondary)
                     for p in secondary:
-                        PDGcode_p = p["PDGcode"]
-                        # Try to find a particle (TODO: REMOVE IN THE FUTURE)
-                        try:
-                            name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
-                        except:
-                            warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
-                            continue
                         params = simulator.ParamDict.copy()
                         params["Particles"] = Flux(
                             Distribution=Distributions.UserInput(R0=p['Position'], V0=p['MomentumDirection']),
                             Spectrum=Spectrums.UserInput(energy=p['KineticEnergy']),
-                            Names=name_p
+                            PDGcode=p["PDGcode"]
                         )
-                        if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
+                        if p["PDGcode"] in [12, 14, 16, 18, -12, -14, -16, -18]:
                             params["Medium"] = None
                             params["InteractNUC"] = None
                         new_process = simulator.__class__(**params)

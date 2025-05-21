@@ -3,7 +3,6 @@ import os
 import numpy as np
 import datetime
 import json
-import warnings
 
 from numba import jit
 from abc import ABC, abstractmethod
@@ -16,7 +15,6 @@ from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
 from Particle.Generators import Distributions, Spectrums
 from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
-warnings.simplefilter("always")
 
 
 class GTSimulator(ABC):
@@ -741,20 +739,13 @@ class GTSimulator(ABC):
                                 V_p = rotationMatrix @ p['MomentumDirection']
                                 T_p = p['KineticEnergy']
                                 PDGcode_p = p["PDGcode"]
-                                # Try to find a particle (TODO: REMOVE IN THE FUTURE)
-                                try:
-                                    name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
-                                except:
-                                    warnings.warn(
-                                        f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
-                                    continue
                                 # Parameters for recursive call of GT
                                 params = self.ParamDict.copy()
                                 params["Date"] += datetime.timedelta(seconds=TotTime)
                                 params["Particles"] = Flux(
                                     Distribution=Distributions.UserInput(R0=r_interaction, V0=V_p),
                                     Spectrum=Spectrums.UserInput(energy=T_p),
-                                    Names=name_p
+                                    PDGcode=PDGcode_p
                                 )
                                 if PDGcode_p in self.InteractNUC.get("ExcludeParticleList",
                                                                      []) or T_p < self.InteractNUC.get("Emin", 0):
@@ -871,17 +862,11 @@ class GTSimulator(ABC):
                 r_p = r
                 T_p = p['KineticEnergy']
                 PDGcode_p = p["PDGcode"]
-                # Try to find a particle (TODO: REMOVE IN THE FUTURE)
-                try:
-                    name_p = CRParticle(PDG=PDGcode_p, Name=None).Name
-                except:
-                    warnings.warn(f"Particle with code {PDGcode_p} was not found. Calculation is skipped.")
-                    continue
                 params = self.ParamDict.copy()
                 params["Particles"] = Flux(
                     Distribution=Distributions.UserInput(R0=r_p, V0=V_p),
                     Spectrum=Spectrums.UserInput(energy=T_p),
-                    Names=name_p
+                    PDGcode=PDGcode_p
                 )
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
                 if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
