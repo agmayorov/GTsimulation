@@ -1,17 +1,14 @@
 import numpy as np
 
-from Global import Regions
 from MagneticFields import AbsBfield
 
 
 class Uniform(AbsBfield):
-    ToMeters = 1
 
-    def __init__(self, B0, **kwargs):
+    def __init__(self, B, **kwargs):
         super().__init__(**kwargs)
         self.ModelName = "Uniform"
-        self.B0 = B0
-        self.B = np.array([0, 0, self.B0])
+        self.B = np.array(B)
 
     def CalcBfield(self, *args, **kwargs):
         return self.B
@@ -19,11 +16,9 @@ class Uniform(AbsBfield):
     def UpdateState(self, new_date):
         pass
 
-
     def to_string(self):
         s = f"""{self.ModelName}
-            B0: {self.B0}
-            """
+            B: {self.B} nT"""
         return s
 
     def __str__(self):

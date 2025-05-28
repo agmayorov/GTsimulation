@@ -1,4 +1,3 @@
-from enum import Enum
 from abc import ABC, abstractmethod
 
 from Global import Units, Regions
@@ -23,20 +22,19 @@ class AbsBfield(ABC):
         pass
 
     @classmethod
-    def FromMeters(cls, x, y, z):
+    def from_meters(cls, x, y, z):
         return x / cls.ToMeters, y / cls.ToMeters, z / cls.ToMeters
 
     @staticmethod
-    def ToTesla(Bx, By, Bz):
+    def to_tesla(Bx, By, Bz):
         return Bx / Units.T2nT, By / Units.T2nT, Bz / Units.T2nT
 
     def GetBfield(self, x, y, z, **kwargs):
         if self.use_meters:
-            x, y, z = self.FromMeters(x, y, z)
+            x, y, z = self.from_meters(x, y, z)
         Bx, By, Bz = self.CalcBfield(x, y, z, **kwargs)
         if self.use_tesla:
-            return self.ToTesla(Bx, By, Bz)
-
+            return self.to_tesla(Bx, By, Bz)
         return Bx, By, Bz
 
     @abstractmethod
