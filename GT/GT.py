@@ -8,13 +8,14 @@ from numba import jit
 from abc import ABC, abstractmethod
 from timeit import default_timer as timer
 
-from MagneticFields import AbsBfield
-from Medium import GTGeneralMedium
+from ElectricFields import GeneralFieldE
 from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from Particle import ConvertT2R, GetAntiParticle, Flux, CRParticle
-from Particle.Generators import Distributions, Spectrums
-from MagneticFields.Magnetosphere import Functions, Additions
 from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
+from MagneticFields import AbsBfield
+from MagneticFields.Magnetosphere import Functions, Additions
+from Medium import GTGeneralMedium
+from Particle import ConvertT2R, GetAntiParticle, Flux
+from Particle.Generators import Distributions, Spectrums
 
 
 class GTSimulator(ABC):
@@ -191,7 +192,7 @@ class GTSimulator(ABC):
 
     def __init__(self,
                  Bfield: None | AbsBfield = None,
-                 Efield=None,
+                 Efield: None | GeneralFieldE = None,
                  Region: Regions = Regions.Undefined,
                  Medium: None | GTGeneralMedium = None,
                  Date=datetime.datetime(2008, 1, 1),
