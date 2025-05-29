@@ -7,36 +7,24 @@ from Global import Constants
 
 class BunemanBorisSimulator(GTSimulator):
     def AlgoStep(self, T, M, q, V, X, H, E):
-        x, y, z = X
-        # if self.Bfield is not None:
-        #     H = np.array(self.Bfield.GetBfield(x, y, z))
-        #     if len(H.shape) == 2:
-        #         H = H[:, 0]
-        # else:
-        #     H = np.zeros(3)
-        #
-        # if self.Efield is not None:
-        #     E = np.array(self.Efield.GetEfield(x, y, z))
-        # else:
-        #     E = np.zeros(3)
         c = Constants.c
         if M != 0:
-            return self.__algo(E, H, M, T, V, q, c) #, H, E
+            return self.__algo(E, H, M, T, V, q, c)
         else:
-            return V, 0, 0#, H, E
+            return V, 0, 0
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
     def __algo(E, H, M, T_particle, V, q, c):
         H_norm = np.linalg.norm(H)
         Yp = T_particle / M + 1
-        if H_norm == 0:
+        if H_norm == 0 and np.linalg.norm(E) == 0:
             return V, Yp, Yp
         Ui = Yp * V
 
         TT = Yp * np.tan(q * H_norm / Yp)
 
-        T = TT * H / H_norm
+        T = TT * H / H_norm if H_norm > 0 else np.zeros(3)
 
         U = np.cross(V, T) + 2 * q * E + Ui
 
@@ -51,11 +39,10 @@ class BunemanBorisSimulator(GTSimulator):
 
         tt = np.tan(q * H_norm / Yp)
 
-        t = tt * H / H_norm
+        t = tt * H / H_norm if H_norm > 0 else np.zeros(3)
 
         s = 1 / (1 + tt ** 2)
 
         Vp = s / Yp * (U + t * np.dot(U, t) + np.cross(U, t))
 
         return Vp, Yp, Ya
-        # return Vp, Yp, Ya
