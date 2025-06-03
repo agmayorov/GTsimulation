@@ -179,7 +179,7 @@ class UserInput(AbsDistribution):
         if self.r.shape != (self.flux.Nevents, 3) or self.v.shape != (self.flux.Nevents, 3):
             raise ValueError("The number of initial coordinates and velocities does not correspond to the number of "
                              "particles")
-        return self.r, self.v
+        return self.r, self.v / np.linalg.norm(self.v, axis=1)[:, None]
 
     def to_string(self):
         s = f"""User Input
