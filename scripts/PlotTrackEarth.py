@@ -16,7 +16,7 @@ print(X[0], Y[0], Z[0])
 print(X[-1], Y[-1], Z[-1])
 
 atmo_height = 500/6000
-bm = PIL.Image.open('Earth.jpg')
+bm = PIL.Image.open('../Earth.jpg')
 bm = np.array(bm.resize([int(d/1.5) for d in bm.size]))/256.
 
 lons = np.linspace(-180, 180, bm.shape[1]) * np.pi/180
