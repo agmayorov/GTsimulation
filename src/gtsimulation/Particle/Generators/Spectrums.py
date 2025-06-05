@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from Particle.GeneratorCR import GetGCRflux
-from Particle.functions import convert_units
+from gtsimulation.Particle.GeneratorCR import GetGCRflux
+from gtsimulation.Particle.functions import convert_units
 
 
 class AbsSpectrum(ABC):

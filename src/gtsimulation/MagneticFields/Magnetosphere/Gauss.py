@@ -5,9 +5,9 @@ from enum import Enum
 import numpy as np
 from numba import jit
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
 
 
 class GaussModels(Enum):

@@ -8,14 +8,14 @@ from numba import jit
 from abc import ABC, abstractmethod
 from timeit import default_timer as timer
 
-from ElectricFields import GeneralFieldE
-from Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
-from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere import Functions, Additions
-from Medium import GTGeneralMedium
-from Particle import ConvertT2R, GetAntiParticle, Flux
-from Particle.Generators import Distributions, Spectrums
+from gtsimulation.ElectricFields import GeneralFieldE
+from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
+from gtsimulation.Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
+from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
+from gtsimulation.Medium import GTGeneralMedium
+from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
+from gtsimulation.Particle.Generators import Distributions, Spectrums
 
 
 class GTSimulator(ABC):

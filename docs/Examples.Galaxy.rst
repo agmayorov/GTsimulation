@@ -40,11 +40,11 @@ we used `ForwardTrck=-1`. Nevertheless the two methods are equivalent.
     import numpy as np
     from datetime import datetime
 
-    from Global import Regions, Units
-    from GT.Algos import BunemanBorisSimulator
-    from Particles import Flux
-    from Particles.Generators import Monolines, SphereSurf
-    from MagneticFields.Galaxy import JF12mod
+    from gtsimulation.Global import Regions, Units
+    from gtsimulation.Algos import BunemanBorisSimulator
+    from gtsimulation.Particle import Flux
+    from gtsimulation.Particle.Generators import Monolines, SphereSurf
+    from gtsimulation.MagneticFields.Galaxy import JF12mod
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder")

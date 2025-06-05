@@ -1,7 +1,6 @@
 import numpy as np
 
-from Particle.functions import ConvertT2R, ConvertR2T
-# from Particle.Flux import Flux
+from gtsimulation.Particle.functions import ConvertT2R, ConvertR2T
 
 
 def GeneratorCR(Source, Spectrum, Particle, Nevents=1, Verbose=0):

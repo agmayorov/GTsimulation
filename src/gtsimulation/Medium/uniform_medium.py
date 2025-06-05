@@ -1,4 +1,4 @@
-from Medium import GTGeneralMedium
+from gtsimulation.Medium import GTGeneralMedium
 
 
 class GTUniformMedium(GTGeneralMedium):

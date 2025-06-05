@@ -132,9 +132,9 @@ def __SetSimulator(Simulator):
 
 
 if __name__ == "__main__":
-    from Global import Regions
     from datetime import datetime
-    from MagneticFields.Magnetosphere import Gauss
+    from gtsimulation.Global import Regions
+    from gtsimulation.MagneticFields.Magnetosphere import Gauss
 
     Date = datetime(2008, 1, 1)
     Region = Regions.Magnetosphere

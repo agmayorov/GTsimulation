@@ -6,9 +6,8 @@ import numpy as np
 from numba import jit
 from enum import Enum
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
-import os
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
 import sys
 
 

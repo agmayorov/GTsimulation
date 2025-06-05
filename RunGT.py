@@ -2,14 +2,14 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from Global import Regions
-from Global import Units as U
-from GT.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
-from MagneticFields.Magnetosphere import Gauss
-from Particle.Flux import Flux, FluxPitchPhase
-from Particle.Generators.Spectrums import Monolines
-from Particle.Generators.Distributions import SphereSurf
-from Medium.Magnetosphere import GTnrlmsis
+from gtsimulation.Global import Regions
+from gtsimulation.Global import Units as U
+from gtsimulation.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
+from gtsimulation.MagneticFields.Magnetosphere import Gauss
+from gtsimulation.Particle.Flux import Flux, FluxPitchPhase
+from gtsimulation.Particle.Generators.Spectrums import Monolines
+from gtsimulation.Particle.Generators.Distributions import SphereSurf
+from gtsimulation.Medium.Magnetosphere import GTnrlmsis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int)
@@ -21,7 +21,7 @@ np.random.seed(seed)
 Date = datetime(2008, 1, 1)
 
 Region = Regions.Magnetosphere
-Bfield = Gauss(date=Date, model='CHAOS', model_type='core', version=7.13)
+Bfield = Gauss(date=Date, model="CHAOS", model_type="core", version=7.13)
 
 # Medium = None
 Medium = GTnrlmsis(date=Date, version=0)
@@ -48,7 +48,7 @@ NuclearInteraction = None
 # NuclearInteraction = {"GenMax": 3}
 
 Nfiles = 2
-Output = f"test/filename"
+Output = f"output/filename"
 Save = [1, {"Clock": True, "Path": True}]
 
 Verbose = True

@@ -3,7 +3,7 @@ from datetime import datetime
 
 import numpy as np
 
-from Global import Units as U
+from gtsimulation.Global import Units as U
 from Interface import InterfaceGT
 
 parser = argparse.ArgumentParser()

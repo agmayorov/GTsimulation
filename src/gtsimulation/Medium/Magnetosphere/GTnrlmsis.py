@@ -3,8 +3,8 @@ from datetime import datetime
 from pyproj import Transformer
 from pymsis import msis
 
-from Global import Regions
-from Medium import GTGeneralMedium
+from gtsimulation.Global import Regions
+from gtsimulation.Medium import GTGeneralMedium
 
 
 class GTnrlmsis(GTGeneralMedium):

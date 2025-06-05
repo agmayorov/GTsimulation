@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numba import jit, prange
 
-from Global import Units, Regions
-from MagneticFields.Heliosphere import Parker
-from MagneticFields.Heliosphere.Functions import transformations
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields.Heliosphere import Parker
+from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):

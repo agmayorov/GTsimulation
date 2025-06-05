@@ -1,2 +1,2 @@
 from .GT import GTSimulator
-import GT.Algos
+from . import Algos, ElectricFields, Global, Interaction, MagneticFields, Medium, Particle

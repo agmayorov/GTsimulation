@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from Global import Regions
+from gtsimulation.Global import Regions
 
 
 class GTGeneralMedium(ABC):

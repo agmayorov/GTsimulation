@@ -2,11 +2,9 @@ import datetime
 import numpy as np
 from numba import jit, prange
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
-from MagneticFields.Heliosphere.Functions import transformations
-
-from timeit import default_timer as timer
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
 
 
 class Parker(AbsBfield):

@@ -3,8 +3,8 @@ from collections.abc import Sequence, Iterable
 
 import numpy as np
 
-from Particle.Generators import AbsDistribution, AbsSpectrum, GeneratorModes
-from Particle.Particle import CRParticle
+from gtsimulation.Particle.Generators import AbsDistribution, AbsSpectrum, GeneratorModes
+from gtsimulation.Particle.Particle import CRParticle
 
 
 class Flux(Sequence):
