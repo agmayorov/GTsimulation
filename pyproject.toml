@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.7", "cmake>=3.18"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "gtsimulation"
@@ -13,11 +13,8 @@ dependencies = [
   "particle>=0.25.4",
   "pymsis~=0.9.0",
   "iri2016~=1.11.1",
-  "matplotlib~=3.7.1",
-  "mpld3~=0.5.10",
-  "tqdm~=4.65.0",
-  "plotly~=5.18.0",
-  "pillow>=10.3.0"
+  "matplotlib~=3.9.1",
+  "tqdm~=4.65.0"
 ]
 requires-python = ">=3.10"
 authors = [
@@ -31,3 +28,6 @@ description = "Software for calculations of particle's propagation through the e
 readme = "README.md"
 license = "GPL-3.0"
 license-files = ["LICENSE"]
+
+[tool.setuptools.package-data]
+gtsimulation = ["MagneticFields/**/*.npy", "MagneticFields/**/*.mat", "MagneticFields/**/*.txt", "Particle/*.npy"]

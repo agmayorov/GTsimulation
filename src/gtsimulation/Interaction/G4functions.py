@@ -6,7 +6,7 @@ import numpy as np
 from pymsis import msis
 from pyproj import Transformer
 
-from .settings import path_geant4
+from ._build_config import GEANT4_INSTALL_PREFIX
 
 
 def G4Interaction(PDG, E, m, rho, element_name, element_abundance):
@@ -69,7 +69,7 @@ def G4Interaction(PDG, E, m, rho, element_name, element_abundance):
     path = os.path.dirname(__file__)
     seed = np.random.randint(2147483647)
     cmd = f"'{path}'/MatterLayer {seed} {PDG} {E} {m} {rho} {' '.join([f'{n} {a}' for n, a in zip(element_name, element_abundance)])}"
-    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
+    result = subprocess.run(f"bash -c 'source {GEANT4_INSTALL_PREFIX}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
@@ -141,7 +141,7 @@ def G4Decay(PDG, E):
     path = os.path.dirname(__file__)
     seed = np.random.randint(2147483647)
     cmd = f"'{path}'/DecayGenerator {seed} {PDG} {E}"
-    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
+    result = subprocess.run(f"bash -c 'source {GEANT4_INSTALL_PREFIX}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
@@ -243,7 +243,7 @@ def G4Shower(PDG, E, r, v, date):
     path = os.path.dirname(__file__)
     seed = np.random.randint(2147483647)
     cmd = f"'{path}'/Atmosphere {seed} {PDG} {E} {r[0] / 1e3} {r[1] / 1e3} {r[2] / 1e3} {v[0]} {v[1]} {v[2]} {earth_radius} {doy} {sec} {lat} {lon} {f107a} {f107} {ap[0]}"
-    result = subprocess.run(f"bash -c 'source {path_geant4}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
+    result = subprocess.run(f"bash -c 'source {GEANT4_INSTALL_PREFIX}/bin/geant4.sh && {cmd}'", shell=True, capture_output=True)
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
         raise RuntimeError('Geant4 program did not work successfully')
