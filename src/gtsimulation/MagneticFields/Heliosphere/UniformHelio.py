@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numba import jit, prange
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
 
 
 class UniformHelio(AbsBfield):

@@ -3,7 +3,7 @@ import datetime
 import pyproj
 import iri2016
 
-from Medium import GTGeneralMedium
+from gtsimulation.Medium import GTGeneralMedium
 
 
 class GTiri2016(GTGeneralMedium):

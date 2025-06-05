@@ -2,9 +2,9 @@ from datetime import datetime
 from pathlib import Path
 import numpy as np
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere.Functions import transformations, t89, t96, t15B, gauss
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations, t89, t96, t15B, gauss
 
 
 class Tsyganenko(AbsBfield):

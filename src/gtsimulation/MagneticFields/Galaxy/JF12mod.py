@@ -4,8 +4,8 @@ import scipy.io
 import numpy as np
 from numba import jit
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
 
 
 class JF12mod(AbsBfield):

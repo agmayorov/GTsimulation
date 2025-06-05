@@ -3,9 +3,9 @@ import datetime
 import numpy as np
 from numba import jit
 
-from Global import Units, Regions
-from MagneticFields import AbsBfield
-from MagneticFields.Magnetosphere.Functions import transformations
+from gtsimulation.Global import Units, Regions
+from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
 
 
 class Dipole(AbsBfield):

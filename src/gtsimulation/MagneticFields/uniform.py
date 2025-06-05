@@ -1,6 +1,6 @@
 import numpy as np
 
-from MagneticFields import AbsBfield
+from gtsimulation.MagneticFields import AbsBfield
 
 
 class Uniform(AbsBfield):

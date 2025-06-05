@@ -1,8 +1,8 @@
 import numpy as np
 import copy
-from Global.consts import Units, Constants, Origins
-from MagneticFields.Magnetosphere.Functions import transformations
-from GT.functions import GetLastPoints
+from gtsimulation.Global import Units, Constants, Origins
+from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
+from gtsimulation.functions import GetLastPoints
 from numba import jit
 
 

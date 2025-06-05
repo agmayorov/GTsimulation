@@ -5,9 +5,9 @@ from abc import ABC, abstractmethod
 from numba import jit
 from pyproj import Transformer
 
-from Particle import CRParticle, Flux
-from Particle.Generators import Distributions, Spectrums
-from Interaction import G4Shower
+from gtsimulation.Particle import CRParticle, Flux
+from gtsimulation.Particle.Generators import Distributions, Spectrums
+from gtsimulation.Interaction import G4Shower
 
 
 class _AbsRegion(ABC):

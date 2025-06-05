@@ -23,8 +23,8 @@ Overall the codes looks like:
     import numpy as np
     from datetime import datetime
 
-    from Global import Regions, Units
-    from GT.Algos import BunemanBorisSimulator
+    from gtsimulation.Global import Regions, Units
+    from gtsimulation.Algos import BunemanBorisSimulator
 
     Region = Regions.Magnetosphere
     Bfield = Gauss(model = "IGRF", model_type = core, version = 13)
