@@ -33,8 +33,10 @@ class Tsyganenko(AbsBfield):
         self.T_input = None
         if self.mod_code == '15B':
             self.T_input = np.load(Path(__file__).resolve().parent.joinpath("Data", "T_input15B_short.npy"))
-        else:
+        elif self.mod_code in ["89", "96"]:
             self.T_input = np.load(Path(__file__).resolve().parent.joinpath("Data", "T_input_short.npy"))
+        else:
+            raise ValueError("ModCode must take one of the values '89', '96', '15B'.")
         if not self.T_input['date'][0] <= date <= self.T_input['date'][-1]:
             raise ValueError(f"Input date must be between {self.T_input['date'][0]} and {self.T_input['date'][-1]}.")
         self.Date = date
