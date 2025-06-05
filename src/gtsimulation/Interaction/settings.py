@@ -1,1 +1,0 @@
-path_geant4 = '/path/to/geant4/install/prefix'

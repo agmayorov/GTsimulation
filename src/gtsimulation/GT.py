@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 
 from gtsimulation.ElectricFields import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from gtsimulation.Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, path_geant4
+from gtsimulation.Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, _build_config
 from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
@@ -372,8 +372,11 @@ class GTSimulator(ABC):
         self.UseDecay = UseDecay
         if self.Medium is None and UseInteractNUC is not None:
             raise ValueError('Nuclear Interaction is enabled but Medium is not set')
-        if UseInteractNUC is not None and not os.path.exists(f"{path_geant4}/bin/geant4.sh"):
-            raise ValueError("Geant4 setup script was not found. Please, check path_geant4 variable in the settings file.")
+        if UseInteractNUC is not None:
+            if _build_config.GEANT4_COMPONENTS_AVAILABLE == False:
+                raise ValueError("GTsimulation was installed without Geant4 support. Please reinstall the package.")
+            if not os.path.exists(f"{_build_config.GEANT4_INSTALL_PREFIX}/bin/geant4.sh"):
+                raise ValueError("Geant4 setup script was not found.")
         self.InteractNUC = UseInteractNUC
         if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParticleList", []):
             self.InteractNUC['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,

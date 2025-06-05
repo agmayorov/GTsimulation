@@ -1,0 +1,8 @@
+# _build_config.py.in
+# This file will be configured by CMake
+
+# Geant4 availability flag
+GEANT4_COMPONENTS_AVAILABLE = @GEANT4_COMPONENTS_WERE_BUILT_BOOL@
+
+# Geant4 installation prefix found by CMake
+GEANT4_INSTALL_PREFIX = "@GEANT4_INSTALL_PREFIX_STRING@"
