@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from MagneticFields.Galaxy import JF12mod
+from gtsimulation.MagneticFields.Galaxy import JF12mod
 
 field = JF12mod(use_noise=False)
 

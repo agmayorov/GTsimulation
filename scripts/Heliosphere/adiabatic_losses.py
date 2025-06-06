@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Global.consts import Units as U
+
 
 plt.rcParams.update({'font.size':15})
 

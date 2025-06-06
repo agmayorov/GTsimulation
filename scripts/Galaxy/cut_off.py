@@ -8,7 +8,7 @@ from matplotlib.colors import LogNorm
 
 from scipy.optimize import curve_fit
 
-from Particle.Particle import Particle
+from gtsimulation.Particle.Particle import Particle
 
 sec2year = 3.16887646e-8
 

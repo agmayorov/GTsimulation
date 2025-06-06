@@ -6,9 +6,9 @@ from scipy.interpolate import interp2d
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from MagneticFields.Heliosphere import ParkerUniform, Parker
-from MagneticFields.Heliosphere.Functions import transformations
-from Scripts.Heliosphere import misc
+from gtsimulation.MagneticFields.Heliosphere import ParkerUniform, Parker
+from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
+from scripts.Heliosphere import misc
 
 
 @jit(fastmath=True, nopython=True)

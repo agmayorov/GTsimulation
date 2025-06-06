@@ -5,8 +5,8 @@ import matplotlib.animation as animation
 
 import matplotlib.pyplot as plt
 
-from Global import Units
-from Scripts.Heliosphere import misc
+from gtsimulation.Global import Units
+from scripts.Heliosphere import misc
 
 plt.rcParams.update({'font.size': 20})
 
@@ -15,8 +15,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from MagneticFields.Heliosphere import ParkerUniform, Parker
-# from Scripts.draw_tools import *
+from gtsimulation.MagneticFields.Heliosphere import ParkerUniform, Parker
+
 
 au2cm = 1.5e13
 m2cm = 1e2

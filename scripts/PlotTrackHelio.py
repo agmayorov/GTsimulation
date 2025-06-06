@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Global import Units
+from gtsimulation.Global import Units
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
