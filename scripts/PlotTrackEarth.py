@@ -2,7 +2,7 @@ import PIL
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-from Global import Units
+from gtsimulation.Global import Units
 
 file = np.load("IGRFtest/IGRFtest_0.npy", allow_pickle=True)[0]
 R = file["Track"]["Coordinates"] / Units.RE #from meters to RE

@@ -2,11 +2,11 @@ import os
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-from MagneticFields.Heliosphere import Parker, ParkerUniform
+from gtsimulation.MagneticFields.Heliosphere import Parker, ParkerUniform
 
 from scipy.optimize import curve_fit, minimize
 
-from Scripts.Heliosphere.misc import moving_average
+from misc import moving_average
 
 path = rf"D:\mephi_data\data"
 parker_reg = Parker(use_noise=False)

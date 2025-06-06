@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Global import Units
+from gtsimulation.Global import Units
 
 plt.rcParams.update({'font.size': 15})
 
