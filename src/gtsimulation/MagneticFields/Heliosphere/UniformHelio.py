@@ -1,8 +1,5 @@
-import datetime
-
-import matplotlib.pyplot as plt
 import numpy as np
-from numba import jit, prange
+from numba import jit
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
@@ -185,38 +182,3 @@ class UniformHelio(AbsBfield):
             Coeff 2D: {self.coeff_2d}"""
 
         return s
-
-
-if __name__ == "__main__":
-    field = UniformHelio(coeff_slab=0.54, coeff_2d=5000)
-    # field = UniformHelio()
-    Bx_slab = field.Bx_slab
-    By_slab = field.By_slab
-
-    z_max = 2 * field.l0_slab
-    dk = 2 * np.pi / z_max
-    P_slab = np.abs(np.fft.rfftn(Bx_slab)) ** 2 + np.abs(np.fft.rfftn(By_slab)) ** 2
-
-    P_slab_total = np.sum(dk * P_slab)
-    print("slab: ", P_slab_total)
-
-    Bx_2d = field.Bx_2d
-    By_2d = field.By_2d
-
-    x_max = 2 * field.l0_2d
-    dk = 2 * np.pi / x_max
-    P_2d = np.abs(np.fft.rfftn(Bx_2d)) ** 2 + np.abs(np.fft.rfftn(By_2d)) ** 2
-    P_2d_total = np.sum(dk ** 2 * P_2d)
-    print("2d: ", P_2d_total)
-
-    print("2d/slab: ", P_2d_total / P_slab_total)
-
-    BT2 = np.mean(Bx_slab ** 2) + np.mean(Bx_2d ** 2) + np.mean(By_slab ** 2) + np.mean(By_2d ** 2)
-    print(np.mean(Bx_slab ** 2) + np.mean(By_slab ** 2))
-    print(np.mean(Bx_2d ** 2) + np.mean(By_2d ** 2))
-    print(BT2)
-
-    print(field.CalcBfield(5, 4, 2))
-    print(field.CalcBfield(5, 4, 3))
-    print(field.CalcBfield(5, 5, 3))
-    print(field.CalcBfield(6, 5, 3))

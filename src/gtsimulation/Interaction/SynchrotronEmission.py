@@ -18,7 +18,6 @@ import os
 import sys
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import quad, cumulative_trapezoid, IntegrationWarning
 from scipy.special import kv
@@ -83,29 +82,7 @@ def MakeSynchrotronEmission(delta_t, T_MeV, Bsina, M, Z):
     # Энергии испускаемых фотонов
     E_keV_photons = np.interp(np.random.rand(int(N_avg)), cdf_values, E_keV_vec)
 
-    # Визуализация распределения энергии фотонов
-    if __name__ == '__main__':
-        plt.figure()
-        plt.hist(E_keV_photons, bins=50, density=True, alpha=0.7)
-        plt.xlabel('Photon Energy (keV)')
-        plt.ylabel('Probability Density')
-        plt.show()
-
     return E_keV_photons
-
-
-# Пример вызова функции с исходными данными
-if __name__ == '__main__':
-    delta_t = 6.9853e-2  # sec
-    T_e_MeV = 1e6  # MeV
-    B = 1e-5  # T
-    alpha = 90  # угол между магнитным полем и скоростью
-    sina = np.sin(alpha / 180 * np.pi)
-    m_e_MeV = 0.511  # MeV
-    Z = -1
-
-    E_keV_photons = MakeSynchrotronEmission(delta_t, T_e_MeV, B*sina, m_e_MeV, Z)
-
 
 def get_N_avg(B_perp, delta_t, M, Z):
     h = 6.62607015e-34
