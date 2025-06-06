@@ -1,6 +1,5 @@
 import datetime
 
-import matplotlib.pyplot as plt
 import numpy as np
 from numba import jit, prange
 
@@ -172,45 +171,3 @@ class ParkerUniform(Parker):
         s += f"""
         Coordinates: {self.x}, {self.y}, {self.z} AU"""
         return s
-
-
-if __name__ == "__main__":
-    b = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_noise=True)
-    b_reg = ParkerUniform(1/np.sqrt(2), 1/np.sqrt(2), 0, use_noise=False)
-    y = 1 / np.sqrt(2)
-    z = 0
-    x = 1 / np.sqrt(2) + np.linspace(-.5, 0.5, 500)
-    Br = []
-    Br_reg = []
-    for xx in x:
-        Bx, By, Bz = b.CalcBfield(xx, y, z)
-        r = np.sqrt(xx ** 2 + y ** 2 + z ** 2)
-        Br.append(Bx)
-        Bx, By, Bz = b_reg.CalcBfield(xx, y, z)
-        Br_reg.append(Bx)
-
-    plt.plot(x, Br)
-    plt.plot(x, Br_reg)
-    plt.xlabel("x, au")
-    plt.ylabel("Bx, nT")
-    plt.show()
-
-    b_slab = ParkerUniform(1 / np.sqrt(2), 1 / np.sqrt(2), 0, use_reg=False,use_noise=True, use_slab=False)
-    b_2d = ParkerUniform(1 / np.sqrt(2), 1 / np.sqrt(2), 0, use_reg=False,use_noise=True, use_2d=False)
-
-    [x, y, z] = np.meshgrid(1 / np.sqrt(2) + np.linspace(-.5, 0.5, 100),
-                            1 / np.sqrt(2) + np.linspace(-.5, 0.5, 100),
-                                             np.linspace(-.5, 0.5, 100))
-    x = np.reshape(x, -1)
-    y = np.reshape(y, -1)
-    z = np.reshape(z, -1)
-
-    Bs = []
-    B2d = []
-
-    for i in range(len(x)):
-        Bs.append(np.sum(np.array(b_slab.CalcBfield(x[i],y[i],z[i]))**2))
-        B2d.append(np.sum(np.array(b_2d.CalcBfield(x[i],y[i],z[i]))**2))
-
-    print(np.mean(Bs))
-    print(np.mean(B2d))
