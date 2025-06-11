@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core>=0.7", "cmake>=3.18"]
+requires = ["scikit-build-core", "ninja"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -27,5 +27,5 @@ readme = "README.md"
 license = "GPL-3.0"
 license-files = ["LICENSE"]
 
-[tool.setuptools.package-data]
-gtsimulation = ["MagneticFields/**/*.npy", "MagneticFields/**/*.mat", "MagneticFields/**/*.txt", "Particle/*.npy"]
+[tool.scikit-build]
+cmake.args = ["-G", "Ninja"]
