@@ -10,39 +10,29 @@ The code is written in a flexible manner, and easily can be extended by inheriti
 enhance the speed of calculations **numba** just-in-time compiler is used to compile the main functions.
 
 
-## Installing
+## Installation
 
-First update your **python** version into `python3.10.x`. Download the directory form GitHub
+GT requires Python 3.10+. Download the package form GitHub:
 
 ``` console
-$ git clone https://github.com/agmayorov/GTsimulation.git
+$ git clone --depth 1 https://github.com/agmayorov/GTsimulation.git
 $ cd GTsimulation
 ```
 
-Then install the necessary packages for GT
+If you plan to use the secondary particle generation functionality, install [Geant4](https://geant4.web.cern.ch/download/11.3.2.html) and activate its environment variables:
 
 ```console
-$ pip install -r requirements
-```
-### Geant4 Integration
-
-
-In order to be able to use **Geant4** features for nuclear interactions, add the **Geant4** path into `path_geant4`
-variable in `GTsimulation/Interaction/settings.py`.
-
-``` python 
-path_geant4 = "YOUR GEANT4 PATH"
+$ source /path/to/geant4/bin/geant4.sh
 ```
 
-Additionally one needs to build the **Geant4** libraries: *Atmosphere*, *DecayGenerator*, *MatterLayer*. Change the directory
-into the directory of the library you want to build (e.g. `GTsimulation/Interaction/G4Source/Atmosphere`) and the *build* it
-using **cmake**. Then move the executable into `GTsimulation/Interaction`.
+Then install the package using `pip`:
 
-``` console
-$ cd GTsimulation/Interaction/G4Source/Atmosphere/build
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make
-$ cp Atmosphere ../../../
+```console
+$ pip install .
+```
+
+If you do not want to use Geant4, specify the key during installation:
+
+```console
+$ pip install --config-settings=cmake.define.BUILD_GEANT4_COMPONENTS=OFF .
 ```
