@@ -7,7 +7,7 @@ from gtsimulation.MagneticFields import AbsBfield
 
 class UniformHelio(AbsBfield):
     ToMeters = Units.AU2m
-    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.54, coeff_2d = 183, **kwargs):
+    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.42, coeff_2d = 45000, **kwargs):
         super().__init__(**kwargs)
 
         self.Region = Regions.Heliosphere
@@ -122,7 +122,9 @@ class UniformHelio(AbsBfield):
         pass
 
     def CalcBfield(self, x, y, z, **kwargs):
-        Bx, By, Bz = 0, 0, self.B0
+        Bx = By = Bz = 0
+        if self.use_reg:
+            Bx, By, Bz = 0, 0, self.B0
         if not self.use_noise:
             return Bx, By, Bz
 

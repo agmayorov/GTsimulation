@@ -9,8 +9,8 @@ from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):
-    def __init__(self, x, y, z, t=None, coeff_noise=0.95, *args, **kwargs):
-        super().__init__(coeff_noise=coeff_noise, *args, **kwargs)
+    def __init__(self, x, y, z, t=None, coeff_noise=2, coeff_2d=2.1, *args, **kwargs):
+        super().__init__(coeff_noise=coeff_noise, ceoff_2d=coeff_2d, *args, **kwargs)
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
         self.b = Parker(*args, **kwargs)
@@ -155,9 +155,9 @@ class ParkerUniform(Parker):
             if use_2d:
                 coeff_2d = component_2d
 
-            Bx_helio += coeff_2d*Bx_2d + coeff_slab * Bx_slab
-            By_helio += coeff_2d*By_2d + coeff_slab * By_slab
-            Bz_helio += coeff_2d*Bz_2d + coeff_slab * Bz_slab
+            Bx_helio += coeff_2d * Bx_2d + coeff_slab * Bx_slab
+            By_helio += coeff_2d * By_2d + coeff_slab * By_slab
+            Bz_helio += coeff_2d * Bz_2d + coeff_slab * Bz_slab
 
         Bx = Bx_helio * i@ex + By_helio * i@ey + Bz_helio * i@ez
         By = Bx_helio * j@ex + By_helio * j@ey + Bz_helio * j@ez

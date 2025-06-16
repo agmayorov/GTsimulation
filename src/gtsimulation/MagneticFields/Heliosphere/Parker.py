@@ -15,8 +15,8 @@ class Parker(AbsBfield):
     km2AU = 1 / Units.AU2km
 
     def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_hcs=True, use_cir=False,
-                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=1.4, use_slab=True,
-                 coeff_2d=0.00185,  use_2d=True, **kwargs):
+                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=0.47, use_slab=True,
+                 coeff_2d=2.9,  use_2d=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
