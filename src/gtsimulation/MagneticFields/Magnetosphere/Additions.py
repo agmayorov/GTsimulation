@@ -186,9 +186,10 @@ def GetTrackParams(Simulator, RetArr_i):
             num_eq_pitch = np.zeros(a.size - 1, dtype=int)
             num_B0 = np.zeros(a.size - 1, dtype=int)
 
-            num_eq_1 = 0
             for i in range(a.size - 1):
                 b = np.argmax(np.abs(pitch[a[i]:a[i + 1]] - 90))
+                if i == 0:
+                    num_eq_1 = b
                 num_eq_2 = a[i] + b
                 d = np.argmax(Hn[num_eq_1:num_eq_2 + 1])
                 num_mirror[i] = num_eq_1 + d
