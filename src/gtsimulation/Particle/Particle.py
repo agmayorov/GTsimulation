@@ -29,6 +29,9 @@ class Particle:
             p = ParticleDB.from_name(name_parsed)
             self.PDG = p.pdgid.real
         elif PDG is not None:
+            if (abs(PDG) // 1_000_000_000 > 0) and (PDG % 10 > 0):
+                # ignore excited states of nuclei
+                PDG = int(PDG / 10) * 10
             self.PDG = PDG
             p = ParticleDB.from_pdgid(PDG)
             if p.programmatic_name.endswith("_bar"):
