@@ -9,7 +9,7 @@ from numba import jit
 @jit(fastmath=True, nopython=True)
 def AddLon(lon_total, lon_prev, full_revolutions, index, a_, b_):
     lon = np.arctan(b_ / a_)
-    lon_tolerance = np.deg2rad(60)
+    lon_tolerance = np.deg2rad(5)
 
     if index == 0:
         lon_prev = lon
@@ -21,12 +21,9 @@ def AddLon(lon_total, lon_prev, full_revolutions, index, a_, b_):
     if lon_diff > lon_tolerance:
         lon_total += lon_diff
         lon_prev = lon
+        full_revolutions += lon_diff / (2 * np.pi)
 
     lon_total = np.abs(lon_total)
-
-    if lon_total > 2 * np.pi:
-        full_revolutions += 1
-        lon_total = np.remainder(lon_total, 2 * np.pi)
 
     return lon_total, lon_prev, full_revolutions
 
@@ -276,12 +273,6 @@ def GetTrackParams(Simulator, RetArr_i):
         parReq = None
         parBeq = None
         parBBo = None
-        parL = None
-        Req = None
-        Beq = None
-        BBo = None
-        Rline = None
-        Bline = None
 
         LR = GetLarmorRadius(T0, Hn[0], Z, M, pitch[0])
         LRNit = 2 * np.pi * LR / (Vn[0] * Simulator.Step)

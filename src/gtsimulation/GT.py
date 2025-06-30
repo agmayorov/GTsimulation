@@ -576,7 +576,7 @@ class GTSimulator(ABC):
                 LocalPathDenVector = np.empty(0)
                 LocalCoordinate = np.empty([0, 3])
                 LocalVelocity = np.empty([0, 3])
-            lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), 0
+            lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), np.array([[0.]])
             particle = self.Particles[self.index]
             Saves = []
             BrckArr = self.__brck_arr
@@ -887,7 +887,7 @@ class GTSimulator(ABC):
         dst2path = np.linalg.norm(r - r0) / TotPath
         cond = np.concatenate((np.array([*np.abs(r), radi, dst2path]) < Brck[:5],
                                np.array([*np.abs(r), radi, TotPath, TotTime]) > Brck[5:-1],
-                               np.array([full_revolutions]) >= Brck[-1]))
+                               np.array([full_revolutions[0][0]]) >= Brck[-1]))
         if np.any(cond):
             return True, np.where(cond)[0][0]
 
