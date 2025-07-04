@@ -7,7 +7,7 @@ from gtsimulation.MagneticFields import AbsBfield
 
 class UniformHelio(AbsBfield):
     ToMeters = Units.AU2m
-    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.42, coeff_2d = 45000, **kwargs):
+    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.4, coeff_2d = 39000, q=1, nu=5/3, p=2.61, **kwargs):
         super().__init__(**kwargs)
 
         self.Region = Regions.Heliosphere
@@ -23,9 +23,9 @@ class UniformHelio(AbsBfield):
         self.coeff_slab = coeff_slab
         self.coeff_2d = coeff_2d
 
-        self.q = 1  # 2d energy spectral index
-        self.nu = 5 / 3  # slab/2d inertial range spectral index
-        self.p = 2.61  # Dissipation range spectral index
+        self.q = q  # 2d energy spectral index
+        self.nu = nu  # slab/2d inertial range spectral index
+        self.p = p  # Dissipation range spectral index
 
         self.l1_slab = 4.5 * 1e6 / Units.AU2km  # Slab inertial range onset length scale
         self.l1_2d = 1e6 / Units.AU2km  # 2d inertial range onset length scale
@@ -55,7 +55,7 @@ class UniformHelio(AbsBfield):
         N = self.Nz
         # k_max = 2 * np.pi/self.l3_slab
         # k_min = 2 * np.pi/self.l0_slab
-        z_max = 2 * self.l0_slab
+        z_max = self.l0_slab
         k = 2 * np.pi / z_max * np.arange(N) + 1e-12
         # k = np.linspace(k_min, k_max, N)
         P_m = self.calc_spectrum_slab(k)
@@ -85,7 +85,7 @@ class UniformHelio(AbsBfield):
 
     def _generate_2d(self):
         N = self.Ny
-        x_max = y_max = 2 * self.l0_2d
+        x_max = y_max = self.l0_2d
         kx = 2 * np.pi / x_max * np.arange(N) + 1e-12
         ky = 2 * np.pi / y_max * np.arange(N) + 1e-12
         k = np.linalg.norm(np.array(np.meshgrid(kx, ky)), axis=0)
@@ -106,7 +106,7 @@ class UniformHelio(AbsBfield):
         return self.coeff_2d*Bx, self.coeff_2d*By  # in order for anisotropy (2d/slab) to be 80%/20%
 
     def calc_spectrum_2d(self, k_perp):
-        return self._calc_spectrum_2d(k_perp, self.nu, self.q, self.l0_slab, self.l1_slab, self.l3_slab)
+        return self._calc_spectrum_2d(k_perp, self.nu, self.q, self.l0_2d, self.l1_2d, self.l3_2d)
 
     @staticmethod
     @jit(fastmath=True, nopython=True)
@@ -181,6 +181,9 @@ class UniformHelio(AbsBfield):
             Using Slab: {self.use_slab}
             Coeff Slab: {self.coeff_slab}
             Using 2D: {self.use_2d}
-            Coeff 2D: {self.coeff_2d}"""
+            Coeff 2D: {self.coeff_2d}
+	    q: {self.q}
+	    nu: {self.nu}
+	    p: {self.p}"""
 
         return s
