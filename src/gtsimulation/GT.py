@@ -44,6 +44,7 @@ class GTSimulator(ABC):
 
     :param RadLosses: a `bool` flag that turns the calculations of radiation losses of the particles on.
     :type RadLosses: bool
+    # TODO add about the synchrotron emission
 
     :param Particles: The parameter is responsible for the initial particle flux generation. It defines the initial
                       particle spectrum, distribution and chemical composition. See
@@ -114,6 +115,7 @@ class GTSimulator(ABC):
     :type UseDecay: bool
 
     :param InteractNUC:
+    # TODO describe the InteractNUC parameter
 
     :return: dict
     A dictionary is saved. It has the following keys.
