@@ -9,3 +9,4 @@ src/gtsimulation/Interaction/MatterLayer
 src/gtsimulation/Interaction/DecayGenerator
 
 RunGT_*
+/test*
