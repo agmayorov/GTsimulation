@@ -8,7 +8,7 @@ class Uniform(AbsBfield):
     def __init__(self, B, **kwargs):
         super().__init__(**kwargs)
         self.ModelName = "Uniform"
-        self.B = np.array(B)
+        self.B = np.array(B).astype(np.float64)
 
     def CalcBfield(self, *args, **kwargs):
         return self.B

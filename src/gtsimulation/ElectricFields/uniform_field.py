@@ -8,7 +8,7 @@ class UniformFieldE(GeneralFieldE):
     def __init__(self, E):
         super().__init__()
         self.model_name = "Uniform"
-        self.E = np.array(E)
+        self.E = np.array(E).astype(np.float64)
 
     def calc_field(self, *args):
         return self.E
