@@ -5,6 +5,7 @@
 
 #include "G4Sphere.hh"
 #include "G4Material.hh"
+#include "G4VPhysicalVolume.hh"
 #include "G4SystemOfUnits.hh"
 #include "nrlmsise-00.hh"
 
