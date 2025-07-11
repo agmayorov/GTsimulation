@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import numpy as np
-from Scripts.pywin32_postinstall import verbose
 from gtsimulation.Algos import BunemanBorisSimulator
 from gtsimulation.Particle import Flux
 from gtsimulation.Medium import GTUniformMedium
@@ -36,27 +35,28 @@ dt = 1e-2
 steps = int(1e6)
 
 
-simulator = BunemanBorisSimulator(Bfield=bfield,
-                                  Efield=efield,
-                                  Region=region,
-                                  Particles=particles,
-                                  Medium=medium,
-                                  RadLosses=rad_losses,
-                                  InteractNUC=nuclear_interaction,
-                                  UseDecay=use_decay,
-                                  Date=date,
-                                  Step=dt,
-                                  Num=steps,
-                                  ForwardTrck=1,
-                                  BreakCondition=break_conditions,
-                                  Save=save,
-                                  Nfiles=nfiles,
-                                  Output=output,
-                                  Verbose=verbose)
+simulator = BunemanBorisSimulator(
+    Bfield=bfield,
+    Efield=efield,
+    Region=region,
+    Particles=particles,
+    Medium=medium,
+    RadLosses=rad_losses,
+    InteractNUC=nuclear_interaction,
+    UseDecay=use_decay,
+    Date=date,
+    Step=dt,
+    Num=steps,
+    ForwardTrck=1,
+    BreakCondition=break_conditions,
+    Save=save,
+    Nfiles=nfiles,
+    Output=output,
+    Verbose=True
+)
 
 from timeit import default_timer as timer
 st = timer()
 simulator()
 tot_time = timer() - st
 print(f"Total time for {nevents} Events * {steps} Iterations = {tot_time} seconds")
-
