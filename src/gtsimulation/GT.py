@@ -573,11 +573,11 @@ class GTSimulator(ABC):
                 print("\t\tStarting event...")
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.InteractNUC is not None:
-                LocalDen, nLocal, LocalPathDen = 0, 0, 0
-                LocalChemComp = np.zeros(len(self.Medium.get_element_list()))
-                LocalPathDenVector = np.empty(0)
-                LocalCoordinate = np.empty([0, 3])
-                LocalVelocity = np.empty([0, 3])
+                local_den, n_local, local_path_den = 0, 0, 0
+                local_chem_comp = np.zeros(len(self.Medium.get_element_list()))
+                local_path_den_vector = []
+                local_coordinate = []
+                local_velocity = []
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), np.array([[0.]])
             particle = self.Particles[self.index]
             Saves = []
@@ -696,13 +696,13 @@ class GTSimulator(ABC):
                     PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
                     TotPathDen += PathDen  # g/cm2
                     if self.InteractNUC is not None and Den > 0:
-                        LocalDen += Den
-                        LocalChemComp += self.Medium.get_element_abundance()
-                        nLocal += 1
-                        LocalPathDen += PathDen
-                        LocalPathDenVector = np.append(LocalPathDenVector, LocalPathDen)
-                        LocalCoordinate = np.append(LocalCoordinate, r[None, :], axis=0)
-                        LocalVelocity = np.append(LocalVelocity, Vm[None, :], axis=0)
+                        local_den += Den
+                        local_chem_comp += self.Medium.get_element_abundance()
+                        n_local += 1
+                        local_path_den += PathDen
+                        local_path_den_vector.append(local_path_den)
+                        local_coordinate.append(r)
+                        local_velocity.append(Vm)
 
                 # Decay
                 if self.UseDecay and not self.IsPrimDeath:
@@ -712,34 +712,34 @@ class GTSimulator(ABC):
                         self.IsPrimDeath = True
 
                 # Nuclear Interaction
-                if self.InteractNUC is not None and LocalPathDen > self.IntPathDen and not self.IsPrimDeath:
+                if self.InteractNUC is not None and local_path_den > self.IntPathDen and not self.IsPrimDeath:
                     # Construct Rotation Matrix & Save velocity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
-                    primary, secondary = G4Interaction(particle.PDG, T, LocalPathDen, (LocalDen * 1e-3) / nLocal,
-                                                       self.Medium.get_element_list(), LocalChemComp / nLocal)
+                    primary, secondary = G4Interaction(particle.PDG, T, local_path_den, (local_den * 1e-3) / n_local,
+                                                       self.Medium.get_element_list(), local_chem_comp / n_local)
                     T = primary['KineticEnergy']
                     if T > 0 and T > 1:  # Cut particles with T < 1 MeV
                         # Only ionization losses
                         V_norm = Constants.c * np.sqrt(1 - (M / (T + M)) ** 2)
                         Vm = V_norm * rotationMatrix @ primary['MomentumDirection']
-                        LocalDen, nLocal, LocalPathDen = 0, 0, 0
-                        LocalChemComp = np.zeros(len(self.Medium.get_element_list()))
-                        LocalPathDenVector = np.empty(0)
-                        LocalCoordinate = np.empty([0, 3])
-                        LocalVelocity = np.empty([0, 3])
+                        local_den, n_local, local_path_den = 0, 0, 0
+                        local_chem_comp = np.zeros(len(self.Medium.get_element_list()))
+                        local_path_den_vector.clear()
+                        local_coordinate.clear()
+                        local_velocity.clear()
                     else:
                         # Death due to ionization losses or nuclear interaction
                         self.IsPrimDeath = True
                         if secondary.size > 0 and Gen < GenMax:
                             if self.Verbose:
-                                print(
-                                    f"Nuclear interaction ~ {primary['LastProcess']} ~ {secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
+                                print(f"Nuclear interaction ~ {primary['LastProcess']} ~ "
+                                      f"{secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
                                 print(secondary)
                             # Coordinates of interaction point in XYZ
-                            path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (
-                                    LocalDen * 1e-3 / nLocal)  # Path in cylinder [g/cm2]
-                            r_interaction = LocalCoordinate[np.argmax(LocalPathDenVector > path_den_cylinder), :]
-                            v_interaction = LocalVelocity[np.argmax(LocalPathDenVector > path_den_cylinder), :]
+                            local_path_den_vector = np.array(local_path_den_vector)
+                            path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (local_den * 1e-3 / n_local)  # Path in cylinder [g/cm2]
+                            r_interaction = np.array(local_coordinate)[np.argmax(local_path_den_vector > path_den_cylinder), :]
+                            v_interaction = np.array(local_velocity)[np.argmax(local_path_den_vector > path_den_cylinder), :]
                             rotationMatrix = vecRotMat(np.array([0, 0, 1]), v_interaction / np.linalg.norm(v_interaction))
                             for p in secondary:
                                 V_p = rotationMatrix @ p['MomentumDirection']
@@ -753,8 +753,8 @@ class GTSimulator(ABC):
                                     Spectrum=Spectrums.UserInput(energy=T_p),
                                     PDGcode=PDGcode_p
                                 )
-                                if PDGcode_p in self.InteractNUC.get("ExcludeParticleList",
-                                                                     []) or T_p < self.InteractNUC.get("Emin", 0):
+                                if (PDGcode_p in self.InteractNUC.get("ExcludeParticleList", [])
+                                        or T_p < self.InteractNUC.get("Emin", 0)):
                                     params["Num"] = 1
                                     params["UseDecay"] = False
                                     params["InteractNUC"] = None
