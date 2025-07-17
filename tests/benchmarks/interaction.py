@@ -20,7 +20,7 @@ region = Regions.Undefined
 rad_losses = False
 n_events = 1
 particles = Flux(
-    Spectrum=Monolines(energy=10*U.GeV),
+    Spectrum=Monolines(energy=30*U.GeV),
     Distribution=SphereSurf(Radius=0),
     Names="mu+",
     Nevents=n_events
