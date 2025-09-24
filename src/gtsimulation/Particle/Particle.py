@@ -46,7 +46,10 @@ class Particle:
         self.M = p.mass if p.mass is not None else 0.0
         if p.pdgid.is_nucleus:
             self.A = p.pdgid.A
-            self.tau = nudat[(nudat["z"] == np.abs(p.charge)) & (nudat["n"] == p.pdgid.A - np.abs(p.charge))]["halflife"].item() * np.sqrt(2)
+            try:
+                self.tau = nudat[(nudat["z"] == np.abs(p.charge)) & (nudat["n"] == p.pdgid.A - np.abs(p.charge))]["halflife"].item() * np.sqrt(2)
+            except ValueError:
+                self.tau = np.inf
         else:
             self.A = 0
             self.tau = p.lifetime * 1e-9 if p.lifetime is not None else np.inf
