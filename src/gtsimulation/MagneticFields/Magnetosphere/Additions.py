@@ -1,15 +1,18 @@
 import numpy as np
 import copy
+
+from numpy import ndarray
+
 from gtsimulation.Global import Units, Constants, Origins
 from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
-from gtsimulation.functions import GetLastPoints
+from gtsimulation.functions import *
 from numba import jit
 
 
 @jit(fastmath=True, nopython=True)
 def AddLon(lon_total, lon_prev, full_revolutions, index, a_, b_):
     lon = np.arctan(b_ / a_)
-    lon_tolerance = np.deg2rad(5)
+    lon_tolerance = np.deg2rad(30)
 
     if index == 0:
         lon_prev = lon
@@ -114,6 +117,7 @@ def GetLshell(I2, Hm):
 
 def GetTrackParams(Simulator, RetArr_i):
     # Change save settings due to dependencies
+    # TODO: убрать дублирующиеся с `PitchAngles` части
     if Simulator.TrackParams["GuidingCenter"]:
         Simulator.TrackParams["PitchAngles"] = True
     if Simulator.TrackParams["Lshell"]:
@@ -152,12 +156,11 @@ def GetTrackParams(Simulator, RetArr_i):
     # Pitch angles
     PitchAngles = {}
     if Simulator.TrackParams["PitchAngles"]:
-        pitch = np.arccos(VdotH / VndotHn) / np.pi * 180
-        PitchAngles["pitch"] = pitch
+        pitch = RetArr_i["Track"]["PitchAngles"]
 
     # Mirror points
     MirrorPoints = {}
-    if Simulator.TrackParams["PitchAngles"] or Simulator.TrackParams["MirrorPoints"]:
+    if Simulator.TrackParams["MirrorPoints"]:
         a = pitch[1:] - 90
         a = np.where((pitch[:-1] - 90) * a < 0)[0]
         pitch_bound_tol = 0.4
@@ -216,9 +219,9 @@ def GetTrackParams(Simulator, RetArr_i):
                 num_B0 = np.array([0])
 
         if Simulator.TrackParams["MirrorPoints"]:
-            MirrorPoints = {"NumMirr": num_mirror, "NumEqPitch": num_eq_pitch, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
+            MirrorPoints = {"NumMirr": num_mirror, "NumBo": num_B0, "Hmirr": Hm, "Heq": Heq}
         if Simulator.TrackParams["PitchAngles"]:
-            PitchAngles = {"Pitch": pitch, "PitchEq": pitch_eq}
+            PitchAngles = {"PitchEq": pitch_eq, "NumEqPitch": num_eq_pitch}
 
     if len(MirrorPoints) == 0:
         MirrorPoints = None

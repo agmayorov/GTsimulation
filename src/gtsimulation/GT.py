@@ -16,7 +16,7 @@ from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
 from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.Particle.Generators import Distributions, Spectrums
-
+from gtsimulation import functions
 
 class GTSimulator(ABC):
     """
@@ -251,13 +251,7 @@ class GTSimulator(ABC):
 
         self.TrackParamsIsOn = False
         self.TrackParams = self.Region.value.SaveAdd
-        self.__SetAdditions(TrackParams)
-
-        if self.TrackParamsIsOn:
-            if not isinstance(Save, list):
-                Save = [Save, {"Bfield": True}]
-            elif "Bfield" not in Save[1]:
-                Save[1] = Save[1] | {"Bfield": True}
+        self.__SetAdditions(TrackParams, Save)
 
         self.IsFirstRun = IsFirstRun
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
@@ -265,10 +259,17 @@ class GTSimulator(ABC):
         self.Npts = 2
         self.Save = SaveDef.copy()
         self.SaveCode = dict([(key, SaveCode[key][1]) for key in SaveCode.keys()])
-        self.SaveColumnLen = 17
+        self.SaveColumnLen = 22
         if self.Verbose:
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_num.npy")
+
+        if 'MaxRev' in BreakCondition.keys():
+            if not isinstance(Save, list):
+                Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]
+            else:
+                Save[1] = Save[1] | {'GuidingCenter': True, 'PitchAngles': True}
+
         self.__SetSave(Save)
         if self.Verbose:
             print()
@@ -359,7 +360,7 @@ class GTSimulator(ABC):
             print(f"\tRadiation Losses: {self.UseRadLosses[0]}")
             print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
 
-    def __SetAdditions(self, TrackParams):
+    def __SetAdditions(self, TrackParams, Save):
         if isinstance(TrackParams, bool):
             self.TrackParamsIsOn = TrackParams
             if self.TrackParamsIsOn:
@@ -369,6 +370,12 @@ class GTSimulator(ABC):
             for add in TrackParams.keys():
                 assert add in self.TrackParams.keys(), f'No such option as "{add}" is allowed'
                 self.TrackParams[add] = TrackParams[add]
+
+        if self.TrackParamsIsOn:
+            if not isinstance(Save, list):
+                Save = [Save, {"Bfield": True}]
+            else:
+                Save[1] = Save[1] | {"Bfield": True}
 
     def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
         self.UseDecay = UseDecay
@@ -562,6 +569,9 @@ class GTSimulator(ABC):
         SaveD = self.Save["Density"]
         SaveC = self.Save["Clock"]
         SaveT = self.Save["Energy"]
+        SavePA = self.Save["PitchAngles"]
+        SaveLR = self.Save["LarmorRadii"]
+        SaveGC = self.Save["GuidingCenter"]
 
         Gen = self.__gen
         GenMax = 1 if self.InteractNUC is None else self.InteractNUC.get("GenMax", 1)
@@ -649,15 +659,30 @@ class GTSimulator(ABC):
 
             if self.Verbose:
                 print(f"\t\t\tCalculating: ", end=' ')
+
+            PitchAngle = None
+            LarmorRadius = None
+            GuidingCenter = None
+
             for i in range(Num):
+                if SavePA:
+                    PitchAngle = functions.CalcPitchAngles(B, Vm)
+
+                if SaveLR:
+                    LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
+
+                if SaveGC:
+                    GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
+
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    sv = np.zeros(self.SaveColumnLen)
-                    self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                                  self.SaveColumnLen,
+                    self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
+                                  PitchAngle, LarmorRadius, GuidingCenter,
+                                  Saves, self.SaveColumnLen,
                                   self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
                                   self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
                                   self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
+                                  self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
+                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC)
                     i_save += 1
 
                 if self.UseAdaptiveStep:
@@ -772,7 +797,11 @@ class GTSimulator(ABC):
                 # Full revolution
                 if self.Region == Regions.Magnetosphere:
                     if self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
-                        a_, b_, _ = Functions.transformations.geo2mag_eccentric(r[0], r[1], r[2], 1, self.Bfield.g,
+                        a_, b_, _ = Functions.transformations.geo2mag_eccentric(GuidingCenter[0][0],
+                                                                                GuidingCenter[0][1],
+                                                                                GuidingCenter[0][2],
+                                                                                1,
+                                                                                self.Bfield.g,
                                                                                 self.Bfield.h)
                         lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions,
                                                                                  i, a_, b_)
@@ -780,13 +809,24 @@ class GTSimulator(ABC):
                 brck = self.CheckBreak(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
                 if brck[0] or self.IsPrimDeath:
+                    if SavePA:
+                        PitchAngle = functions.CalcPitchAngles(B, Vm)
+
+                    if SaveLR:
+                        LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
+
+                    if SaveGC:
+                        GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
+
                     if brk != -1:
-                        self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves,
-                                      self.SaveColumnLen,
+                        self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
+                                      PitchAngle, LarmorRadius, GuidingCenter,
+                                      Saves, self.SaveColumnLen,
                                       self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
                                       self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
                                       self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                      SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT)
+                                      self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
+                                      SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC)
                         i_save += 1
                     if self.IsPrimDeath:
                         brk = self.__brck_index["Death"]
@@ -824,6 +864,12 @@ class GTSimulator(ABC):
                 track["Energy"] = Saves[:, self.SaveCode["Energy"]]
             if SaveD:
                 track["Density"] = Saves[:, self.SaveCode["Density"]]
+            if SavePA:
+                track["PitchAngles"] = Saves[:, self.SaveCode["PitchAngles"]]
+            if SaveLR:
+                track["LarmorRadii"] = Saves[:, self.SaveCode["LarmorRadii"]]
+            if SaveGC:
+                track["GuidingCenter"] = Saves[:, self.SaveCode["GuidingCenter"]]
 
             RetArr.append({"Track": track,
                            "BC": {"WOut": brk},
@@ -906,9 +952,11 @@ class GTSimulator(ABC):
 
     @staticmethod
     # @jit(fastmath=True, nopython=True)
-    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, i_save, r, T, E, B, Saves, ColLen,
-                 RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode,
-                 SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT):
+    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
+                 PitchAngles, LarmorRadii, GuidingCenter,
+                 Saves, ColLen,
+                 RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode, PACode, LRCode, GCCode,
+                 SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC):
         sv = np.zeros(ColLen)
         if SaveR:
             sv[RCode] = r
@@ -928,6 +976,12 @@ class GTSimulator(ABC):
             sv[CCode] = TotTime
         if SaveT:
             sv[TCode] = T
+        if SavePA:
+            sv[PACode] = PitchAngles
+        if SaveLR:
+            sv[LRCode] = LarmorRadii
+        if SaveGC:
+            sv[GCCode] = GuidingCenter
 
         Saves.append(sv)
 

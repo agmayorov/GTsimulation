@@ -35,7 +35,11 @@ SaveCode = {"Coordinates": (1, np.s_[0:3:1]),
             "Path": (6, 13),
             "Density": (7, 14),
             "Clock": (8, 15),
-            "Energy": (9, 16)}
+            "Energy": (9, 16),
+            "PitchAngles": (10, 17),
+            "LarmorRadii": (11, 18),
+            "GuidingCenter": (12, np.s_[18:21:1]),
+            }
 """
 The parameters that can be saved along the path and the corresponding indices in the matrix.
 """
