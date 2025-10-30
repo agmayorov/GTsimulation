@@ -14,6 +14,5 @@ Download package from  `GitHub`_.
    :caption: Contents:
 
    documentation
-   modules
+   reference/modules
    addons
-

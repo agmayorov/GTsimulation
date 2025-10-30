@@ -1,5 +1,6 @@
 build
-docs/_build/*
+docs/_build/
+docs/reference/
 .idea/
 __pycache__/
 

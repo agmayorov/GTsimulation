@@ -9,24 +9,27 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('..'))
-
+sys.path.insert(0, os.path.abspath('../src'))
 
 project = 'GTsimulation'
-copyright = '2024, CRTeam'
-author = 'CRTeam'
+copyright = '2025, SpaceLab'
+author = 'SpaceLab'
 release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.todo", "sphinx.ext.viewcode", "sphinx.ext.autodoc", "sphinx.ext.autosectionlabel",
-              'sphinx.ext.autosummary']
+extensions = [
+    'sphinx.ext.apidoc',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -42,3 +45,14 @@ autodoc_default_options = {
 }
 
 autosummary_generate = True
+
+# -- Options for apidoc ------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/apidoc.html#configuration
+
+apidoc_modules = [
+    {
+        'path': '../src/gtsimulation',
+        'destination': 'reference/',
+        'no_headings': True,
+    },
+]
