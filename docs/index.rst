@@ -3,16 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-GTsimulation documentation
-==========================
-Download package from  `GitHub`_.
-
-.. _GitHub: https://github.com/agmayorov/GTsimulation
+.. include:: ../README.md
+   :parser: myst_parser.sphinx_
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Contents:
+   :maxdepth: 2
+   :caption: User Guide
 
-   documentation
-   reference/modules
+   user_guide/getting_started
+   user_guide/magnetic_field
+   user_guide/medium
    addons
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API reference
+
+   reference/gtsimulation
