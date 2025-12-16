@@ -26,7 +26,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'myst_parser',
+    'myst_nb',
 ]
 
 templates_path = ['_templates']
@@ -42,11 +42,10 @@ html_favicon = '_static/favicon.svg'
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,
-    'private-members': True,
-    'special-members': '__init__',
 }
 
 autosummary_generate = True
+autosectionlabel_prefix_document = True
 
 # -- Options for apidoc ------------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/apidoc.html#configuration

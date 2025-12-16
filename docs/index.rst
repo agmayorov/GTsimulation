@@ -13,7 +13,7 @@
    user_guide/getting_started
    user_guide/magnetic_field
    user_guide/medium
-   addons
+   user_guide/simulation_output.rst
 
 .. toctree::
    :maxdepth: 2

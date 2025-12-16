@@ -1,5 +1,5 @@
-Additional examples
-=====================
+Simulation output
+=================
 
 Saving files
 ------------
@@ -16,9 +16,8 @@ defined in the `Output` variable.
 
 The resulting files we have to following name structure: *saving_files_example_i.npy*, where *i* is the number of the file.
 
-
 Reading files
----------------
+-------------
 The file is a list of dictionaries (each corresponging to a single event) with following keys: `Track`, `Particle`, `BC`, `Child`, 
 and `Additions` (the last one is only present for the :py:mod:`Global.regions.Regions.Magnetosphere`).
 
@@ -40,7 +39,7 @@ The dictionaries contain the following fields:
 
 - `Coordinates` - Trajectory of a particle
 
-- `Velocities` - The vector of velocity at a given point 
+- `Velocities` - The vector of velocity at a given point
 
 - `Efield` - The electric field along the trajectory
 
@@ -110,9 +109,3 @@ in meters (one may want to convert them into another coordinate units, see :py:m
         ax.axis('equal') # unscaled axes
         ax.legend()
         plt.show()
-
-For more examples of plotting see `PlotTrackEarth.py`_, `PlotTrackHelio.py`_, `PlotTrackGalaxy.py`_
-
-.. _`PlotTrackEarth.py`: https://github.com/agmayorov/GTsimulation/blob/main/PlotTrackEarth.py
-.. _`PlotTrackHelio.py`: https://github.com/agmayorov/GTsimulation/blob/main/PlotTrackHelio.py
-.. _`PlotTrackGalaxy.py`: https://github.com/agmayorov/GTsimulation/blob/main/PlotTrackGalaxy.py

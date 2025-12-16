@@ -1,6 +1,9 @@
 Magnetosphere
 =============
 
+Cut-off rigidity
+----------------
+
 Consider the task of the calculation of the cut-off rigidity of antiprotons at altitude of 400 km, null meridian,
 and 40 degrees northern latitude in a vertical direction. These coordinates correspond to :math:`\vec{r} = (0.8139, 0, 0.6829)`
 radius of earth, and the velocity along :math:`-\vec{r}`. Calculations are done in IGRF13 field. These initial parameters correspond to
@@ -71,3 +74,9 @@ On the plot they are showed in black. Otherwise, the particles and reach the alt
 allowed trajectories (white lines on the plot).
 
 .. image:: ../images/cut_off.jpg
+
+Motion in dipole magnetic field
+-------------------------------
+
+.. include:: ../../examples/dipole_field.ipynb
+   :parser: myst_nb.docutils_
