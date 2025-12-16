@@ -1,7 +1,7 @@
 # Macro file for the visualization setting in the initialization phase
 
 # Create an OpenGL view and draw geometry
-/vis/open OGLI
+/vis/open TSG
 /vis/drawVolume
 
 # Draw smooth trajectories at end of event
