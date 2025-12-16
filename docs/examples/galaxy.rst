@@ -1,5 +1,5 @@
-Example of GT in the Galaxy
----------
+Galaxy
+======
 
 Consider a task of calculation of deflections angles of the 60 EeV protons in the galactic medium observed from the solar system (SS). 
 To do so we generate numerous amount of protons near the SS and backtrace them into the outskirts of the galaxy (28.5 kpc from the SS).
@@ -89,4 +89,4 @@ By calculting the :math:`\arccos\frac{\vec{v}_0\cdot(\vec{r}_f - \vec{r}_i)}{|\v
 Here :math:`\vec{v}_0` is the normalized initial velocity, :math:`\vec{r}_f` and :math:`\vec{r}_i` are final and inital coordinates respectively.
 The image shows the deflection angles depenadacne from the direction, the color corresponds to the angle in degress.
 
-.. image:: images/def_angle.jpg
+.. image:: ../images/def_angle.jpg

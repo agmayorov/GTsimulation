@@ -17,6 +17,13 @@
 
 .. toctree::
    :maxdepth: 2
+   :caption: Examples
+
+   examples/magnetosphere
+   examples/galaxy
+
+.. toctree::
+   :maxdepth: 2
    :caption: API reference
 
    reference/gtsimulation
