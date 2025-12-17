@@ -12,7 +12,6 @@ dependencies = [
   "pyproj~=3.7.1",
   "particle>=0.25.4",
   "pymsis~=0.9.0",
-  "iri2016~=1.11.1"
 ]
 requires-python = ">=3.10"
 authors = [
@@ -26,6 +25,10 @@ description = "Software for calculations of particle's propagation through the e
 readme = "README.md"
 license = "GPL-3.0"
 license-files = ["LICENSE"]
+
+[project.urls]
+Documentation = "https://spacephysics.mephi.ru/GTsimulation/"
+Source = "https://github.com/agmayorov/GTsimulation"
 
 [tool.scikit-build]
 cmake.args = ["-G", "Ninja"]

@@ -9,7 +9,7 @@ from gtsimulation.MagneticFields.Magnetosphere import Gauss
 from gtsimulation.Particle.Flux import Flux, FluxPitchPhase
 from gtsimulation.Particle.Generators.Spectrums import Monolines
 from gtsimulation.Particle.Generators.Distributions import SphereSurf
-from gtsimulation.Medium.Magnetosphere import GTnrlmsis
+from gtsimulation.Medium import GTnrlmsis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int)
