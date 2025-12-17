@@ -264,7 +264,7 @@ class GTSimulator(ABC):
             print(f"\tNumber of files: {self.Nfiles}")
             print(f"\tOutput file name: {self.Output}_num.npy")
 
-        if 'MaxRev' in BreakCondition.keys():
+        if BreakCondition is not None and 'MaxRev' in BreakCondition.keys():
             if not isinstance(Save, list):
                 Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]
             else:
