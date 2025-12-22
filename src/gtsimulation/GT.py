@@ -1,8 +1,11 @@
 import math
 import os
+import sys
+
 import numpy as np
 import datetime
 import json
+import logging
 
 from numba import jit
 from abc import ABC, abstractmethod
@@ -83,8 +86,8 @@ class GTSimulator(ABC):
     :param Step: The time step of simulation in seconds. If `dict` one should pass:\n
         1. `UseAdaptiveStep`: `True`/`False` --- whether to use adaptive time step\n
         2. `InitialStep`: `float` --- The initial time step in seconds\n
-        3. `MinLarmorRad`: `int` --- The minimal number of points during on the larmor radius\n
-        4. `MaxLarmorRad`: `int` --- The maximal number of points during on the larmor radius\n
+        3. `MinLarmorRad`: `int` --- The minimal number of points during on the Larmor radius\n
+        4. `MaxLarmorRad`: `int` --- The maximal number of points during on the Larmor radius\n
         5. `LarmorRad`:  `int` --- The fixed number of points, in case when the user needs to update time step during each step
     :type Step: float or dict
 
@@ -97,8 +100,8 @@ class GTSimulator(ABC):
                    greater than 1. Then the names of the saved files will have the following form `"Output"_i.npy`
     :type Output: str or None
 
-    :param Verbose: If `True` logs are printed
-    :type Verbose: bool
+    :param Verbose: 0 - no output, 1 - short output, 2 - verbose output
+    :type Verbose: int
 
     :param BreakCondition: If `None` no break conditions are applied. In case of a `dict` with a key corresponding to
                            the `BreakCondition` name and value corresponding to its value is passed.
@@ -192,40 +195,50 @@ class GTSimulator(ABC):
     5. Child: List of secondary particles. They have the same parameters.
     """
 
-    def __init__(self,
-                 Bfield: None | AbsBfield = None,
-                 Efield: None | GeneralFieldE = None,
-                 Region: Regions = Regions.Undefined,
-                 Medium: None | GTGeneralMedium = None,
-                 Date=datetime.datetime(2008, 1, 1),
-                 RadLosses: bool | list = False,
-                 Particles: None | Flux = None,
-                 TrackParams=False,
-                 ParticleOrigin=False,
-                 IsFirstRun=True,
-                 ForwardTrck=None,
-                 Save: int | list = 1,
-                 Num: int = 1e6,
-                 Step: float = 1,
-                 Nfiles=1,
-                 Output=None,
-                 Verbose=False,
-                 BreakCondition: None | dict = None,
-                 UseDecay=False,
-                 InteractNUC: None | dict = None,
-                 ):
-
+    def __init__(
+            self,
+            Bfield: None | AbsBfield = None,
+            Efield: None | GeneralFieldE = None,
+            Region: Regions = Regions.Undefined,
+            Medium: None | GTGeneralMedium = None,
+            Date=datetime.datetime(2008, 1, 1),
+            RadLosses: bool | list = False,
+            Particles: None | Flux = None,
+            TrackParams=False,
+            ParticleOrigin=False,
+            IsFirstRun=True,
+            ForwardTrck=None,
+            Save: int | list = 1,
+            Num: int = 1e6,
+            Step: float = 1,
+            Nfiles=1,
+            Output=None,
+            Verbose: int = 1,
+            BreakCondition: None | dict = None,
+            UseDecay=False,
+            InteractNUC: None | dict = None,
+    ):
         self.ParamDict = locals().copy()
         del self.ParamDict['self']
 
-        self.Verbose = Verbose
-        if self.Verbose:
-            print("Creating simulator object...")
+        self.logger = logging.getLogger(__name__)
+        if Verbose < 1:
+            self.logger.setLevel(logging.WARNING)
+        elif Verbose == 1:
+            self.logger.setLevel(logging.INFO)
+        else:
+            self.logger.setLevel(logging.DEBUG)
 
+        if Verbose > 0 and not self.logger.hasHandlers():
+            h = logging.StreamHandler(stream=sys.stdout)
+            h.setLevel(self.logger.level)
+            h.setFormatter(logging.Formatter("%(message)s"))
+            self.logger.addHandler(h)
+            self.logger.propagate = False
+
+        self.logger.debug("Creating simulator object...")
         self.Date = Date
-        if self.Verbose:
-            print(f"\tDate: {self.Date}")
-            print()
+        self.logger.debug("Date: %s", self.Date)
 
         self.StepParams = Step
         self.Step = None
@@ -233,20 +246,17 @@ class GTSimulator(ABC):
         self.__SetStep(Step)
 
         self.Num = int(Num)
-        if self.Verbose:
-            print(f"\tNumber of steps: {self.Num}")
-            print()
+        self.logger.debug("Number of steps: %d", self.Num)
 
         self.__SetUseRadLosses(RadLosses)
-        if self.Verbose:
-            print()
 
-        self.__SetRegion(Region)
+        self.Region = Region
+        self.logger.debug("Region: %s", self.Region.name)
+        self.logger.debug("%s", self.Region.value.ret_str())
 
         self.ParticleOrigin = ParticleOrigin
-        self.ParticleOriginIsOn = False
+        self.ParticleOriginIsOn = bool(self.ParticleOrigin)
         if self.ParticleOrigin:
-            self.ParticleOriginIsOn = True
             TrackParams = True
 
         self.TrackParamsIsOn = False
@@ -260,9 +270,8 @@ class GTSimulator(ABC):
         self.Save = SaveDef.copy()
         self.SaveCode = dict([(key, SaveCode[key][1]) for key in SaveCode.keys()])
         self.SaveColumnLen = 22
-        if self.Verbose:
-            print(f"\tNumber of files: {self.Nfiles}")
-            print(f"\tOutput file name: {self.Output}_num.npy")
+        self.logger.debug("Number of files: %s", self.Nfiles)
+        self.logger.debug("Output file name: %s_num.npy", self.Output)
 
         if BreakCondition is not None and 'MaxRev' in BreakCondition.keys():
             if not isinstance(Save, list):
@@ -271,32 +280,24 @@ class GTSimulator(ABC):
                 Save[1] = Save[1] | {'GuidingCenter': True, 'PitchAngles': True}
 
         self.__SetSave(Save)
-        if self.Verbose:
-            print()
 
-        self.Bfield = None
-        self.Efield = None
-        self.__SetEMFF(Bfield, Efield)
-        if self.Verbose:
-            print()
+        self.Efield = Efield
+        self.logger.debug("Electric field: %s", self.Efield)
 
-        self.Medium = None
-        self.__SetMedium(Medium)
-        if self.Verbose:
-            print()
+        self.Bfield = Bfield
+        self.logger.debug("Magnetic field: %s", self.Bfield)
+
+        self.Medium = Medium
+        self.logger.debug("Medium: %s", self.Medium)
 
         self.UseDecay = False
         self.InteractNUC = None
         self.__gen = 1
         self.__SetNuclearInteractions(UseDecay, InteractNUC)
-        if self.Verbose:
-            print()
 
         self.Particles = None
         self.ForwardTracing = 1
         self.__SetFlux(Particles, ForwardTrck)
-        if self.Verbose:
-            print()
 
         self.__brck_index = BreakCode.copy()
         self.__brck_index.pop("Loop")
@@ -305,39 +306,34 @@ class GTSimulator(ABC):
         self.__SetBrck(BreakCondition)
 
         self.index = 0
-        if self.Verbose:
-            print("Simulator created!\n")
+        self.logger.debug("Simulator object created!\n")
 
     def __SetStep(self, Step):
         if isinstance(Step, (int, float)):
             self.Step = Step
+            self.logger.debug("Time step: %s seconds", self.Step)
         elif isinstance(Step, dict):
             self.UseAdaptiveStep = Step.get("UseAdaptiveStep", False)
             self.Step = Step.get("InitialStep", 1)
+            self.logger.debug("Using adaptive time step: %s", self.UseAdaptiveStep)
+            self.logger.debug("Initial time step: %f seconds", self.Step)
+
             N = Step.get("LarmorRad", None)
             if N is not None:
                 self.N1 = self.N2 = N
+                self.logger.debug("Steps per Larmor radius: %d", N)
             else:
                 self.N1 = Step.get("MinLarmorRad", 600)
                 self.N2 = Step.get("MaxLarmorRad", 600)
+                self.logger.debug("Min steps per Larmor radius: %d", self.N1)
+                self.logger.debug("Max steps per Larmor radius: %d", self.N2)
+
             assert isinstance(self.UseAdaptiveStep, bool)
             assert isinstance(self.Step, (int, float))
             assert isinstance(self.N1, int) and isinstance(self.N2, int)
-            assert self.N1<=self.N2
+            assert self.N1 <= self.N2
         else:
             raise Exception("Step should be numeric or dict")
-
-        if self.Verbose:
-            if not self.UseAdaptiveStep:
-                print(f"\tTime step: {self.Step}")
-            else:
-                print(f"\tUsing adaptive time step: True")
-                print(f"\tInitial time step: {self.Step}")
-                if N is None:
-                    print(f"\tMinimal number of steps in larmor radius: {self.N1}")
-                    print(f"\tMaximal number of steps in larmor radius: {self.N2}")
-                else:
-                    print(f"\tNumber of steps in larmor radius: {N}")
 
     def __SetUseRadLosses(self, RadLosses):
         if isinstance(RadLosses, bool):
@@ -356,9 +352,8 @@ class GTSimulator(ABC):
                     MinMax[1] = RadLosses[1]["MaxE"]
             self.UseRadLosses = [True, True, MinMax]
 
-        if self.Verbose:
-            print(f"\tRadiation Losses: {self.UseRadLosses[0]}")
-            print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
+        self.logger.debug("Radiation Losses: %s", self.UseRadLosses[0])
+        self.logger.debug("Synchrotron Emission: %s", self.UseRadLosses[1])
 
     def __SetAdditions(self, TrackParams, Save):
         # Change save settings due to dependencies
@@ -413,9 +408,8 @@ class GTSimulator(ABC):
             self.InteractNUC['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
                                                             -11, -12, -13, -14, -15, -16, -17, -18])
         self.IntPathDen = 10  # g/cm2
-        if self.Verbose:
-            print(f"\tDecay: {self.UseDecay}")
-            print(f"\tNuclear Interactions: {self.InteractNUC}")
+        self.logger.debug("Decay: %s", self.UseDecay)
+        self.logger.debug("Nuclear Interactions: %s", self.InteractNUC)
 
     def __SetBrck(self, Brck):
         center = np.array([0, 0, 0])
@@ -424,81 +418,31 @@ class GTSimulator(ABC):
                 center = Brck[1]
                 assert isinstance(center, np.ndarray) and center.shape == (3,)
                 Brck = Brck[0]
-                assert isinstance(Brck, dict)
+            assert isinstance(Brck, dict)
             for key in Brck.keys():
                 self.__brck_arr[self.__brck_index[key]] = Brck[key]
-        if self.Verbose:
-            print("\tBreak Conditions: ")
-            for key in self.__brck_index.keys():
-                print(f"\t\t{key}: {self.__brck_arr[self.__brck_index[key]]}")
-            print(f"\tBC center: {center}")
+        self.logger.debug("Break Conditions:")
+        for key in self.__brck_index.keys():
+            self.logger.debug("\t%s: %s", key, self.__brck_arr[self.__brck_index[key]])
+        self.logger.debug("BC center: %s", center)
         self.BCcenter = center
 
-    def __SetMedium(self, medium):
-        if self.Verbose:
-            print("\tMedium: ", end='')
-        if medium is not None:
-            self.Medium = medium
-            if self.Verbose:
-                print(str(self.Medium))
-        else:
-            if self.Verbose:
-                print(None)
-
     def __SetFlux(self, flux, forward_trck):
-        if self.Verbose:
-            print("\tFlux: ", end='')
         assert flux is not None
         self.Particles = flux
-
-        if self.Verbose:
-            print(str(self.Particles))
+        self.logger.debug("Flux: %s", self.Particles)
         if forward_trck is not None:
             self.ForwardTracing = forward_trck
             return
-
         self.ForwardTracing = self.Particles.Mode.value
-        if self.Verbose:
-            print(f"\tTracing: {'Inward' if self.ForwardTracing == 1 else 'Outward'}")
-
-    def __SetEMFF(self, Bfield=None, Efield=None):
-        if self.Verbose:
-            print("\tElectric field: ", end='')
-        if Efield is not None:
-            self.Efield = Efield
-            if self.Verbose:
-                print(str(self.Efield))
-        else:
-            if self.Verbose:
-                print(None)
-
-        if self.Verbose:
-            print("\tMagnetic field: ", end='')
-        if Bfield is not None:
-            self.Bfield = Bfield
-            if self.Verbose:
-                print(str(self.Bfield))
-        else:
-            if self.Verbose:
-                print(None)
-
-    def __SetRegion(self, Region):
-        self.Region = Region
-
-        if self.Verbose:
-            print(f"\tRegion: {self.Region.name}")
-            print(self.Region.value.ret_str())
-            print()
+        self.logger.debug("Tracing: %s", "Inward" if self.ForwardTracing == 1 else "Outward")
 
     def __SetSave(self, Save):
         Nsave = Save if not isinstance(Save, list) else Save[0]
-
         self.Region.value.checkSave(self, Nsave)
-
         self.Npts = math.ceil(self.Num / Nsave) if Nsave != 0 else 1
         self.Nsave = Nsave
-        if self.Verbose:
-            print(f"\tSave every {self.Nsave} step of:")
+        self.logger.debug("Save every %s step of:", self.Nsave)
         if isinstance(Save, list):
             for saves in Save[1].keys():
                 self.Save[saves] = Save[1][saves]
@@ -515,7 +459,6 @@ class GTSimulator(ABC):
                     num = val.stop - val.start
 
                 self.SaveColumnLen -= num
-
                 for j in range(i + 1, len(sorted_keys)):
                     val_ = self.SaveCode[sorted_keys[j]]
                     if isinstance(val_, int):
@@ -524,18 +467,17 @@ class GTSimulator(ABC):
                         val_ = np.s_[val_.start - num:val_.stop - num:1]
                     self.SaveCode[sorted_keys[j]] = val_
 
-        if self.Verbose:
-            for saves in self.Save.keys():
-                print(f"\t\t{saves}: {self.Save[saves]}")
+        for saves in self.Save.keys():
+            self.logger.debug("\t%s: %s", saves, self.Save[saves])
 
     def __call__(self):
         Track = []
-        if self.Verbose:
-            print("Launching simulation...")
+        self.logger.debug("Launching simulation...\n")
         file_nums = np.arange(self.Nfiles) if isinstance(self.Nfiles, int) else self.Nfiles
         for (idx, i) in enumerate(file_nums):
             if self.IsFirstRun:
-                print(f"\tFile number {i}. No {idx+1} file out of {len(file_nums)}")
+                self.logger.info("File %d/%d started", idx + 1, len(file_nums))
+                self.logger.debug("")
             if self.Output is not None:
                 file = self.Output.split(os.sep)
                 folder = os.sep.join(file[:-1])
@@ -567,14 +509,12 @@ class GTSimulator(ABC):
                     np.save(f"{self.Output}.npy", RetArr)
                 else:
                     np.save(f"{self.Output}_{i}.npy", RetArr)
-                if self.Verbose:
-                    print("\tFile saved!")
+                self.logger.info("File %d/%d saved\n", idx + 1, len(file_nums))
                 RetArr.clear()
             else:
                 Track.append(RetArr)
 
-        if self.Verbose:
-            print("Simulation completed!")
+        self.logger.info("Simulation completed!")
         if self.Output is None:
             return Track
 
@@ -600,9 +540,10 @@ class GTSimulator(ABC):
 
         UseAdditionalEnergyLosses = self.Region.value.CalcAdditional()
 
-        for self.index in range(len(self.Particles)):
-            if self.Verbose:
-                print("\t\tStarting event...")
+        n_events = len(self.Particles)
+        progress_step = self.Num // 10
+        for self.index in range(n_events):
+            self.logger.debug("Event %d/%d started", self.index + 1, n_events)
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.InteractNUC is not None:
                 local_den, n_local, local_path_den = 0, 0, 0
@@ -621,14 +562,12 @@ class GTSimulator(ABC):
             prod_tracks = []
             if self.UseDecay:
                 rnd_dec = np.random.rand()
-                if self.Verbose:
-                    print(f"\t\t\tUse Decay: {self.UseDecay}")
-                    print(f"\t\t\tDecay rnd: {rnd_dec}")
+                self.logger.debug("Use Decay: %s", self.UseDecay)
+                self.logger.debug("Decay rnd: %f", rnd_dec)
 
             if self.ForwardTracing == -1:
-                if self.Verbose:
-                    print('\t\t\tBacktracing mode is ON')
-                    print('\t\t\tRedefinition of particle on antiparticle')
+                self.logger.debug("Backtracing mode is ON")
+                self.logger.debug("Redefinition of particle to antiparticle")
                 GetAntiParticle(particle)
                 particle.velocities = -particle.velocities
 
@@ -653,25 +592,28 @@ class GTSimulator(ABC):
             if Q == 0:
                 Step *= 1e2
 
-            if self.Verbose:
-                print(f"\t\t\tParticle: {particle.Name} (M = {M} [MeV], Z = {self.Particles[self.index].Z})")
-                print(f"\t\t\tEnergy: {T} [MeV], Rigidity: "
-                      f"{ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf} [GV]")
-                print(f"\t\t\tCoordinates: {r} [m]")
-                print(f"\t\t\tVelocity: {V_normalized}")
-                print(f"\t\t\tbeta: {V_norm / Constants.c}")
-                print(f"\t\t\tbeta*dt: {V_norm * Step / 1000} [km] / "
-                      f"{V_norm * Step} [m]")
+            self.logger.debug(
+                "Particle: %s (M = %f [MeV/c2], Z = %d)",
+                particle.Name, M, self.Particles[self.index].Z
+            )
+            self.logger.debug(
+                "Energy: %f [MeV], Rigidity: %f [GV]",
+                T, ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf
+            )
+            self.logger.debug("Coordinates: %s [m]", r)
+            self.logger.debug("Velocity: %s", V_normalized)
+            self.logger.debug("Beta: %s", V_norm / Constants.c)
+            self.logger.debug("Beta * dt: %f [m]", V_norm * Step)
 
             # Calculation of EAS for magnetosphere
             self.Region.value.do_before_loop(self, Gen, prod_tracks)
 
             q = Step * Q / 2 / m if M != 0 else 0
             brk = BreakCode["Loop"]
-
             Num = self.Num
             Nsave = self.Nsave if self.Nsave != 0 else Num + 1
             i_save = 0
+
             st = timer()
 
             if self.UseRadLosses[1]:
@@ -679,8 +621,7 @@ class GTSimulator(ABC):
             else:
                 synch_record = 0
 
-            if self.Verbose:
-                print(f"\t\t\tCalculating: ", end=' ')
+            self.logger.debug("Calculating:")
 
             PitchAngle = None
             LarmorRadius = None
@@ -689,22 +630,21 @@ class GTSimulator(ABC):
             for i in range(Num):
                 if SavePA:
                     PitchAngle = functions.CalcPitchAngles(B, Vm)
-
                 if SaveLR:
                     LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
-
                 if SaveGC:
                     GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
-                                  PitchAngle, LarmorRadius, GuidingCenter,
-                                  Saves, self.SaveColumnLen,
-                                  self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
-                                  self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
-                                  self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                  self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
-                                  SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC)
+                    self.SaveStep(
+                        r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
+                        PitchAngle, LarmorRadius, GuidingCenter, Saves, self.SaveColumnLen,
+                        self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
+                        self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
+                        self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
+                        self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
+                        SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC
+                    )
                     i_save += 1
 
                 if self.UseAdaptiveStep:
@@ -720,11 +660,10 @@ class GTSimulator(ABC):
                 if self.UseRadLosses[1]:
                     synch_record.add_iteration(T, B, Vm, Step)
                 if self.UseRadLosses[0]:
-                    Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, r,
-                                                                                   Step, self.ForwardTracing,
-                                                                                   self.UseRadLosses[1:], particle, Gen,
-                                                                                   Constants,
-                                                                                   synch_record)
+                    Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(
+                        Vp, Vm, Yp, Ya, M, Q, r, Step,
+                        self.ForwardTracing, self.UseRadLosses[1:], particle, Gen, Constants, synch_record
+                    )
                     prod_tracks.extend(new_photons)
                 elif M > 0:
                     T = M * (Yp - 1)
@@ -778,10 +717,11 @@ class GTSimulator(ABC):
                         # Death due to ionization losses or nuclear interaction
                         self.IsPrimDeath = True
                         if secondary.size > 0 and Gen < GenMax:
-                            if self.Verbose:
-                                print(f"Nuclear interaction ~ {primary['LastProcess']} ~ "
-                                      f"{secondary.size} secondaries ~ {np.sum(secondary['KineticEnergy'])} MeV")
-                                print(secondary)
+                            self.logger.debug(
+                                "Nuclear interaction %s: %d secondaries, total energy %f MeV",
+                                primary["LastProcess"], secondary.size, np.sum(secondary["KineticEnergy"]),
+                            )
+                            self.logger.debug("%s", secondary)
                             # Coordinates of interaction point in XYZ
                             local_path_den_vector = np.array(local_path_den_vector)
                             path_den_cylinder = (np.linalg.norm(primary['Position']) * 1e2) * (local_den * 1e-3 / n_local)  # Path in cylinder [g/cm2]
@@ -833,40 +773,39 @@ class GTSimulator(ABC):
                 if brck[0] or self.IsPrimDeath:
                     if SavePA:
                         PitchAngle = functions.CalcPitchAngles(B, Vm)
-
                     if SaveLR:
                         LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
-
                     if SaveGC:
                         GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
 
                     if brk != -1:
-                        self.SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
-                                      PitchAngle, LarmorRadius, GuidingCenter,
-                                      Saves, self.SaveColumnLen,
-                                      self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
-                                      self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
-                                      self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
-                                      self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
-                                      SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC)
+                        self.SaveStep(
+                            r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B, PitchAngle, LarmorRadius,
+                            GuidingCenter, Saves, self.SaveColumnLen,
+                            self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
+                            self.SaveCode["Bfield"], self.SaveCode["Angles"], self.SaveCode["Path"],
+                            self.SaveCode["Density"], self.SaveCode["Clock"], self.SaveCode["Energy"],
+                            self.SaveCode["PitchAngles"], self.SaveCode["LarmorRadii"], self.SaveCode["GuidingCenter"],
+                            SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC
+                        )
                         i_save += 1
                     if self.IsPrimDeath:
                         brk = self.__brck_index["Death"]
-                    if self.Verbose:
-                        print(f" ### Break due to {self.__index_brck[brk]} ### ", end=' ')
+                    self.logger.debug("### Break due to %s ###", self.__index_brck[brk])
                     break
 
-                if self.Verbose and (i / self.Num * 100) % 10 == 0:
-                    print(f"{int(i / self.Num * 100)}%", end=' ')
+                if i % progress_step == 0:
+                    self.logger.debug("\tProgress: %d%%", int(i / self.Num * 100))
 
-            if self.Verbose:
-                print("100%")
+            self.logger.debug("\tProgress: 100%")
             if self.IsFirstRun:
-                print(f"\t\tEvent No {self.index + 1} of {len(self.Particles)} in {timer() - st} seconds")
-            if self.Verbose:
-                print()
-            Saves = np.array(Saves)
+                self.logger.info(
+                    "Event %d/%d finished in %.3f seconds",
+                    self.index + 1, n_events, timer() - st,
+                )
+            self.logger.debug("")
 
+            Saves = np.array(Saves)
             track = {}
             if SaveR:
                 track['Coordinates'] = Saves[:, self.SaveCode["Coordinates"]]
@@ -903,27 +842,18 @@ class GTSimulator(ABC):
             if self.Region == Regions.Magnetosphere:
                 # Particles in magnetosphere (Part 1)
                 if self.TrackParamsIsOn:
-                    if self.Verbose:
-                        print("\t\t\tCalculating additional parameters ...", end=' ')
+                    self.logger.debug("Calculating additional parameters ...")
                     TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
-
                     if self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
                         TrackParams_i["LonTotal"] = lon_total
-
                     RetArr[self.index]["Additions"] = TrackParams_i
-
-                    if self.Verbose:
-                        print("Done")
 
                 # Particles in magnetosphere (Part 2)
                 if self.ParticleOriginIsOn and self.IsFirstRun:
-                    if self.Verbose:
-                        print("\t\t\tFinding particle origin ...", end=' ')
+                    self.logger.debug("Finding particle origin ...")
                     origin = Additions.FindParticleOrigin(self, RetArr[self.index])
                     RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
-                    if self.Verbose:
-                        print(origin.name)
-                        print()
+                    self.logger.debug("Particle origin: %s", origin.name)
 
         return RetArr
 

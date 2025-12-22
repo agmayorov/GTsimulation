@@ -26,7 +26,7 @@ particles = Flux(
 )
 output = None
 n_files = 1
-verbose = True
+verbose = 2
 break_conditions = None
 save = 1 # saving all points
 

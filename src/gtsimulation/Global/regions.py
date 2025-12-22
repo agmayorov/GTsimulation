@@ -138,7 +138,7 @@ class _Magnetosphere(_AbsRegion):
                 primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, simulator.Date)
                 simulator.IsPrimDeath = True
                 if secondary.size > 0 and gen < simulator.InteractNUC['GenMax']:
-                    if simulator.Verbose:
+                    if simulator.Verbose > 1:
                         print(f"EAS ~ {secondary.size} secondaries")
                         print(secondary)
                     for p in secondary:

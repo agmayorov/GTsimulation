@@ -26,7 +26,7 @@ particles = Flux(
     Nevents=n_events
 )
 n_files = 1
-verbose = False
+verbose = 0
 break_conditions = None
 save = [1, {"Energy": True, "Path": True}]  # saving all points
 
