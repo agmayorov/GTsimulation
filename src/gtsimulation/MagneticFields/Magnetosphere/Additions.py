@@ -116,17 +116,6 @@ def GetLshell(I2, Hm):
 
 
 def GetTrackParams(Simulator, RetArr_i):
-    # Change save settings due to dependencies
-    # TODO: убрать дублирующиеся с `PitchAngles` части
-    if Simulator.TrackParams["GuidingCenter"]:
-        Simulator.TrackParams["PitchAngles"] = True
-    if Simulator.TrackParams["Lshell"]:
-        Simulator.TrackParams["Invariants"] = True
-    if Simulator.TrackParams["Invariants"]:
-        Simulator.TrackParams["MirrorPoints"] = True
-    if Simulator.TrackParams["MirrorPoints"]:
-        Simulator.TrackParams["PitchAngles"] = True
-
     R = RetArr_i["Track"]["Coordinates"]
     H = RetArr_i["Track"]["Bfield"]
     M = RetArr_i["Particle"]["M"]

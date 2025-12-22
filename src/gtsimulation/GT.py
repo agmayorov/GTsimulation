@@ -361,6 +361,28 @@ class GTSimulator(ABC):
             print(f"\tSynchrotron Emission: {self.UseRadLosses[1]}")
 
     def __SetAdditions(self, TrackParams, Save):
+        # Change save settings due to dependencies
+        if isinstance(TrackParams, dict):
+            if "GuidingCenter" in TrackParams.keys() and TrackParams["GuidingCenter"]:
+                TrackParams["PitchAngles"] = True
+
+                if not isinstance(Save, list):
+                    Save = [Save, {"GuidingCenter": True, "PitchAngles": True}]
+                else:
+                    Save[1] = Save[1] | {"GuidingCenter": True, "PitchAngles": True}
+
+            if "Lshell" in TrackParams.keys() and TrackParams["Lshell"]:
+                TrackParams["Invariants"] = True
+            if "Invariants" in TrackParams.keys() and TrackParams["Invariants"]:
+                TrackParams["MirrorPoints"] = True
+            if "MirrorPoints" in TrackParams.keys() and TrackParams["MirrorPoints"]:
+                TrackParams["PitchAngles"] = True
+
+                if not isinstance(Save, list):
+                    Save = [Save, {"PitchAngles": True}]
+                else:
+                    Save[1] = Save[1] | {"PitchAngles": True}
+
         if isinstance(TrackParams, bool):
             self.TrackParamsIsOn = TrackParams
             if self.TrackParamsIsOn:
