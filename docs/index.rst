@@ -13,12 +13,13 @@
    user_guide/getting_started
    user_guide/magnetic_field
    user_guide/medium
-   user_guide/simulation_output.rst
+   user_guide/simulation_output
 
 .. toctree::
    :maxdepth: 2
    :caption: Examples
 
+   examples/general
    examples/magnetosphere
    examples/galaxy
 
