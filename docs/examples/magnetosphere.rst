@@ -80,3 +80,15 @@ Motion in dipole magnetic field
 
 .. include:: ../../examples/dipole_field.ipynb
    :parser: myst_nb.docutils_
+
+Trapped particles
+-----------------
+
+.. include:: ../../examples/trapped_particles.ipynb
+   :parser: myst_nb.docutils_
+
+Geomagnetic cutoff rigidity
+---------------------------
+
+.. include:: ../../examples/geomagnetic_cutoff.ipynb
+   :parser: myst_nb.docutils_
