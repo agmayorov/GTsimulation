@@ -386,7 +386,7 @@ def GetGCRflux(E_type, E, F, PartName=None):
     #               J = GetGCRflux('T', 1, '', 0.5)
 
     # Get particle's list
-    PartNameAll = ['pr', 'he4', 'Li-7', 'Be-9', 'B-11', 'C-12', 'N-14', 'O-16', 'F-19', 'Ne-20', 'Na-23',
+    PartNameAll = ['proton', 'he4', 'Li-7', 'Be-9', 'B-11', 'C-12', 'N-14', 'O-16', 'F-19', 'Ne-20', 'Na-23',
                    'Mg-24', 'Al-27', 'Si-28', 'Fe-56', 'ele', 'pos', 'apr']
     if PartName is not None:
         if isinstance(PartName, str):
