@@ -1,14 +1,13 @@
-﻿#ifndef DetectorConstruction_hh
-#define DetectorConstruction_hh
+﻿#pragma once
 
-#include "G4VUserDetectorConstruction.hh"
-#include "G4VPhysicalVolume.hh"
+#include <G4VUserDetectorConstruction.hh>
+#include <G4VPhysicalVolume.hh>
 
-#include "G4SystemOfUnits.hh"
-#include "G4NistManager.hh"
-#include "G4Tubs.hh"
-#include "G4LogicalVolume.hh"
-#include "G4PVPlacement.hh"
+#include <G4SystemOfUnits.hh>
+#include <G4NistManager.hh>
+#include <G4Tubs.hh>
+#include <G4LogicalVolume.hh>
+#include <G4PVPlacement.hh>
 
 namespace MatterLayer
 {
@@ -19,7 +18,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     DetectorConstruction(G4double thickness, G4double density, \
       std::vector<G4String> elementName, std::vector<G4double> elementAbundance);
     ~DetectorConstruction();
-    virtual G4VPhysicalVolume *Construct() override;
+    G4VPhysicalVolume *Construct() override;
 
   private:
     G4double fThickness;
@@ -29,5 +28,3 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 };
 
 }
-
-#endif
