@@ -2,29 +2,27 @@
 cmake_minimum_required(VERSION 3.16)
 project(MatterLayer)
 
-# Find Geant4 package, activating all available UI and Vis drivers by default
-find_package(Geant4 REQUIRED ui_all vis_all)
+# Find Geant4 package
+find_package(Geant4 REQUIRED)
 
 # Locate sources and headers for this project
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
-# Visualization option
-option(USE_VISUALIZATION "Use visualization code" OFF)
-if (USE_VISUALIZATION)
-  add_definitions(-DUSE_VISUALIZATION)
-  file(COPY ${PROJECT_SOURCE_DIR}/../vis.mac DESTINATION ${PROJECT_BINARY_DIR})
-endif()
+# Find pybind11 package
+find_package(Python 3.10 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED HINTS ${Python_SITELIB})
 
-# Add the executable, use our local headers, and link it to the Geant4 libraries
-add_executable(MatterLayer MatterLayer.cc ${sources} ${headers})
+# Create Python extension module
+pybind11_add_module(MatterLayer MatterLayer.cc ${sources} ${headers})
 target_include_directories(MatterLayer PRIVATE include)
-target_link_libraries(MatterLayer ${Geant4_LIBRARIES})
+target_link_libraries(MatterLayer PRIVATE ${Geant4_LIBRARIES})
+set_target_properties(MatterLayer PROPERTIES OUTPUT_NAME "matter_layer")
 
-# Copy executable 
-add_custom_command(
-  TARGET MatterLayer
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy $<TARGET_FILE:MatterLayer> ${PROJECT_SOURCE_DIR}/../..
-)
+# # Copy executable
+# add_custom_command(
+#   TARGET MatterLayer
+#   POST_BUILD
+#   COMMAND ${CMAKE_COMMAND}
+#   ARGS -E copy $<TARGET_FILE:MatterLayer> ${PROJECT_SOURCE_DIR}/../..
+# )

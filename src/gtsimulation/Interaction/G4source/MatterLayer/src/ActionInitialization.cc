@@ -3,9 +3,8 @@
 namespace MatterLayer
 {
 
-ActionInitialization::ActionInitialization(G4int particlePDG, G4double energy)
-: fParticlePDG(particlePDG),
-  fEnergy(energy)
+ActionInitialization::ActionInitialization(const SimConfig* config)
+: fConfig(config)
 {}
 
 ActionInitialization::~ActionInitialization()
@@ -13,7 +12,8 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-  SetUserAction(new PrimaryGeneratorAction(fParticlePDG, fEnergy));
+  SetUserAction(new PrimaryGeneratorAction(fConfig));
+  SetUserAction(new RunAction());
   SetUserAction(new StackingAction());
   SetUserAction(new TrackingAction());
 }

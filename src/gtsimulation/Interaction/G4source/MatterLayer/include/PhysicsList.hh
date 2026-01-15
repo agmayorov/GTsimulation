@@ -2,7 +2,6 @@
 
 #include <FTFP_BERT.hh>
 
-#include <G4SystemOfUnits.hh>
 #include <G4RadioactiveDecayPhysics.hh>
 
 namespace MatterLayer

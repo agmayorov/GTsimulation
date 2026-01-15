@@ -8,6 +8,7 @@
 #include <G4Tubs.hh>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
+#include <G4RunManager.hh>
 
 namespace MatterLayer
 {
@@ -15,16 +16,19 @@ namespace MatterLayer
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction(G4double thickness, G4double density, \
-      std::vector<G4String> elementName, std::vector<G4double> elementAbundance);
+    DetectorConstruction();
     ~DetectorConstruction();
-    G4VPhysicalVolume *Construct() override;
+    G4VPhysicalVolume* Construct() override;
+
+    void UpdateParameters(G4double thickness,
+                          G4double density,
+                          std::vector<std::string> elementName,
+                          std::vector<G4double> elementAbundance);
 
   private:
-    G4double fThickness;
-    G4double fDensity;
-    std::vector<G4String> fElementName;
-    std::vector<G4double> fElementAbundance;
+    G4Tubs* fWorldSolid = nullptr;
+    G4LogicalVolume* fWorldLogic = nullptr;
+    G4Material* fWorldMaterial = nullptr;
 };
 
 }
