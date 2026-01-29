@@ -4,6 +4,7 @@ namespace MatterLayer
 {
 
 DetectorConstruction::DetectorConstruction()
+: fMatCounter(0)
 {}
 
 DetectorConstruction::~DetectorConstruction()
@@ -28,13 +29,39 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 }
 
 void DetectorConstruction::UpdateParameters(
-  G4double thickness,
-  G4double density,
-  std::vector<std::string> elementName,
-  std::vector<G4double> elementAbundance
+  double thickness,
+  double density,
+  const std::vector<std::string>& elementName,
+  const std::vector<double>& elementAbundance
 ) {
   fWorldSolid->SetOuterRadius(thickness * m);
   fWorldSolid->SetZHalfLength(thickness * m);
+
+  bool materialParamsChanged = (
+    (std::fabs(fCurrentDensity - density) > 1e-7) ||
+    (fCurrentNames != elementName) ||
+    (fCurrentAbundances != elementAbundance)
+  );
+  if (!materialParamsChanged) {
+    G4RunManager::GetRunManager()->GeometryHasBeenModified();
+    return;
+  }
+
+  fCurrentDensity = density;
+  fCurrentNames = elementName;
+  fCurrentAbundances = elementAbundance;
+
+  std::string uniqueName = "Matter_" + std::to_string(fMatCounter++);
+  fWorldMaterial = new G4Material(uniqueName, density * g/cm3, elementName.size());
+  for (G4int i = 0; i < elementName.size(); ++i) {
+    G4Element* e = G4NistManager::Instance()->FindOrBuildElement(elementName[i]);
+    if (!e) {
+      std::cerr << "Error: Element " << elementName[i] << " not found!" << std::endl;
+      exit(3);
+    }
+    fWorldMaterial->AddElement(e, elementAbundance[i]);
+  }
+  fWorldLogic->SetMaterial(fWorldMaterial);
   G4RunManager::GetRunManager()->GeometryHasBeenModified();
 }
 

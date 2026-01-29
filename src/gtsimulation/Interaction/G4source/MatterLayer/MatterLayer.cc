@@ -7,18 +7,28 @@
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
 
-#include <G4UImanager.hh>
+#include <streambuf>
 #include "RunAction.hh"
 #include "SimConfig.hh"
 
 namespace py = pybind11;
 using namespace MatterLayer;
 
+class NullBuffer : public std::streambuf {
+  public:
+    int overflow(int c) override { return c; }
+};
+
 class Simulator {
   public:
     Simulator(long seed) {
       CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
       CLHEP::HepRandom::setTheSeed(seed);
+
+      // Suppress G4 output during initialization
+      NullBuffer nullBuffer;
+      std::streambuf* oldCout = std::cout.rdbuf();
+      std::cout.rdbuf(&nullBuffer);
 
       // Construct RunManager and initialize G4 kernel
       runManager = new G4RunManager();
@@ -29,8 +39,7 @@ class Simulator {
       runManager->SetUserInitialization(actionInitialization);
       runManager->Initialize();
 
-      G4UImanager* UImanager = G4UImanager::GetUIpointer();
-      UImanager->ApplyCommand("/process/inactivate nKiller");
+      std::cout.rdbuf(oldCout);
     }
 
     ~Simulator() {
@@ -43,13 +52,16 @@ class Simulator {
       std::vector<std::string> element_name,
       std::vector<double> element_abundance
     ) {
-      G4double thickness = mass / density / 1e2; // layer thickness in [m]
+      double thickness = mass / density / 1e2; // layer thickness in [m]
       detectorConstruction->UpdateParameters(thickness, density, element_name, element_abundance);
+      materialCount = detectorConstruction->fMatCounter;
       simConfig.particlePDG = pdg;
       simConfig.energy = energy;
       runManager->BeamOn(1);
       return RunAction::GetResult();
     }
+
+    int materialCount = 0;
 
   private:
     G4RunManager* runManager;
@@ -83,5 +95,6 @@ PYBIND11_MODULE(matter_layer, m) {
     .def("run", &Simulator::run,
          py::arg("pdg"), py::arg("energy"), py::arg("mass"), py::arg("density"),
          py::arg("element_name"), py::arg("element_abundance"),
-         "Run one event with given parameters");
+         "Run one event with given parameters")
+    .def_readonly("material_count", &Simulator::materialCount);
 }

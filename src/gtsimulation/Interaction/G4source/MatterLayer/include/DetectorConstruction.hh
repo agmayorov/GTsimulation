@@ -20,15 +20,20 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     ~DetectorConstruction();
     G4VPhysicalVolume* Construct() override;
 
-    void UpdateParameters(G4double thickness,
-                          G4double density,
-                          std::vector<std::string> elementName,
-                          std::vector<G4double> elementAbundance);
+    void UpdateParameters(double thickness,
+                          double density,
+                          const std::vector<std::string>& elementName,
+                          const std::vector<double>& elementAbundance);
+
+    int fMatCounter;
 
   private:
     G4Tubs* fWorldSolid = nullptr;
     G4LogicalVolume* fWorldLogic = nullptr;
     G4Material* fWorldMaterial = nullptr;
+    double fCurrentDensity = -1.0;
+    std::vector<std::string> fCurrentNames;
+    std::vector<double> fCurrentAbundances;
 };
 
 }
