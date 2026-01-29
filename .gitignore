@@ -6,7 +6,7 @@ __pycache__/
 
 src/gtsimulation/Interaction/_build_config.py
 src/gtsimulation/Interaction/Atmosphere
-src/gtsimulation/Interaction/MatterLayer
+src/gtsimulation/Interaction/matter_layer*
 src/gtsimulation/Interaction/DecayGenerator
 
 RunGT_*
