@@ -38,10 +38,10 @@ def convert_to_numpy(run_result):
     efficient serialization of complex C++ objects across process boundaries.
     """
     p = run_result.primary
-    primary_arr = np.array([(
+    primary_arr = np.array((
         p.name, p.pdgCode, p.mass, p.charge, p.kineticEnergy,
         np.array(p.momentumDirection), np.array(p.position), p.lastProcess
-    )], dtype=PRIMARY_DTYPE)
+    ), dtype=PRIMARY_DTYPE)
     secondaries_list = [
         (s.name, s.pdgCode, s.mass, s.charge, s.kineticEnergy, np.array(s.momentumDirection))
         for s in run_result.secondaries
@@ -115,20 +115,34 @@ class NuclearInteraction:
 
     Parameters
     ----------
+    max_generations : int, default=1
+        Maximum number of secondary particle generations to model in the simulation.
+    grammage_threshold : float, default=10.
+        Grammage threshold [g/cm²] above which the Geant4 subroutine is triggered.
+        Should be set as a fraction of the expected nuclear interaction length in the material.
     seed : int
         Random seed used to initialize the Geant4 simulator inside the worker process.
     restart_limit : int, default=20
         Number of runs after which the worker process is restarted automatically.
     """
 
-    def __init__(self, seed: int, restart_limit: int = 20):
+    def __init__(
+            self,
+            max_generations: int = 1,
+            grammage_threshold: float = 10.,
+            seed: int = None,
+            restart_limit: int = 20
+    ):
         if not GEANT4_COMPONENTS_AVAILABLE:
-            raise ValueError("GTsimulation was installed without Geant4 support. Please reinstall the package.")
-        # if not os.path.exists(f"{GEANT4_INSTALL_PREFIX}/bin/geant4.sh"):
-        #     raise ValueError("Geant4 setup script was not found.")
-        self.seed = seed
+            raise ValueError(
+                "GTsimulation was installed without Geant4 support. "
+                "Please reinstall the package or disable nuclear interactions."
+            )
+        self.max_generations = max_generations
+        self.grammage_threshold = grammage_threshold  # g/cm2
+        self.seed = np.random.randint(2147483647) if seed is None else seed
         self.restart_limit = restart_limit
-        self.counter = 0
+        self.restart_counter = 0
         self.process = None
         self.in_q = mp.Queue()
         self.out_q = mp.Queue()
@@ -136,7 +150,7 @@ class NuclearInteraction:
 
     def __start_new_process(self):
         if self.process: self.__terminate_process()
-        self.counter = 0
+        self.restart_counter = 0
         self.process = mp.Process(target=sim_worker, args=(self.in_q, self.out_q, self.seed))
         self.process.daemon = True
         self.process.start()
@@ -203,8 +217,8 @@ class NuclearInteraction:
             - ``KineticEnergy`` : float, MeV
             - ``MomentumDirection`` : (3,) float, unit vector
         """
-        if self.counter >= self.restart_limit:
+        if self.restart_counter >= self.restart_limit:
             self.__start_new_process()
         self.in_q.put((pdg, energy, mass, density, element_name, element_abundance))
-        primary, secondary, self.counter = self.out_q.get()
+        primary, secondary, self.restart_counter = self.out_q.get()
         return primary, secondary
