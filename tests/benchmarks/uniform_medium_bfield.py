@@ -2,13 +2,11 @@ from datetime import datetime
 
 import numpy as np
 from gtsimulation.Algos import BunemanBorisSimulator
-from gtsimulation.Particle import Flux
-from gtsimulation.Medium import GTUniformMedium
+from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
+from gtsimulation.Medium import GTUniformMedium
+from gtsimulation.Particle import Flux
 from gtsimulation.Particle.Generators import Monolines, SphereSurf
-from gtsimulation.Global import Regions
-from gtsimulation.Global import Units as U
-
 
 date = datetime(2025, 1, 1)
 b_field = Uniform(B=np.array([0, 0, 10])) # 10 nT
@@ -16,8 +14,8 @@ e_field = None
 medium = GTUniformMedium()
 use_decay = False
 nuclear_interaction = None
-region = Regions.Undefined
 rad_losses = False
+region = Regions.Undefined
 n_events = 5
 particles = Flux(
     Spectrum = Monolines(energy = 1.5 * U.GeV),
