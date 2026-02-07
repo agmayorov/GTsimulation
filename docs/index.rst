@@ -21,6 +21,7 @@
 
    examples/general
    examples/magnetosphere
+   examples/heliosphere
    examples/galaxy
 
 .. toctree::
