@@ -13,7 +13,7 @@ from timeit import default_timer as timer
 
 from gtsimulation.ElectricFields import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from gtsimulation.Interaction import G4Interaction, G4Decay, SynchCounter, RadLossStep, _build_config
+from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
@@ -216,7 +216,7 @@ class GTSimulator(ABC):
             Verbose: int = 1,
             BreakCondition: None | dict = None,
             UseDecay=False,
-            InteractNUC: None | dict = None,
+            InteractNUC: None | NuclearInteraction = None,
     ):
         self.ParamDict = locals().copy()
         del self.ParamDict['self']
@@ -290,10 +290,18 @@ class GTSimulator(ABC):
         self.Medium = Medium
         self.logger.debug("Medium: %s", self.Medium)
 
-        self.UseDecay = False
-        self.InteractNUC = None
+        self.UseDecay = UseDecay
+        self.logger.debug("Decay: %s", self.UseDecay)
+
+        if self.Medium is None and InteractNUC is not None:
+            raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+        self.nuclear_interaction = InteractNUC
+        self.logger.debug("Nuclear Interactions: %s", self.nuclear_interaction)
+
         self.__gen = 1
-        self.__SetNuclearInteractions(UseDecay, InteractNUC)
+        # self.UseDecay = False
+        # self.nuclear_interaction = None
+        # self.__set_nuclear_interaction(UseDecay, InteractNUC)
 
         self.Particles = None
         self.ForwardTracing = 1
@@ -394,22 +402,16 @@ class GTSimulator(ABC):
             else:
                 Save[1] = Save[1] | {"Bfield": True}
 
-    def __SetNuclearInteractions(self, UseDecay, UseInteractNUC):
-        self.UseDecay = UseDecay
-        if self.Medium is None and UseInteractNUC is not None:
-            raise ValueError('Nuclear Interaction is enabled but Medium is not set')
-        if UseInteractNUC is not None:
-            if _build_config.GEANT4_COMPONENTS_AVAILABLE == False:
-                raise ValueError("GTsimulation was installed without Geant4 support. Please reinstall the package.")
-            if not os.path.exists(f"{_build_config.GEANT4_INSTALL_PREFIX}/bin/geant4.sh"):
-                raise ValueError("Geant4 setup script was not found.")
-        self.InteractNUC = UseInteractNUC
-        if self.InteractNUC is not None and 'l' in self.InteractNUC.get("ExcludeParticleList", []):
-            self.InteractNUC['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
-                                                            -11, -12, -13, -14, -15, -16, -17, -18])
-        self.IntPathDen = 10  # g/cm2
-        self.logger.debug("Decay: %s", self.UseDecay)
-        self.logger.debug("Nuclear Interactions: %s", self.InteractNUC)
+    # def __set_nuclear_interaction(self, UseDecay, UseInteractNUC):
+    #     self.UseDecay = UseDecay
+    #     if self.Medium is None and UseInteractNUC is not None:
+    #         raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+    #     self.nuclear_interaction = UseInteractNUC
+    #     if self.nuclear_interaction is not None and 'l' in self.nuclear_interaction.get("ExcludeParticleList", []):
+    #         self.nuclear_interaction['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
+    #                                                                 -11, -12, -13, -14, -15, -16, -17, -18])
+    #     self.logger.debug("Decay: %s", self.UseDecay)
+    #     self.logger.debug("Nuclear Interactions: %s", self.nuclear_interaction)
 
     def __set_break_condition(self, Brck):
         center = np.array([0, 0, 0])
@@ -536,7 +538,7 @@ class GTSimulator(ABC):
         SaveGC = self.Save["GuidingCenter"]
 
         Gen = self.__gen
-        GenMax = 1 if self.InteractNUC is None else self.InteractNUC.get("GenMax", 1)
+        GenMax = 1 if self.nuclear_interaction is None else self.nuclear_interaction.max_generations
 
         UseAdditionalEnergyLosses = self.Region.value.CalcAdditional()
 
@@ -545,7 +547,7 @@ class GTSimulator(ABC):
         for self.index in range(n_events):
             self.logger.debug("Event %d/%d started", self.index + 1, n_events)
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
-            if self.Medium is not None and self.InteractNUC is not None:
+            if self.Medium is not None and self.nuclear_interaction is not None:
                 local_den, n_local, local_path_den = 0, 0, 0
                 local_chem_comp = np.zeros(len(self.Medium.get_element_list()))
                 local_path_den_vector = []
@@ -681,7 +683,7 @@ class GTSimulator(ABC):
                     Den = self.Medium.get_density()  # kg/m3
                     PathDen = (Den * 1e-3) * (PathLen * 1e2)  # g/cm2
                     TotPathDen += PathDen  # g/cm2
-                    if self.InteractNUC is not None and Den > 0:
+                    if self.nuclear_interaction is not None and Den > 0:
                         local_den += Den
                         local_chem_comp += self.Medium.get_element_abundance()
                         n_local += 1
@@ -698,11 +700,22 @@ class GTSimulator(ABC):
                         self.IsPrimDeath = True
 
                 # Nuclear Interaction
-                if self.InteractNUC is not None and local_path_den > self.IntPathDen and not self.IsPrimDeath:
+                check_interaction = (
+                    self.nuclear_interaction is not None
+                    and local_path_den > self.nuclear_interaction.grammage_threshold
+                    and not self.IsPrimDeath
+                )
+                if check_interaction:
                     # Construct Rotation Matrix & Save velocity before possible interaction
                     rotationMatrix = vecRotMat(np.array([0, 0, 1]), Vm / V_norm)
-                    primary, secondary = G4Interaction(particle.PDG, T, local_path_den, (local_den * 1e-3) / n_local,
-                                                       self.Medium.get_element_list(), local_chem_comp / n_local)
+                    primary, secondary = self.nuclear_interaction.run_matter_layer(
+                        pdg=particle.PDG,
+                        energy=T,
+                        mass=local_path_den,
+                        density=(local_den * 1e-3) / n_local,
+                        element_name=self.Medium.get_element_list(),
+                        element_abundance=local_chem_comp / n_local
+                    )
                     T = primary['KineticEnergy']
                     if T > 0 and T > 1:  # Cut particles with T < 1 MeV
                         # Only ionization losses
@@ -740,11 +753,11 @@ class GTSimulator(ABC):
                                     Spectrum=Spectrums.UserInput(energy=T_p),
                                     PDGcode=PDGcode_p
                                 )
-                                if (PDGcode_p in self.InteractNUC.get("ExcludeParticleList", [])
-                                        or T_p < self.InteractNUC.get("Emin", 0)):
-                                    params["Num"] = 1
-                                    params["UseDecay"] = False
-                                    params["InteractNUC"] = None
+                                # if (PDGcode_p in self.nuclear_interaction.get("ExcludeParticleList", [])
+                                #         or T_p < self.nuclear_interaction.get("Emin", 0)):
+                                #     params["Num"] = 1
+                                #     params["UseDecay"] = False
+                                #     params["InteractNUC"] = None
                                 if PDGcode_p in [12, 14, 16, 18, -12, -14, -16, -18]:
                                     params["Medium"] = None
                                     params["InteractNUC"] = None

@@ -2,12 +2,10 @@ from datetime import datetime
 
 import numpy as np
 from gtsimulation.Algos import BunemanBorisSimulator
+from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.Particle import Flux
 from gtsimulation.Particle.Generators import Monolines, SphereSurf
-from gtsimulation.Global import Regions
-from gtsimulation.Global import Units as U
-
 
 date = datetime(2025, 1, 1)
 b_field = Uniform(B=np.array([0, 0, 10])) # 10 nT

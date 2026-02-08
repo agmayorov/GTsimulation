@@ -4,6 +4,7 @@
 
 #include <G4SystemOfUnits.hh>
 #include <G4EventManager.hh>
+#include "RunAction.hh"
 
 namespace MatterLayer
 {
@@ -13,10 +14,10 @@ class StackingAction : public G4UserStackingAction
   public:
     StackingAction();
     ~StackingAction();
-    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track *aTrack) override;
+    G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
+    void PrepareNewEvent() override;
 
   private:
-    G4bool fFirstSecondaryParticle;
     G4double fDeathTime;
 };
 
