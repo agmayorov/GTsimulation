@@ -273,7 +273,7 @@ class GTSimulator(ABC):
         self.logger.debug("Number of files: %s", self.Nfiles)
         self.logger.debug("Output file name: %s_num.npy", self.Output)
 
-        if BreakCondition is not None and 'MaxRev' in BreakCondition.keys():
+        if BreakCondition is not None and hasattr(BreakCondition, 'keys') and 'MaxRev' in BreakCondition.keys():
             if not isinstance(Save, list):
                 Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]
             else:
@@ -303,7 +303,7 @@ class GTSimulator(ABC):
         self.__brck_index.pop("Loop")
         self.__index_brck = BreakIndex.copy()
         self.__brck_arr = BreakDef.copy()
-        self.__SetBrck(BreakCondition)
+        self.__set_break_condition(BreakCondition)
 
         self.index = 0
         self.logger.debug("Simulator object created!\n")
@@ -411,7 +411,7 @@ class GTSimulator(ABC):
         self.logger.debug("Decay: %s", self.UseDecay)
         self.logger.debug("Nuclear Interactions: %s", self.InteractNUC)
 
-    def __SetBrck(self, Brck):
+    def __set_break_condition(self, Brck):
         center = np.array([0, 0, 0])
         if Brck is not None:
             if isinstance(Brck, list):

@@ -76,6 +76,7 @@ class Units:
     gigaelectronvolt = 1e3 * megaelectronvolt
     teraelectronvolt = 1e6 * megaelectronvolt
     petaelectronvolt = 1e9 * megaelectronvolt
+    exaelectronvolt = 1e12 * megaelectronvolt
     # Symbols
     eV = electronvolt
     keV = kiloelectronvolt
@@ -83,6 +84,7 @@ class Units:
     GeV = gigaelectronvolt
     TeV = teraelectronvolt
     PeV = petaelectronvolt
+    EeV = exaelectronvolt
 
     # Rigidity / Potential
     megavolt = 1
