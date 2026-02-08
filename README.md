@@ -12,27 +12,32 @@ enhance the speed of calculations **numba** just-in-time compiler is used to com
 
 ## Installation
 
-GT requires Python 3.10+. Download the package form GitHub:
-
-``` console
-$ git clone --depth 1 https://github.com/agmayorov/GTsimulation.git
-$ cd GTsimulation
+GT requires Python 3.10+. To avoid possible package conflicts, you can optionally create an isolated virtual environment
+using `venv`:
+```console
+$ python -m venv gt_env
+$ source gt_env/bin/activate
 ```
+See the [official `venv` documentation](https://docs.python.org/3/library/venv.html) for details.
 
-If you plan to use the secondary particle generation functionality, install [Geant4](https://geant4.web.cern.ch/download/11.3.2.html) and activate its environment variables:
-
+If you plan to use the secondary particle generation functionality, install [Geant4](https://geant4.web.cern.ch/download/11.4.0.html) and activate its environment variables:
 ```console
 $ source /path/to/geant4/bin/geant4.sh
 ```
 
-Then install the package using `pip`:
-
+Install the package with:
 ```console
-$ pip install .
+$ pip install gtsimulation
 ```
 
-If you do not want to use Geant4, specify the key during installation:
-
+If you do not want to use Geant4, specify the build option during installation:
 ```console
-$ pip install --config-settings=cmake.define.BUILD_GEANT4_COMPONENTS=OFF .
+$ pip install --config-settings=cmake.define.BUILD_GEANT4_COMPONENTS=OFF gtsimulation
+```
+
+Alternatively, you can install the packaage from the source repository:
+```console
+$ git clone --depth 1 https://github.com/agmayorov/GTsimulation.git
+$ cd GTsimulation
+$ pip install .
 ```
