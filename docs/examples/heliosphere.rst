@@ -1,10 +1,11 @@
 Heliosphere
 ===========
 
-General words.
+This page provides practical examples of using GT simulation for modeling physical processes in the heliosphere. The
+presented Jupyter notebooks demonstrate the key features of the package and illustrate various physical aspects
+encountered in heliospheric and solr modulation research.
 
-Adiabatic losses
-----------------
+.. toctree::
+   :maxdepth: 1
 
-.. include:: ../../examples/adiabatic_losses.ipynb
-   :parser: myst_nb.docutils_
+   notebooks/adiabatic_losses.ipynb

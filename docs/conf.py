@@ -8,13 +8,20 @@
 
 import os
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.abspath('../src'))
 
+examples_dir = Path(__file__).parent.parent / 'examples'
+symlink_target = Path(__file__).parent / 'examples' / 'notebooks'
+if symlink_target.is_symlink():
+    symlink_target.unlink()
+symlink_target.symlink_to(examples_dir)
+
 project = 'GTsimulation'
-copyright = '2025, SpaceLab'
+copyright = '2026, SpaceLab'
 author = 'SpaceLab'
-release = '1.0.0'
+release = '0.1.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -57,3 +64,13 @@ apidoc_modules = [
         'no_headings': True,
     },
 ]
+
+# -- Options for myst_nb ------------------------------------------------------
+# https://myst-nb.readthedocs.io/en/latest/configuration.html
+
+myst_enable_extensions = [
+    "dollarmath",
+]
+
+nb_execution_mode = "off"
+myst_dmath_double_inline = True
