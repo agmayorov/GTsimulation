@@ -35,7 +35,7 @@ If you do not want to use Geant4, specify the build option during installation:
 $ pip install --config-settings=cmake.define.BUILD_GEANT4_COMPONENTS=OFF gtsimulation
 ```
 
-Alternatively, you can install the packaage from the source repository:
+Alternatively, you can install the package from the source repository:
 ```console
 $ git clone --depth 1 https://github.com/agmayorov/GTsimulation.git
 $ cd GTsimulation
