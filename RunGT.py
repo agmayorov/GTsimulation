@@ -21,7 +21,7 @@ np.random.seed(seed)
 Date = datetime(2008, 1, 1)
 
 Region = Regions.Magnetosphere
-Bfield = Gauss(date=Date, model="CHAOS", model_type="core", version=7.13)
+Bfield = Gauss(date=Date, model="CHAOS", model_type="core", version=7.18)
 
 # Medium = None
 Medium = GTnrlmsis(date=Date, version=0)
