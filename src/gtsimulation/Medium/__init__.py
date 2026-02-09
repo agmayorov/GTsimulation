@@ -3,3 +3,9 @@ from .uniform_medium import GTUniformMedium, GTVacuum
 
 from .galaxy import InterstellarGas
 from .magnetosphere import GTnrlmsis
+
+__all__ = [
+    "GTGeneralMedium",
+    "GTUniformMedium",
+    "GTVacuum",
+]
