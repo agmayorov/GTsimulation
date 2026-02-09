@@ -27,7 +27,7 @@ class GaussTypes(Enum):
 
 
 versions_dict = {GaussModels.IGRF: [13, 14],
-                 GaussModels.CHAOS: [7.13, 8.1],
+                 GaussModels.CHAOS: [7.18, 8.5],
                  GaussModels.CM: [6],
                  GaussModels.COV_OBS: [2],
                  GaussModels.LCS: [1],
