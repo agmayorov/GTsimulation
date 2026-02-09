@@ -125,7 +125,7 @@ class _Magnetosphere(_AbsRegion):
 
     @staticmethod
     def do_before_loop(simulator, gen, prod_tracks):
-        if simulator.InteractNUC is not None and gen > 1:
+        if simulator.nuclear_interaction is not None and gen > 1:
             particle = simulator.Particles[simulator.index]
             r = np.array(particle.coordinates)
             V_normalized = np.array(particle.velocities)
@@ -137,7 +137,7 @@ class _Magnetosphere(_AbsRegion):
             if 0 < alt < 80e3 and angle < 70:
                 primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, simulator.Date)
                 simulator.IsPrimDeath = True
-                if secondary.size > 0 and gen < simulator.InteractNUC['GenMax']:
+                if secondary.size > 0 and gen < simulator.nuclear_interaction.max_generation:
                     if simulator.Verbose > 1:
                         print(f"EAS ~ {secondary.size} secondaries")
                         print(secondary)

@@ -1,8 +1,6 @@
 import numpy as np
 import copy
 
-from numpy import ndarray
-
 from gtsimulation.Global import Units, Constants, Origins
 from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
 from gtsimulation.functions import *
@@ -470,7 +468,7 @@ def FindParticleOrigin(Simulator, RetArr_i):
     Num = Simulator.Num
     Step = Simulator.StepParams
     UseDecay = Simulator.UseDecay
-    InteractNUC = Simulator.InteractNUC
+    InteractNUC = Simulator.nuclear_interaction
     Save = [1, {"Energy": True, "Bfield": True}]
 
     Particles.Nevents = 1
