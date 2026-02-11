@@ -1,6 +1,6 @@
-# GT simulation
+![](docs/_static/gtsimulation_logo.png)
 
-[**GT simulation** (GT)](https://spacephysics.mephi.ru/GTsimulation) is software a package that is created for simulations of propagation of charged particles in electromagnetic fields.
+[**GT simulation**](https://spacephysics.mephi.ru/GTsimulation) (GT) is software a package that is created for simulations of propagation of charged particles in electromagnetic fields.
 GT solves the relativistic equation of motion of a particle using Buneman-Boris scheme. That allows to recover the trajectory
 of a particle with high precision. Additionally, we take into account the energy losses of particles such as, radiation losses
 (synchrotron radiation), adiabatic losses (in the heliosphere), and the interactions with the medium. As a result of interaction
@@ -18,7 +18,7 @@ using `venv`:
 $ python -m venv gt_env
 $ source gt_env/bin/activate
 ```
-See the [official `venv` documentation](https://docs.python.org/3/library/venv.html) for details.
+See the `venv` [official documentation](https://docs.python.org/3/library/venv.html) for details.
 
 If you plan to use the secondary particle generation functionality, install [Geant4](https://geant4.web.cern.ch/download/11.4.0.html) and activate its environment variables:
 ```console

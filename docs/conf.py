@@ -9,6 +9,7 @@
 import os
 import sys
 from pathlib import Path
+import tomllib
 
 sys.path.insert(0, os.path.abspath('../src'))
 
@@ -18,10 +19,13 @@ if symlink_target.is_symlink():
     symlink_target.unlink()
 symlink_target.symlink_to(examples_dir)
 
+with open(Path(__file__).parent.parent / 'pyproject.toml', 'rb') as f:
+    pyproject = tomllib.load(f)
+
 project = 'GTsimulation'
 copyright = '2026, SpaceLab'
 author = 'SpaceLab'
-release = '0.1.1'
+version = pyproject['project']['version']
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -70,6 +74,7 @@ apidoc_modules = [
 
 myst_enable_extensions = [
     "dollarmath",
+    "html_image",
 ]
 
 nb_execution_mode = "off"
