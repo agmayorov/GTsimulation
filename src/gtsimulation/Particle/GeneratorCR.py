@@ -388,7 +388,15 @@ def GetGCRflux(E_type, E, F, PartName=None):
     # Get particle's list
     PartNameAll = ['proton', 'he4', 'Li-7', 'Be-9', 'B-11', 'C-12', 'N-14', 'O-16', 'F-19', 'Ne-20', 'Na-23',
                    'Mg-24', 'Al-27', 'Si-28', 'Fe-56', 'ele', 'pos', 'apr']
+
+    def _normalize_part_name(name):
+        if isinstance(name, str):
+            return "proton" if name == "p" else name
+        else:
+            return ["proton" if item == "p" else item for item in name]
+
     if PartName is not None:
+        PartName = _normalize_part_name(PartName)
         if isinstance(PartName, str):
             N = PartNameAll.index(PartName)
         else:
