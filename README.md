@@ -20,10 +20,13 @@ $ source gt_env/bin/activate
 ```
 See the `venv` [official documentation](https://docs.python.org/3/library/venv.html) for details.
 
-If you plan to use the secondary particle generation functionality, install [Geant4](https://geant4.web.cern.ch/download/11.4.0.html) and activate its environment variables:
+If you plan to use nuclear interaction modeling or secondary particle generation, install [Geant4](https://geant4.web.cern.ch/download/11.4.0.html) and activate its environment variables:
 ```console
 $ source /path/to/geant4/bin/geant4.sh
 ```
+**⚠️ Important Geant4 Note**: Due to specific memory allocation requirements, Geant4 **must** be built with
+`BUILD_TLS_MODEL=global-dynamic` option or used in **single-threaded mode**.
+See [Geant4 Build Configuration](https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/installguide.html#geant4-build-options) for details.
 
 Install the package with:
 ```console
