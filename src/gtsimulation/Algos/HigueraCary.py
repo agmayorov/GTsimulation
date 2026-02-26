@@ -49,9 +49,8 @@ class HigueraCarySimulator(GTSimulator):
         u_plus = u_minus + np.cross(u_minus + u_minus_cross_t, sigma)
 
         u_f = u_plus + epsilon
+        gamma_final = np.sqrt(1 + np.dot(u_f, u_f) / (c * c))
+        v_new = u_f / gamma_final
+        gamma_avg = 0.5 * (Yp + gamma_final)
 
-        v_new = u_f / gamma_new
-        gamma_avg = 0.5 * (Yp + gamma_new)
-
-        return v_new, gamma_new, gamma_avg
-
+        return v_new, gamma_final, gamma_avg
