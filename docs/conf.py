@@ -31,10 +31,10 @@ version = pyproject['project']['version']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'myst_nb',
@@ -50,24 +50,12 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_favicon = '_static/favicon.svg'
 
+autosummary_generate = True
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,
 }
-
-autosummary_generate = True
 autosectionlabel_prefix_document = True
-
-# -- Options for apidoc ------------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/extensions/apidoc.html#configuration
-
-apidoc_modules = [
-    {
-        'path': '../src/gtsimulation',
-        'destination': 'reference/',
-        'no_headings': True,
-    },
-]
 
 # -- Options for myst_nb ------------------------------------------------------
 # https://myst-nb.readthedocs.io/en/latest/configuration.html

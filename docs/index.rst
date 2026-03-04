@@ -26,8 +26,9 @@
    examples/heliosphere
    examples/galaxy
 
-.. toctree::
-   :maxdepth: 2
+.. autosummary::
+   :toctree: reference
    :caption: API reference
+   :recursive:
 
-   reference/gtsimulation
+   gtsimulation
