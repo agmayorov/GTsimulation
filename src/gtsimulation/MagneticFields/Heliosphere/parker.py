@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from numba import jit, prange
+from numba import njit, prange
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
@@ -8,28 +8,115 @@ from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
 
 
 class Parker(AbsBfield):
+    """
+    Parker spiral model of the interplanetary magnetic field with optional
+    heliospheric current sheet (HCS), corotating interaction regions (CIR),
+    and turbulent fluctuations (slab + 2D components).
+
+    The regular part is the classical Parker field with a possible HCS
+    whose tilt angle varies with the solar cycle. Turbulence is simulated
+    as a superposition of slab and 2D modes following the approach described
+    in [1]_.
+
+    Parameters
+    ----------
+    date : datetime.date or int, optional
+        Initial epoch. If int, interpreted as seconds from an arbitrary
+        reference; if datetime.date, converted to Unix time (seconds since
+        1970-01-01). Default 0.
+    magnitude : float, default=2.09
+        Magnetic field magnitude at 1 AU (nT).
+    polarity : int, default=-1
+        Polarity sign of the field (+1 or -1).
+    tilt_angle : float or None, optional
+        Constant tilt angle of the heliospheric current sheet (radians).
+        If None (default), the tilt angle varies with the 11‑year solar cycle
+        according to an empirical fit.
+    use_reg : bool, default=True
+        Whether to include the regular Parker field (including HCS if enabled).
+    use_hcs : bool, default=True
+        Whether to include the heliospheric current sheet modulation.
+    use_cir : bool, default=False
+        Whether to include CIR effects (not implemented yet).
+    use_noise : bool, default=False
+        Whether to add turbulent fluctuations.
+    use_slab : bool, default=True
+        Whether to include the slab component of turbulence.
+    use_2d : bool, default=True
+        Whether to include the 2D component of turbulence.
+    noise_num : int, default=256
+        Number of modes used in the turbulence spectrum.
+    log_kmin : float, default=1
+        Decimal logarithm of the minimum wave number (AU⁻¹).
+    log_kmax : float, default=6
+        Decimal logarithm of the maximum wave number (AU⁻¹).
+    coeff_noise : float, default=0.47
+        Scaling factor for the turbulent component.
+    coeff_2d : float, default=2.9
+        Scaling factor for the 2D component of turbulence.
+    **kwargs
+        Additional arguments passed to the base class `AbsBfield`.
+
+    Notes
+    -----
+    The regular Parker field is given by:
+
+        B_r = A0 / r² * HCS
+        B_φ = -A0 / r² * ((r - rs) ω / v_sw) sinθ * HCS
+
+    where HCS is the current sheet modulation (tanh profile).
+
+    Turbulence is simulated as a sum of slab and 2D modes following the
+    synthetic turbulence model described in [1]_. The implementation
+    closely follows the formulas provided there.
+
+    References
+    ----------
+    .. [1] Engelbrecht, N. E., et al. (2022). ApJ, 941(2), 168.
+           doi:10.3847/1538-4357/aca892
+
+    Examples
+    --------
+    >>> from gtsimulation.MagneticFields.Heliosphere import Parker
+
+    Create a model with default parameters (regular field only, no noise).
+    Compute the field at Earth's orbit (1 AU along the X-axis).
+
+    >>> model = Parker()
+    >>> x, y, z = 1.0, 0.0, 0.0   # coordinates in AU
+    >>> Bx, By, Bz = model.CalcBfield(x, y, z)
+    >>> print(f"B = ({Bx:.2f}, {By:.2f}, {Bz:.2f}) nT")
+
+    Override the HCS tilt angle with a constant value (e.g., 0.5 rad).
+
+    >>> model_tilt = Parker(tilt_angle=0.5)
+    >>> Bx_t, By_t, Bz_t = model_tilt.CalcBfield(-x, y, z)
+    >>> print(f"B = ({Bx:.2f}, {By:.2f}, {Bz:.2f}) nT")
+    """
+
     ToMeters = Units.AU2m
     rs = 0.0232523
     omega = 2 * np.pi / 2160000
     years11 = 347133600
     km2AU = 1 / Units.AU2km
 
-    def __init__(self, date: int | datetime.date = 0, magnitude=2.09, use_reg=True, use_hcs=True, use_cir=False,
-                 polarity=-1, use_noise=False, noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=0.47, use_slab=True,
-                 coeff_2d=2.9,  use_2d=True, **kwargs):
+    def __init__(self, date: datetime.date | int = 0, magnitude=2.09, polarity=-1, tilt_angle=None,
+                 use_reg=True, use_hcs=True, use_cir=False, use_noise=False, use_slab=True,  use_2d=True,
+                 noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=0.47, coeff_2d=2.9, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
         self.Units = "AU"
         self.magnitude = magnitude
+        self.polarity = polarity
+        self.tilt_angle = tilt_angle
+        self.use_reg = use_reg
         self.use_hcs = use_hcs
         self.use_cir = use_cir
-        self.polarity = polarity
-        self.use_reg = use_reg
-        self.coeff_noise = coeff_noise
-        self.coeff_2d = coeff_2d
         self.use_slab = use_slab
         self.use_2d = use_2d
+        self.coeff_noise = coeff_noise
+        self.coeff_2d = coeff_2d
         self.__set_time(date)
         self.__set_noise(use_noise, noise_num, log_kmin, log_kmax)
 
@@ -65,8 +152,12 @@ class Parker(AbsBfield):
         if self.use_reg:
             years11 = self.years11
 
-            alpha = self.CalcTiltAngle(t)
-            dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
+            if self.tilt_angle is None:
+                alpha = self.CalcTiltAngle(t)
+                dalpha = np.sign(self.CalcTiltAngle(t + 1) - self.CalcTiltAngle(t - 1))
+            else:
+                alpha = self.tilt_angle
+                dalpha = 0.0
 
             Br, Bphi = self._calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha, use_hcs)
 
@@ -124,7 +215,7 @@ class Parker(AbsBfield):
         self.__set_time(new_date)
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
+    @njit(fastmath=True)
     def _calc_regular(A0, t, r, theta, phi, v_wind, omega, rs, years11, alpha, dalpha, use_hcs):
         HCS = 1.
         if use_hcs:
@@ -142,7 +233,7 @@ class Parker(AbsBfield):
         return Br, Bphi
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
+    @njit(fastmath=True)
     def CalcTiltAngle(t):
         a0 = 0.7502
         a1 = 0.02332
@@ -164,7 +255,7 @@ class Parker(AbsBfield):
         return alpha
 
     @staticmethod
-    @jit(nopython=True, fastmath=True)
+    @njit(fastmath=True)
     def v_wind(theta, km2AU):
         return (300 + 475 * (1 - np.sin(theta) ** 8)) * km2AU
 
@@ -173,7 +264,7 @@ class Parker(AbsBfield):
         return cls.v_wind(theta) / cls.omega
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
+    @njit(fastmath=True)
     def HCS(theta, theta0, r):
         L = 0.0002
         dt = r * (theta - theta0) / L
@@ -214,7 +305,7 @@ class Parker(AbsBfield):
         self.delta_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
+    @njit(fastmath=True)
     def _calc_noise(r, theta, phi, a,
                     A_rad, alpha_rad, delta_rad,
                     A_azimuth, alpha_azimuth, delta_azimuth,
