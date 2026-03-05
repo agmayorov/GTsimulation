@@ -1,16 +1,16 @@
-import math
-import os
-import sys
-
-import numpy as np
 import datetime
 import json
 import logging
-
-from numba import jit
+import math
+import os
+import sys
 from abc import ABC, abstractmethod
 from timeit import default_timer as timer
 
+import numpy as np
+from numba import njit
+
+from gtsimulation import functions
 from gtsimulation.ElectricFields import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
@@ -19,204 +19,171 @@ from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
 from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.Particle.Generators import Distributions, Spectrums
-from gtsimulation import functions
+
 
 class GTSimulator(ABC):
     """
-    Description
+    Main simulation class for particle trajectory calculation in various space environments.
 
-    :param Region: The region of the in which the simulation is taken place. The parameter may have values as
-                   `Global.Region.Magnetosphere`, `Global.Region.Heliosphere`, `Global.Region.Galaxy`.
-                   See :py:mod:`Global.regions`. See also :py:mod:`Global.regions._AbsRegion.set_params` for additional
-                   energy losses.
-                   Example: one mau need to take into account the adiabatic energy losses in the heliosphere.
-                   In that case they call `set_params(True)`.
-    :type Region: :py:mod:`Global.regions.Regions`
+    This abstract base class provides the core functionality for simulating particle
+    trajectories, taking into account electromagnetic fields, particle interactions,
+    and various physical processes.
 
-    :param Bfield: The magentic field object
-    :type Bfield: :py:mod:`MagneticFields.magnetic_field.AbsBfield`
+    Parameters
+    ----------
+    Particles : :py:class:`~gtsimulation.Particle.Flux`
+        Particle flux generator defining initial spectrum, distribution and composition.
+        See :py:mod:`gtsimulation.Particle`.
 
-    :param Efield: Electrical field. Similar to :ref:`Bfield`
-    :type Efield: None
+    Num : int
+        Maximum number of simulation steps.
 
-    :param Medium: The medium where particles may go into an interaction. See :py:mod:`Medium`.
-    :type Medium: :py:mod:`Medium.general_medium.GTGeneralMedium`
+    Step : float or dict
+        Time step configuration. If float: fixed time step in seconds.
+        If dict: adaptive step configuration with keys:
 
-    :param Date: Date that is used to initialize the fields
-    :type Date: datetime.datetime
+        * ``UseAdaptiveStep``: bool – Enable adaptive stepping (default: False).
+        * ``InitialStep``: float – Initial time step in seconds (used only if adaptive).
+        * ``MinLarmorRad``: int – Minimum number of Larmor radii per step.
+        * ``MaxLarmorRad``: int – The minimal number of points per Larmor radius.
+        * ``LarmorRad``: int – The fixed number of points per Larmor radius (used when a fixed resolution is desired).
 
-    :param RadLosses: a `bool` flag that turns the calculations of radiation losses of the particles on.
-    :type RadLosses: bool
-    # TODO add about the synchrotron emission
+    Bfield : :py:class:`~gtsimulation.MagneticFields.AbsBfield` or None, optional
+        Magnetic field model object. If None, no magnetic field is applied.
+        Default is None.
 
-    :param Particles: The parameter is responsible for the initial particle flux generation. It defines the initial
-                      particle spectrum, distribution and chemical composition. See
-                      :py:mod:`Particle.Generators.Spectrums` and :py:mod:`Particle.Generators.Distributions` for
-                      available initial spectra and distributions respectively. For more information regarding flux
-                      also see :py:mod:`Particle.Flux`.
-    :type Particles: :py:mod:`Particle.Flux`
+    Efield : :py:class:`~gtsimulation.ElectricFields.GeneralFieldE` or None, optional
+        Electric field model object. If None, no electric field is applied.
+        Default is None.
 
-    :param TrackParams: a 'bool' flag that turns the calculations of additional parameters in given region.
-                If 'True' all the additional parameters will be calculated. If one needs to calculate specific parameter,
-                he may pass a 'dict' instead of 'bool' with the names of a needed parts and the values of 'True'.
-                Example: {'Invariants': True, 'GuidingCenter': True}.
-                See :py:mod:`Global.regions._AbsRegion.SaveAdd` for available parameters to a given region.
+    Medium : :py:class:`~gtsimulation.Medium.GTGeneralMedium` or None, optional
+        Propagation medium for particles. Defines density and composition of the environment
+        through which particles travel. Required when nuclear interactions are enabled
+        (via `InteractNUC` parameter), but optional for simulations without interactions.
+        See :py:mod:`gtsimulation.Medium`.
+        Default is None.
 
-                **Note**: to calculate some of the additional parameters others must be calculated as well.
-    :type TrackParams: bool or dict
+    Region : :py:class:`~gtsimulation.Global.regions.Regions`, optional
+        Simulation region specifying the physical environment.
+        Available options:
+        :py:attr:`~gtsimulation.Global.regions.Regions.Magnetosphere`,
+        :py:attr:`~gtsimulation.Global.regions.Regions.Heliosphere`,
+        :py:attr:`~gtsimulation.Global.regions.Regions.Galaxy`.
+        See :py:mod:`gtsimulation.Global.regions`.
+        Default is `Regions.Undefined`.
 
-    :param ParticleOrigin: a 'bool' flag that turns the calculations of particle's origin through the backtracing
-    :type ParticleOrigin: bool
+    BreakCondition : dict or list or None, optional
+        Simulation termination conditions. If dict: {condition: value}.
+        If list format: [conditions_dict, center_point_array].
+        Available conditions: see :py:data:`~gtsimulation.Global.codes.BreakCode`.
+        Default is None.
 
-    :param IsFirstRun:
-    :param ForwardTrck: 1 refers to forward tracing, and -1 to the backtracing
-    :type ForwardTrck: 1 or -1
+    UseDecay : bool, optional
+        Enable particle decay processes.
+        Default is False.
 
-    :param Save: The number of steps that are saved. If the value is 0, then only staring
-                 and finishing points are saved. The default parameters that are saved are `Coordinates` and
-                 `Velocities`. Other parameters that one needs to save as well, can be turned on by passing a `list`
-                 instead of `int` where the second element is a `dict` that's key is the parameter name and value is
-                 `True`. Example `[10, {"Clock": True}]`. To available parameters are listed in
-                 :py:mod:`Global.codes.SaveCode`.
-    :type Save: int or list
+    InteractNUC : :py:class:`~gtsimulation.Interaction.NuclearInteraction` or None, optional
+        Nuclear interaction module. Requires Medium to be set.
+        Default is None.
 
-    :param Num: The number of simulation steps
-    :type Num: int
+    RadLosses : bool or list, optional
+        Radiation losses configuration. If False, radiation losses are disabled.
+        If list format: [True, {"Photons": True/False, "MinE": float, "MaxE": float}].
+        Default is False.
 
-    :param Step: The time step of simulation in seconds. If `dict` one should pass:\n
-        1. `UseAdaptiveStep`: `True`/`False` --- whether to use adaptive time step\n
-        2. `InitialStep`: `float` --- The initial time step in seconds\n
-        3. `MinLarmorRad`: `int` --- The minimal number of points during on the Larmor radius\n
-        4. `MaxLarmorRad`: `int` --- The maximal number of points during on the Larmor radius\n
-        5. `LarmorRad`:  `int` --- The fixed number of points, in case when the user needs to update time step during each step
-    :type Step: float or dict
+    Date : datetime.datetime, optional
+        Date for field model initialization.
+        Default is datetime.datetime(2008, 1, 1).
 
-    :param Nfiles: Number of files if `int`, otherwise the `list` of file numbers (e.g. `Nfiles = [5, 10, 20]`, then
-                   3 files are numerated as 5, 10, 20). If :ref:`Particles` creates a flux of `Nevents` particles then
-                   the total number of particles that are going to be simulated is `Nevents`x`Nfiles`.
-    :type Nfiles: int or list
+    Save : int or list, optional
+        Save interval configuration. If int N, save every N steps.
+        If list format: [N, {"Clock": True, ...}] to save additional parameters.
+        See :py:data:`~gtsimulation.Global.codes.SaveCode`.
+        Default is 1.
 
-    :param Output: If `None` no files are saved. Otherwise, the name of the saved *.npy* file. If :ref:`Nfiles` is
-                   greater than 1. Then the names of the saved files will have the following form `"Output"_i.npy`
-    :type Output: str or None
+    Nfiles : int or list, optional
+        Number of output files. If int: create N files.
+        If list: create files with specified indices.
+        Default is 1.
 
-    :param Verbose: 0 - no output, 1 - short output, 2 - verbose output
-    :type Verbose: int
+    Output : str or None, optional
+        Output file base name. If None, results are not saved to disk.
+        Default is None.
 
-    :param BreakCondition: If `None` no break conditions are applied. In case of a `dict` with a key corresponding to
-                           the `BreakCondition` name and value corresponding to its value is passed.
-                           Example: `{"Rmax": 10}`. In the example the maximal radius of the particle is 10
-                           (in :py:mod:`MagneticFields` distance units). See the full list of break conditions
-                           :py:mod:`Global.codes.BreakCode`.
-                           If `list`, the first parameter is the `dict`, the second parameter describes the break
-                           condition center, i.e. A 3d array of point (in :py:mod:`MagneticFields` distance units). It
-                           represents the **(0, 0, 0)** relative to which `Rmax/Rmin, Xmax/Xmin, Ymax/Ymin, Zmax/Zmin`
-                           are calculated. Default `np.array([0, 0, 0])`.
-    :type BreakCondition: dict or list or None
+    Verbose : int, optional
+        Verbosity level: 0 (no output), 1 (short output), 2 (verbose output).
+        Default is 1.
 
-    :param UseDecay: If `True` the particles may decay. Otherwise, not.
-    :type UseDecay: bool
+    ForwardTrck : {1, -1} or None, optional
+        Tracing direction: 1 for forward, -1 for backward. If None, determined from Particles.
+        Default is None.
 
-    :param InteractNUC:
-    # TODO describe the InteractNUC parameter
+    TrackParams : bool or dict, optional
+        Additional parameter tracking. If True, all available parameters are tracked.
+        If dict, specify which parameters to track:
+        {'Invariants': True, 'GuidingCenter': True, etc.}.
+        See :py:attr:`~gtsimulation.Global.regions._AbsRegion.SaveAdd`.
+        Default is False.
 
-    :return: dict
-    A dictionary is saved. It has the following keys.
+    ParticleOrigin : bool, optional
+        Enable particle origin calculation through backtracing.
+        Default is False.
 
-    1. Track: The parameters that are saved along the trajectory. See :py:mod:`Global.codes.SaveCode`.
-    2. BC: The parameters regarding the simulation end.
-        2.1. WOut: The code of break. See :py:mod:`Global.codes.BreakIndex`
+    IsFirstRun : bool, optional
+        Flag indicating first simulation run. Affects logging and some calculations.
+        Default is True.
 
-    3. Particle: Information about the particle
-        3.1. PDG: Its PDG code
+    Returns
+    -------
+    result : list or None
+        Results of simulation.
 
-        3.2. M: The mass in MeV
+        * If `Output` is None:
+            Returns a list of simulation results. The structure depends on `Nfiles`:
 
-        3.3. Z: The charge of the particle in e units.
+            - `Nfiles = 1` — a flat list of dictionaries, one per simulated particle
+              (the number of particles is determined by the `Particles` argument).
+            - `Nfiles > 1` — a list of lists. Each inner list corresponds to one output file
+              and contains dictionaries for the particles processed in that file.
+        * If `Output` is not None:
+            Results are saved to disk (NumPy binary files) and the method returns `None`.
 
-        3.4. T0: Its initial kinetic energy in MeV
+    Notes
+    -----
+    For detailed information about the structure of the particle data dictionaries,
+    see the **Simulation output** section in the online documentation.
 
-        3.5. Gen: Its generation
-    4. Additions: Additional parameters calculated in defined region. See :py:mod:`Global.regions._AbsRegion.SaveAdd`
-        4.1. In magnetosphere:
-            Invariants:
-                I1: First adiabatic invariant along the trajectory of a particle
-
-                I2: Second adiabatic invariant between each pair of reflections at mirror points
-            PitchAngles:
-                Pitch: Pitch angles along the trajectory of a particle
-
-                PitchEq: Equatorial pitch angles
-            MirrorPoints:
-                NumMirror: Indexes of trajectory where particle turns to be at a mirror point
-
-                NumEqPitch: Indexes of trajectory where particle crosses the magnetic equator
-
-                NumB0: An array of trajectory points with the minimum value of the magnetic field strength
-
-                Hmirr: The value of the magnetic field at the mirror points
-
-                Heq: The value of the magnetic field at the magnetic equator
-            L-shell:
-                L: L-shell calculated on the basis of second invariant and the field at the mirror point
-
-                Lgen: L-shell calculated at every magnetic equator point
-            LonTotal: the angle of rotation of the particle around the Earth
-
-            GuidingCenter:
-                LR: Larmor radius of a particle
-
-                LRNit:
-
-                Rline: Coordinates of the field line of the guiding centre of the particle
-
-                Bline: The value of the magnetic field of the field line of the guiding centre of the particle
-
-                Req: Coordinates of the guiding centre of the particle calculated from the field line
-
-                Beq: The value of the magnetic field at the magnetic equator calculated from the field line
-
-                BB0: The ratio of the value of the magnetic field at the position of the guiding center corresponding to
-                the initial value of the coordinate and at the magnetic equator
-
-                L: L-shell calculated from the field line of the guiding centre
-
-                parReq: Coordinates of the guiding centre of the particle from the local field line
-
-                parBeq: The value of the magnetic field of the local field line of the particle
-
-                parBB0: The ratio of the value of the magnetic field at the position of
-
-                parL: L-shell calculated from the local field line
-        4.2. In heliosphere:
-
-        4.3. In galaxy:
-
-    5. Child: List of secondary particles. They have the same parameters.
+    See Also
+    --------
+    :py:class:`gtsimulation.Particle.Flux` : Particle flux generation
+    :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
+    :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
+    :py:class:`gtsimulation.MagneticFields` : Magnetic field module
+    :py:class:`gtsimulation.Medium` : Medium module
     """
 
     def __init__(
             self,
-            Bfield: None | AbsBfield = None,
-            Efield: None | GeneralFieldE = None,
+            Particles: Flux,
+            Num: int,
+            Step: float,
+            Bfield: AbsBfield | None = None,
+            Efield: GeneralFieldE | None = None,
+            Medium: GTGeneralMedium | None = None,
             Region: Regions = Regions.Undefined,
-            Medium: None | GTGeneralMedium = None,
-            Date=datetime.datetime(2008, 1, 1),
+            BreakCondition: dict | list | None = None,
+            UseDecay: bool = False,
+            InteractNUC: NuclearInteraction | None = None,
             RadLosses: bool | list = False,
-            Particles: None | Flux = None,
+            Date: datetime.datetime = datetime.datetime(2008, 1, 1),
+            Save: int | list = 1,
+            Nfiles: int | list = 1,
+            Output: str | None = None,
+            Verbose: int = 1,
+            ForwardTrck=None,
             TrackParams=False,
             ParticleOrigin=False,
             IsFirstRun=True,
-            ForwardTrck=None,
-            Save: int | list = 1,
-            Num: int = 1e6,
-            Step: float = 1,
-            Nfiles=1,
-            Output=None,
-            Verbose: int = 1,
-            BreakCondition: None | dict = None,
-            UseDecay=False,
-            InteractNUC: None | NuclearInteraction = None,
     ):
         self.ParamDict = locals().copy()
         del self.ParamDict['self']
@@ -638,7 +605,7 @@ class GTSimulator(ABC):
                     GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
-                    self.SaveStep(
+                    self._save_step(
                         r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
                         PitchAngle, LarmorRadius, GuidingCenter, Saves, self.SaveColumnLen,
                         self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
@@ -650,7 +617,7 @@ class GTSimulator(ABC):
                     i_save += 1
 
                 if self.UseAdaptiveStep:
-                    Step = self.AdaptStep(Q, m, B, Vm, T, M, Step, self.N1, self.N2)
+                    Step = self._adaptive_step(Q, m, B, Vm, T, M, Step, self.N1, self.N2)
                     if i == 0:
                         self.Step = Step
                     q = Step * Q / 2 / m
@@ -675,7 +642,7 @@ class GTSimulator(ABC):
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c)
                 r_old = r
-                V_norm, r, TotPathLen, TotTime = self.Update(PathLen, Step, TotPathLen, TotTime, Vm, r)
+                V_norm, r, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm, r)
 
                 # Medium
                 if self.Medium is not None:
@@ -781,7 +748,7 @@ class GTSimulator(ABC):
                         lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions,
                                                                                  i, a_, b_)
 
-                brck = self.CheckBreak(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
+                brck = self._check_break(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
                 if brck[0] or self.IsPrimDeath:
                     if SavePA:
@@ -792,7 +759,7 @@ class GTSimulator(ABC):
                         GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
 
                     if brk != -1:
-                        self.SaveStep(
+                        self._save_step(
                             r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B, PitchAngle, LarmorRadius,
                             GuidingCenter, Saves, self.SaveColumnLen,
                             self.SaveCode["Coordinates"], self.SaveCode["Velocities"], self.SaveCode["Efield"],
@@ -894,8 +861,8 @@ class GTSimulator(ABC):
                 prod_tracks.append(new_process.CallOneFile()[0])
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def CheckBreak(r, r0, center, TotPath, TotTime, full_revolutions, Brck):
+    @njit(fastmath=True)
+    def _check_break(r, r0, center, TotPath, TotTime, full_revolutions, Brck):
         radi = np.linalg.norm(r - center)
         dst2path = np.linalg.norm(r - r0) / TotPath
         cond = np.concatenate((np.array([*np.abs(r), radi, dst2path]) < Brck[:5],
@@ -903,12 +870,11 @@ class GTSimulator(ABC):
                                np.array([full_revolutions[0][0]]) >= Brck[-1]))
         if np.any(cond):
             return True, np.where(cond)[0][0]
-
         return False, -1
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def Update(PathLen, Step, TotPathLen, TotTime, Vm, r):
+    @njit(fastmath=True)
+    def _update(PathLen, Step, TotPathLen, TotTime, Vm, r):
         V_norm = np.linalg.norm(Vm)
         r_new = r + Vm * Step
         TotTime += Step
@@ -916,12 +882,12 @@ class GTSimulator(ABC):
         return V_norm, r_new, TotPathLen, TotTime
 
     @staticmethod
-    # @jit(fastmath=True, nopython=True)
-    def SaveStep(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
-                 PitchAngles, LarmorRadii, GuidingCenter,
-                 Saves, ColLen,
-                 RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode, PACode, LRCode, GCCode,
-                 SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC):
+    # @njit(fastmath=True)
+    def _save_step(r_old, V_norm, TotPathLen, TotPathDen, TotTime, Vm, r, T, E, B,
+                   PitchAngles, LarmorRadii, GuidingCenter,
+                   Saves, ColLen,
+                   RCode, VCode, ECode, BCode, ACode, PCode, DCode, CCode, TCode, PACode, LRCode, GCCode,
+                   SaveR, SaveV, SaveE, SaveB, SaveA, SaveP, SaveD, SaveC, SaveT, SavePA, SaveLR, SaveGC):
         sv = np.zeros(ColLen)
         if SaveR:
             sv[RCode] = r
@@ -947,38 +913,11 @@ class GTSimulator(ABC):
             sv[LRCode] = LarmorRadii
         if SaveGC:
             sv[GCCode] = GuidingCenter
-
         Saves.append(sv)
 
     @staticmethod
-    @jit(nopython=True, fastmath=True)
-    def RadLossStep(Vp, Vm, Yp, Ya, M, Q, UseRadLosses, Step, ForwardTracing, c, e):
-        if not UseRadLosses:
-            T = M * (Yp - 1)
-            return Vp, T
-
-        acc = (Vp - Vm) / Step
-        Vn = np.linalg.norm(Vp + Vm)
-        Vinter = (Vp + Vm) / Vn
-
-        acc_par = np.dot(acc, Vinter)
-        acc_per = np.sqrt(np.linalg.norm(acc) ** 2 - acc_par ** 2)
-
-        dE = Step * ((2 / (3 * 4 * np.pi * 8.854187e-12) * Q ** 2 * Ya ** 4 / c ** 3) *
-                     (acc_per ** 2 + acc_par ** 2 * Ya ** 2) / e / 1e6)
-
-        T = M * (Yp - 1) - ForwardTracing * np.abs(dE)
-
-        V = c * np.sqrt((T + M) ** 2 - M ** 2) / (T + M)
-        Vn = np.linalg.norm(Vp)
-
-        Vm = V * Vp / Vn
-
-        return Vm, T
-
-    @staticmethod
-    @jit(nopython=True, fastmath=True)
-    def AdaptStep(q, m, B, V, T, M, dt, N1, N2):
+    @njit(fastmath=True)
+    def _adaptive_step(q, m, B, V, T, M, dt, N1, N2):
         Y = T / M + 1
         B_n = np.linalg.norm(B)
         cos_theta = B @ V / (np.linalg.norm(V) * B_n)
@@ -986,7 +925,6 @@ class GTSimulator(ABC):
         T = Y * m * sin_theta / (np.abs(q) * B_n)
         if N1 <= T / dt <= N2:
             return dt
-
         return T / np.sqrt(N1*N2)
 
     @abstractmethod

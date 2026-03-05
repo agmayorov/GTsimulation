@@ -1,7 +1,7 @@
 import numpy as np
 from numba import jit
 
-from gtsimulation.GT import GTSimulator
+from gtsimulation import GTSimulator
 from gtsimulation.Global import Constants
 
 class HigueraCarySimulator(GTSimulator):
