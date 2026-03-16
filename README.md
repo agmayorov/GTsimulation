@@ -1,6 +1,6 @@
 ![](docs/_static/gtsimulation_logo.png)
 
-[**GT simulation**](https://spacephysics.mephi.ru/GTsimulation) (GT) is software a package that is created for simulations of propagation of charged particles in electromagnetic fields.
+[**GT simulation**](https://spacephysics.mephi.ru/GTsimulation) (GT) is a package that is created for simulations of propagation of charged particles in electromagnetic fields.
 GT solves the relativistic equation of motion of a particle using Buneman-Boris scheme. That allows to recover the trajectory
 of a particle with high precision. Additionally, we take into account the energy losses of particles such as, radiation losses
 (synchrotron radiation), adiabatic losses (in the heliosphere), and the interactions with the medium. As a result of interaction
