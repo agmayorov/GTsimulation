@@ -391,9 +391,21 @@ def GetGCRflux(E_type, E, F, PartName=None):
 
     def _normalize_part_name(name):
         if isinstance(name, str):
-            return "proton" if name == "p" else name
+            if name == "p":
+                return "proton"
+            if name == "anti_proton":
+                return "apr"
+            return name
         else:
-            return ["proton" if item == "p" else item for item in name]
+            result = []
+            for item in name:
+                if item == "p":
+                    result.append("proton")
+                elif item == "anti_proton":
+                    result.append("apr")
+                else:
+                    result.append(item)
+            return result
 
     if PartName is not None:
         PartName = _normalize_part_name(PartName)
