@@ -21,9 +21,10 @@ class NullBuffer : public std::streambuf {
 
 class Simulator {
   public:
-    Simulator(long seed) {
+    Simulator(long seed, double decay_time) {
       CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
       CLHEP::HepRandom::setTheSeed(seed);
+      simConfig.decay_time = decay_time;
 
       // Suppress G4 output during initialization
       NullBuffer nullBuffer;
@@ -90,7 +91,7 @@ PYBIND11_MODULE(matter_layer, m) {
 
   // Exporting the main class
   py::class_<Simulator>(m, "Simulator")
-    .def(py::init<long>(), py::arg("seed"),
+    .def(py::init<long, double>(), py::arg("seed"), py::arg("decay_time") = 1e-6,
          "Create Simulator with random seed")
     .def("run", &Simulator::run,
          py::arg("pdg"), py::arg("energy"), py::arg("mass"), py::arg("density"),

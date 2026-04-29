@@ -14,7 +14,7 @@ void ActionInitialization::Build() const
 {
   SetUserAction(new PrimaryGeneratorAction(fConfig));
   SetUserAction(new RunAction());
-  SetUserAction(new StackingAction());
+  SetUserAction(new StackingAction(fConfig));
   SetUserAction(new TrackingAction());
 }
 
