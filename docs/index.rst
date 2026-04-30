@@ -13,6 +13,7 @@
    :caption: User Guide
 
    user_guide/getting_started
+   user_guide/particle_pusher
    user_guide/magnetic_field
    user_guide/medium
    user_guide/simulation_output
