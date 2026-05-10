@@ -1,4 +1,9 @@
 from .Flux import Flux, GeneratorModes, GyroCenterFlux, FluxPitchPhase
-from .Particle import Particle, CRParticle
+from ._particle import Particle, CRParticle
 from .functions import ConvertT2R, ConvertR2T, GetAntiParticle
 from . import Generators
+
+__all__ = [
+    "Particle",
+    "CRParticle",
+]

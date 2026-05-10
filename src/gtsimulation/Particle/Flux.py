@@ -4,7 +4,7 @@ from collections.abc import Sequence, Iterable
 import numpy as np
 
 from gtsimulation.Particle.Generators import AbsDistribution, AbsSpectrum, GeneratorModes
-from gtsimulation.Particle.Particle import CRParticle
+from gtsimulation.Particle import CRParticle
 
 
 class Flux(Sequence):
