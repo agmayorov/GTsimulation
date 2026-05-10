@@ -18,7 +18,7 @@ from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
 from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
-from gtsimulation.Particle.Generators import Distributions, Spectrums
+from gtsimulation.Particle.Generators import distribution, spectrum
 
 
 class GTSimulator(ABC):
@@ -716,8 +716,8 @@ class GTSimulator(ABC):
                                 params = self.ParamDict.copy()
                                 params["Date"] += datetime.timedelta(seconds=TotTime)
                                 params["Particles"] = Flux(
-                                    Distribution=Distributions.UserInput(R0=r_interaction, V0=V_p),
-                                    Spectrum=Spectrums.UserInput(energy=T_p),
+                                    Distribution=distribution.UserInput(R0=r_interaction, V0=V_p),
+                                    Spectrum=spectrum.UserInput(energy=T_p),
                                     PDGcode=PDGcode_p
                                 )
                                 # if (PDGcode_p in self.nuclear_interaction.get("ExcludeParticleList", [])
@@ -848,8 +848,8 @@ class GTSimulator(ABC):
                 PDGcode_p = p["PDGcode"]
                 params = self.ParamDict.copy()
                 params["Particles"] = Flux(
-                    Distribution=Distributions.UserInput(R0=r_p, V0=V_p),
-                    Spectrum=Spectrums.UserInput(energy=T_p),
+                    Distribution=distribution.UserInput(R0=r_p, V0=V_p),
+                    Spectrum=spectrum.UserInput(energy=T_p),
                     PDGcode=PDGcode_p
                 )
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)

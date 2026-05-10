@@ -6,7 +6,7 @@ from numba import jit
 from pyproj import Transformer
 
 from gtsimulation.Particle import CRParticle, Flux
-from gtsimulation.Particle.Generators import Distributions, Spectrums
+from gtsimulation.Particle.Generators import distribution, spectrum
 from gtsimulation.Interaction import G4Shower
 
 
@@ -144,8 +144,8 @@ class _Magnetosphere(_AbsRegion):
                     for p in secondary:
                         params = simulator.ParamDict.copy()
                         params["Particles"] = Flux(
-                            Distribution=Distributions.UserInput(R0=p['Position'], V0=p['MomentumDirection']),
-                            Spectrum=Spectrums.UserInput(energy=p['KineticEnergy']),
+                            Distribution=distribution.UserInput(R0=p['Position'], V0=p['MomentumDirection']),
+                            Spectrum=spectrum.UserInput(energy=p['KineticEnergy']),
                             PDGcode=p["PDGcode"]
                         )
                         if p["PDGcode"] in [12, 14, 16, 18, -12, -14, -16, -18]:
