@@ -6,7 +6,7 @@ from gtsimulation.Algos import BunemanBorisSimulator
 from gtsimulation.Particle import Flux
 from gtsimulation.Medium import GTUniformMedium
 from gtsimulation.MagneticFields import Uniform
-from gtsimulation.Particle.Generators import Monolines, SphereSurf
+from gtsimulation.Particle.generator import Monolines, SphereSurf
 from gtsimulation.Global import Regions
 from gtsimulation.Global import Units as U
 

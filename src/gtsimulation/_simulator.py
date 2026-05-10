@@ -18,7 +18,7 @@ from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
 from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
-from gtsimulation.Particle.Generators import distribution, spectrum
+from gtsimulation.Particle.generator import distribution, spectrum
 
 
 class GTSimulator(ABC):

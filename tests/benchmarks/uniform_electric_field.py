@@ -5,7 +5,7 @@ from gtsimulation.Algos import BunemanBorisSimulator
 from gtsimulation.ElectricFields import UniformFieldE
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.Particle import Flux
-from gtsimulation.Particle.Generators import Monolines, SphereSurf
+from gtsimulation.Particle.generator import Monolines, SphereSurf
 
 date = datetime(2025, 1, 1)
 b_field = None

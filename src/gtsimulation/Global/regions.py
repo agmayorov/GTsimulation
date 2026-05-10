@@ -6,7 +6,7 @@ from numba import jit
 from pyproj import Transformer
 
 from gtsimulation.Particle import CRParticle, Flux
-from gtsimulation.Particle.Generators import distribution, spectrum
+from gtsimulation.Particle.generator import distribution, spectrum
 from gtsimulation.Interaction import G4Shower
 
 

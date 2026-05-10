@@ -7,7 +7,7 @@ from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.Medium import GTUniformMedium
 from gtsimulation.Interaction import NuclearInteraction
-from gtsimulation.Particle import Flux, Generators
+from gtsimulation.Particle import Flux, generator
 
 def get_number_of_secondaries(gt_output):
     n = np.zeros(len(gt_output))
@@ -51,8 +51,8 @@ n_generations = np.zeros_like(energy)
 
 for i, e in enumerate(energy):
     particles = Flux(
-        Spectrum=Generators.Monolines(energy=e * U.GeV),
-        Distribution=Generators.SphereSurf(Radius=0),
+        Spectrum=generator.Monolines(energy=e * U.GeV),
+        Distribution=generator.SphereSurf(Radius=0),
         Names="proton",
         Nevents=n_events
     )

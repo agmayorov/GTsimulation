@@ -5,7 +5,7 @@ from datetime import datetime
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.Algos import BunemanBorisSimulator
 from gtsimulation.MagneticFields.Magnetosphere import Gauss
-from gtsimulation.Particle import Flux, FluxPitchPhase, Generators
+from gtsimulation.Particle import Flux, FluxPitchPhase, generator
 from gtsimulation.Medium import GTnrlmsis
 
 parser = argparse.ArgumentParser()
@@ -24,8 +24,8 @@ Bfield = Gauss(date=Date, model="CHAOS", model_type="core", version=7.18)
 Medium = GTnrlmsis(date=Date, version=0)
 
 Particles = Flux(
-    Spectrum = Generators.spectrum.Monolines(energy = 1.5 * U.GeV),
-    Distribution = Generators.distribution.SphereSurf(Radius = 10 * U.RE),
+    Spectrum = generator.spectrum.Monolines(energy =1.5 * U.GeV),
+    Distribution = generator.distribution.SphereSurf(Radius =10 * U.RE),
     Names = "proton",
     Nevents = 10
 )
