@@ -3,7 +3,7 @@
 namespace MatterLayer
 {
 
-ActionInitialization::ActionInitialization(const SimConfig* config)
+ActionInitialization::ActionInitialization(const SimConfig& config)
 : fConfig(config)
 {}
 

@@ -14,12 +14,12 @@ namespace MatterLayer
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization(const SimConfig* config);
+    ActionInitialization(const SimConfig& config);
     ~ActionInitialization();
     void Build() const override;
 
   private:
-    const SimConfig* fConfig;
+    const SimConfig& fConfig;
 };
 
 }

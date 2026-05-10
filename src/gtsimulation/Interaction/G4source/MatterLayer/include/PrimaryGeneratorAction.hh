@@ -15,13 +15,13 @@ namespace MatterLayer
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    PrimaryGeneratorAction(const SimConfig* config);
+    PrimaryGeneratorAction(const SimConfig& config);
     ~PrimaryGeneratorAction();
     void GeneratePrimaries(G4Event* anEvent) override;
 
   private:
     G4ParticleGun* fParticleGun;
-    const SimConfig* fConfig;
+    const SimConfig& fConfig;
 };
 
 }

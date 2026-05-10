@@ -36,7 +36,7 @@ class Simulator {
       detectorConstruction = new DetectorConstruction();
       runManager->SetUserInitialization(detectorConstruction);
       runManager->SetUserInitialization(new PhysicsList());
-      actionInitialization = new ActionInitialization(&simConfig);
+      actionInitialization = new ActionInitialization(simConfig);
       runManager->SetUserInitialization(actionInitialization);
       runManager->Initialize();
 
