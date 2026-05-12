@@ -1,1 +1,1 @@
-from .interstellar_gas import InterstellarGas
+from ._interstellar_gas import InterstellarGas

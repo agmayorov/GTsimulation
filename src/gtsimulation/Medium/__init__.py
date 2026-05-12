@@ -1,8 +1,7 @@
-from .general_medium import GTGeneralMedium
-from .uniform_medium import GTUniformMedium, GTVacuum
+from ._general_medium import GTGeneralMedium
+from ._uniform_medium import GTUniformMedium, GTVacuum
 
-from .galaxy import InterstellarGas
-from .magnetosphere import GTnrlmsis
+from . import galaxy, magnetosphere
 
 __all__ = [
     "GTGeneralMedium",
