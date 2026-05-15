@@ -1,7 +1,7 @@
-from .BunemanBoris import BunemanBorisSimulator
-from .RungeKutta import RungeKutta4Simulator, RungeKutta6Simulator
-from .HigueraCary import HigueraCarySimulator
-from .Vay import VaySimulator
+from ._buneman_boris import BunemanBorisSimulator
+from ._runge_kutta import RungeKutta4Simulator, RungeKutta6Simulator
+from ._higuera_cary import HigueraCarySimulator
+from ._vay import VaySimulator
 
 __all__ = [
     "BunemanBorisSimulator",
