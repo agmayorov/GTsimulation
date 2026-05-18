@@ -1,6 +1,6 @@
-from .parker import Parker
-from .parker_uniform import ParkerUniform
-from .uniform_helio import UniformHelio
+from ._parker import Parker
+from ._parker_uniform import ParkerUniform
+from ._uniform_helio import UniformHelio
 
 __all__ = [
     "Parker",
