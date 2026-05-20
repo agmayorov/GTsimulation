@@ -11,7 +11,7 @@ import numpy as np
 from numba import njit
 
 from gtsimulation import functions
-from gtsimulation.ElectricFields import GeneralFieldE
+from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.MagneticFields import AbsBfield
@@ -52,7 +52,7 @@ class GTSimulator(ABC):
         Magnetic field model object. If None, no magnetic field is applied.
         Default is None.
 
-    Efield : :py:class:`~gtsimulation.ElectricFields.GeneralFieldE` or None, optional
+    Efield : :py:class:`~gtsimulation.electric_field.GeneralFieldE` or None, optional
         Electric field model object. If None, no electric field is applied.
         Default is None.
 

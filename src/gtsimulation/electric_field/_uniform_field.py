@@ -1,6 +1,6 @@
 import numpy as np
 
-from gtsimulation.ElectricFields import GeneralFieldE
+from gtsimulation.electric_field import GeneralFieldE
 
 
 class UniformFieldE(GeneralFieldE):
