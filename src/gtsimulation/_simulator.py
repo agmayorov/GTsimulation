@@ -290,6 +290,7 @@ class GTSimulator(ABC):
         elif isinstance(Step, dict):
             self.UseAdaptiveStep = Step.get("UseAdaptiveStep", False)
             self.Step = Step.get("InitialStep", 1)
+            self.time_step_max = Step.get("MaxTimeStep", np.inf)
             self.logger.debug("Using adaptive time step: %s", self.UseAdaptiveStep)
             self.logger.debug("Initial time step: %f seconds", self.Step)
 
@@ -617,7 +618,7 @@ class GTSimulator(ABC):
                     i_save += 1
 
                 if self.UseAdaptiveStep:
-                    Step = self._adaptive_step(Q, m, B, Vm, T, M, Step, self.N1, self.N2)
+                    Step = self._adaptive_step(Q, m, B, Vm, T, M, Step, self.N1, self.N2, self.time_step_max)
                     if i == 0:
                         self.Step = Step
                     q = Step * Q / 2 / m
@@ -917,7 +918,7 @@ class GTSimulator(ABC):
 
     @staticmethod
     @njit(fastmath=True)
-    def _adaptive_step(q, m, B, V, T, M, dt, N1, N2):
+    def _adaptive_step(q, m, B, V, T, M, dt, N1, N2, dt_max):
         Y = T / M + 1
         B_n = np.linalg.norm(B)
         cos_theta = B @ V / (np.linalg.norm(V) * B_n)
@@ -925,7 +926,10 @@ class GTSimulator(ABC):
         T = Y * m * sin_theta / (np.abs(q) * B_n)
         if N1 <= T / dt <= N2:
             return dt
-        return T / np.sqrt(N1*N2)
+        dt = T / np.sqrt(N1 * N2)
+        if dt > dt_max:
+            return dt_max
+        return dt
 
     @abstractmethod
     def AlgoStep(self, T, M, q, Vm, r, H, E):
