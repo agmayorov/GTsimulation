@@ -23,8 +23,8 @@ with open(Path(__file__).parent.parent / 'pyproject.toml', 'rb') as f:
     pyproject = tomllib.load(f)
 
 project = 'GTsimulation'
-copyright = '2026, SpaceLab'
-author = 'SpaceLab'
+copyright = '2026, GeoSpaceLab'
+author = 'GeoSpaceLab'
 version = pyproject['project']['version']
 
 # -- General configuration ---------------------------------------------------
