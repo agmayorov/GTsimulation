@@ -4,6 +4,89 @@ from numba import jit
 from gtsimulation import GTSimulator
 from gtsimulation.Global import Constants
 
+class RungeKutta4Simulator_test(GTSimulator):
+    def getF(self, X, V, q):
+        x, y, z = X
+        if self.Bfield is not None:
+            H = np.array(self.Bfield.GetBfield(x, y, z))
+        else:
+            H = np.zeros(3)
+
+        if self.Efield is not None:
+            E = np.array(self.Efield.GetEfield(x, y, z))
+        else:
+            E = np.zeros(3)
+
+        return q * (E + np.cross(V, H))
+
+    def getf(self, XP_vec, q, M):
+        X = XP_vec[:3]
+        P = XP_vec[-3:]
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (M * Constants.c)) ** 2)
+        V = P / Y / M
+        F = self.getF(X, V, q)
+        return np.concatenate(V, F)
+
+    def RK4Pusher(self, X, P, q, M, dt):
+        if M == 0:
+            raise ValueError("RK4Pusher does not support the case M = 0.")
+
+        XP_vec = np.concatenate(X, P)
+
+        k1 = self.getf(XP_vec, q, M)
+        k2 = self.getf(XP_vec + 0.5 * dt * k1, q, M)
+        k3 = self.getf(XP_vec + 0.5 * dt * k2, q, M)
+        k4 = self.getf(XP_vec + dt * k3, q, M)
+
+        XP_vec_new = XP_vec  + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
+        X_new = XP_vec_new[:3]
+        P_new = XP_vec_new[-3:]
+
+        return X_new, P_new
+
+# Отладка
+if __name__ == '__main__':
+    def getF(self, X, V, q):
+        x, y, z = X
+        if self.Bfield is not None:
+            H = np.array(self.Bfield.GetBfield(x, y, z))
+        else:
+            H = np.zeros(3)
+
+        if self.Efield is not None:
+            E = np.array(self.Efield.GetEfield(x, y, z))
+        else:
+            E = np.zeros(3)
+
+        return q * (E + np.cross(V, H))
+
+    def getf(self, XP_vec, q, M):
+        X = XP_vec[:3]
+        P = XP_vec[-3:]
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (M * Constants.c)) ** 2)
+        V = P / Y / M
+        F = self.getF(X, V, q)
+        return np.concatenate(V, F)
+
+    def RK4Pusher(self, X, P, q, M, dt):
+        if M == 0:
+            raise ValueError("RK4Pusher does not support the case M = 0.")
+
+        XP_vec = np.concatenate(X, P)
+
+        k1 = self.getf(XP_vec, q, M)
+        k2 = self.getf(XP_vec + 0.5 * dt * k1, q, M)
+        k3 = self.getf(XP_vec + 0.5 * dt * k2, q, M)
+        k4 = self.getf(XP_vec + dt * k3, q, M)
+
+        XP_vec_new = XP_vec  + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
+        X_new = XP_vec_new[:3]
+        P_new = XP_vec_new[-3:]
+
+        return X_new, P_new
+
+
+
 
 class RungeKutta4Simulator(GTSimulator):
     def AlgoStep(self, T, M, q, V, X, H1, E):
