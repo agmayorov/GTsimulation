@@ -2,16 +2,21 @@ import numpy as np
 from numba import jit
 
 from gtsimulation import GTSimulator
-from gtsimulation.Global import Constants
+from gtsimulation.Global import Constants, Units
 
 
 class BunemanBorisSimulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X, H, E):
-        c = Constants.c
+    def AlgoStep(self, T, M, Q, V, X, H, E):
         if M != 0:
-            return self.__algo(E, H, M, T, V, q, c)
+            q = self.Step * Q / 2 / (M * Units.MeV2kg)
+            c = Constants.c
+            Vp, Yp, Ya = self.__algo(E, H, M, T, V, q, c)
         else:
-            return V, 0, 0
+            Vp, Yp, Ya = V, 0, 0
+
+        X_new = X + Vp * self.Step
+
+        return X_new, Vp, Yp, Ya
 
     @staticmethod
     @jit(fastmath=True, nopython=True)

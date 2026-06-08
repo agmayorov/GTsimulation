@@ -578,7 +578,6 @@ class GTSimulator(ABC):
             # Calculation of EAS for magnetosphere
             self.Region.value.do_before_loop(self, Gen, prod_tracks)
 
-            q = Step * Q / 2 / m if M != 0 else 0
             brk = BreakCode["Loop"]
             Num = self.Num
             Nsave = self.Nsave if self.Nsave != 0 else Num + 1
@@ -621,11 +620,14 @@ class GTSimulator(ABC):
                     Step = self._adaptive_step(Q, m, B, Vm, T, M, Step, self.N1, self.N2, self.time_step_max)
                     if i == 0:
                         self.Step = Step
-                    q = Step * Q / 2 / m
 
                 PathLen = V_norm * Step
 
-                Vp, Yp, Ya = self.AlgoStep(T, M, q, Vm, r, B, E)
+                r_old = r
+
+                r, Vp, Yp, Ya = self.AlgoStep(T, M, Q, Vm, r, B, E)
+
+                V_norm, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm)
 
                 if self.UseRadLosses[1]:
                     synch_record.add_iteration(T, B, Vm, Step)
@@ -635,6 +637,7 @@ class GTSimulator(ABC):
                         self.ForwardTracing, self.UseRadLosses[1:], particle, Gen, Constants, synch_record
                     )
                     prod_tracks.extend(new_photons)
+
                 elif M > 0:
                     T = M * (Yp - 1)
                     Vm = Vp
@@ -642,9 +645,6 @@ class GTSimulator(ABC):
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c)
-                r_old = r
-                V_norm, r, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm, r)
-
                 # Medium
                 if self.Medium is not None:
                     self.Medium.calculate_model(*r)
@@ -669,9 +669,9 @@ class GTSimulator(ABC):
 
                 # Nuclear Interaction
                 check_interaction = (
-                    self.nuclear_interaction is not None
-                    and local_path_den > self.nuclear_interaction.grammage_threshold
-                    and not self.IsPrimDeath
+                        self.nuclear_interaction is not None
+                        and local_path_den > self.nuclear_interaction.grammage_threshold
+                        and not self.IsPrimDeath
                 )
                 if check_interaction:
                     # Construct Rotation Matrix & Save velocity before possible interaction
@@ -875,12 +875,11 @@ class GTSimulator(ABC):
 
     @staticmethod
     @njit(fastmath=True)
-    def _update(PathLen, Step, TotPathLen, TotTime, Vm, r):
+    def _update(PathLen, Step, TotPathLen, TotTime, Vm):
         V_norm = np.linalg.norm(Vm)
-        r_new = r + Vm * Step
         TotTime += Step
         TotPathLen += PathLen
-        return V_norm, r_new, TotPathLen, TotTime
+        return V_norm, TotPathLen, TotTime
 
     @staticmethod
     # @njit(fastmath=True)
@@ -932,5 +931,6 @@ class GTSimulator(ABC):
         return dt
 
     @abstractmethod
-    def AlgoStep(self, T, M, q, Vm, r, H, E):
+    def AlgoStep(self, T, M, Q, Vm, r, H, E):
         pass
+
