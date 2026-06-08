@@ -2,134 +2,220 @@ import numpy as np
 from numba import jit
 
 from gtsimulation import GTSimulator
-from gtsimulation.Global import Constants
-
-class RungeKutta4Simulator_test(GTSimulator):
-    def getF(self, X, V, q):
-        x, y, z = X
-        if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
-        else:
-            H = np.zeros(3)
-
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
-
-        return q * (E + np.cross(V, H))
-
-    def getf(self, XP_vec, q, M):
-        X = XP_vec[:3]
-        P = XP_vec[-3:]
-        Y = np.sqrt(1 + (np.linalg.norm(P) / (M * Constants.c)) ** 2)
-        V = P / Y / M
-        F = self.getF(X, V, q)
-        return np.concatenate(V, F)
-
-    def RK4Pusher(self, X, P, q, M, dt):
-        if M == 0:
-            raise ValueError("RK4Pusher does not support the case M = 0.")
-
-        XP_vec = np.concatenate(X, P)
-
-        k1 = self.getf(XP_vec, q, M)
-        k2 = self.getf(XP_vec + 0.5 * dt * k1, q, M)
-        k3 = self.getf(XP_vec + 0.5 * dt * k2, q, M)
-        k4 = self.getf(XP_vec + dt * k3, q, M)
-
-        XP_vec_new = XP_vec  + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
-        X_new = XP_vec_new[:3]
-        P_new = XP_vec_new[-3:]
-
-        return X_new, P_new
-
-# Отладка
-if __name__ == '__main__':
-    def getF(self, X, V, q):
-        x, y, z = X
-        if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
-        else:
-            H = np.zeros(3)
-
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
-
-        return q * (E + np.cross(V, H))
-
-    def getf(self, XP_vec, q, M):
-        X = XP_vec[:3]
-        P = XP_vec[-3:]
-        Y = np.sqrt(1 + (np.linalg.norm(P) / (M * Constants.c)) ** 2)
-        V = P / Y / M
-        F = self.getF(X, V, q)
-        return np.concatenate(V, F)
-
-    def RK4Pusher(self, X, P, q, M, dt):
-        if M == 0:
-            raise ValueError("RK4Pusher does not support the case M = 0.")
-
-        XP_vec = np.concatenate(X, P)
-
-        k1 = self.getf(XP_vec, q, M)
-        k2 = self.getf(XP_vec + 0.5 * dt * k1, q, M)
-        k3 = self.getf(XP_vec + 0.5 * dt * k2, q, M)
-        k4 = self.getf(XP_vec + dt * k3, q, M)
-
-        XP_vec_new = XP_vec  + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
-        X_new = XP_vec_new[:3]
-        P_new = XP_vec_new[-3:]
-
-        return X_new, P_new
-
-
-
+from gtsimulation.Global import Constants, Units
 
 class RungeKutta4Simulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X, H1, E):
+    # def getF(self, X, V, Q):
+    #     x, y, z = X
+    #     if self.Bfield is not None:
+    #         H = np.array(self.Bfield.GetBfield(x, y, z))
+    #     else:
+    #         H = np.zeros(3)
+    #
+    #     if self.Efield is not None:
+    #         E = np.array(self.Efield.GetEfield(x, y, z))
+    #     else:
+    #         E = np.zeros(3)
+    #
+    #     return Q * (E + np.cross(V, H))
+    #
+    # def getf(self, XP_vec, Q, m):
+    #     X = XP_vec[:3]
+    #     P = XP_vec[-3:]
+    #     Y = np.sqrt(1 + (np.linalg.norm(P) / (m * Constants.c)) ** 2)
+    #     V = P / Y / m
+    #     F = self.getF(X, V, Q)
+    #     return np.concatenate(V, F)
+    #
+    # def RK4Pusher(self, X, P, Q, m, dt):
+    #     if m == 0:
+    #         raise ValueError("RK4Pusher does not support the case M = 0.")
+    #
+    #     XP_vec = np.concatenate(X, P)
+    #
+    #     k1 = self.getf(XP_vec, Q, m)
+    #     k2 = self.getf(XP_vec + 0.5 * dt * k1, Q, m)
+    #     k3 = self.getf(XP_vec + 0.5 * dt * k2, Q, m)
+    #     k4 = self.getf(XP_vec + dt * k3, Q, m)
+    #
+    #     XP_vec_new = XP_vec + dt * (k1 + 2*k2 + 2*k3 + k4) / 6
+    #     X_new = XP_vec_new[:3]
+    #     P_new = XP_vec_new[-3:]
+    #
+    #     return X_new, P_new
+
+    def getFields(self, X):
         x, y, z = X
-        vx, vy, vz = V
-        dt = self.Step
         if self.Bfield is not None:
-            # H1 = np.array(self.Bfield.GetBfield(x, y, z))
-            H2 = np.array(self.Bfield.GetBfield(x + vx * dt / 2, y + vy * dt / 2, z + vz * dt / 2))
-            H3 = np.array(self.Bfield.GetBfield(x + vx * dt, y + vy * dt, z + vz * dt))
-            if len(H1.shape) == 2:
-                # H1 = H1[:, 0]
-                H2 = H2[:, 0]
-                H3 = H3[:, 0]
+            H = np.array(self.Bfield.GetBfield(x, y, z))
         else:
-            # H1 = np.zeros(3)
-            H2 = np.zeros(3)
-            H3 = np.zeros(3)
+            H = np.zeros(3)
 
-        # if self.Efield is not None:
-        #     E = np.array(self.Efield.GetEfield(x, y, z))
-        # else:
-        #     E = np.zeros(3)
+        if self.Efield is not None:
+            E = np.array(self.Efield.GetEfield(x, y, z))
+        else:
+            E = np.zeros(3)
 
+        return E, H
+
+    def AlgoStep(self, T, M, Q, V, X, H, E):
         if M != 0:
-            return self.__algo(H1, H2, H3, M, T, V, q, dt)#, H1, E
+            m = M * Units.MeV2kg
+            Ym = T / M + 1
+            P = Ym * m * V
+            dt = self.Step
+            c = Constants.c
+
+            # k1
+            V1, F1 = self.__algo(P, Q, m, c, E, H)
+
+            # k2
+            X2 = X + 0.5 * dt * V1
+            P2 = P + 0.5 * dt * F1
+            E2, H2 = self.getFields(X2)
+            V2, F2 = self.__algo(P2, Q, m, c, E2, H2)
+
+            # k3
+            X3 = X + 0.5 * dt * V2
+            P3 = P + 0.5 * dt * F2
+            E3, H3 = self.getFields(X3)
+            V3, F3 = self.__algo(P3, Q, m, c, E3, H3)
+
+            # k4
+            X4 = X + dt * V3
+            P4 = P + dt * F3
+            E4, H4 = self.getFields(X4)
+            V4, F4 = self.__algo(P4, Q, m, c, E4, H4)
+
+            X_new = X + dt * (V1 + 2 * V2 + 2 * V3 + V4) / 6
+            P_new = P + dt * (F1 + 2 * F2 + 2 * F3 + F4) / 6
+
+            Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
+            V_new = P_new / Y_new / m
+            Ya = 0.5 * (Ym + Y_new)
+
         else:
-            return V, 0, 0#, H1, E
+            V_new, Y_new, Ya = V, 0, 0
+
+        return X_new, V_new, Y_new, Ya
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
-    def __algo(H1, H2, H3, M, T, V, q, dt):
-        Yp = T / M + 1
-        p = 2 * q / (Yp * dt)
+    def __algo(P, Q, m, c, E, H):
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V = P / Y / m
+        F = Q * (E + np.cross(V, H))
+        return V, F
 
-        k1 = p * np.cross(V, H1)
-        k2 = p * np.cross(V + dt / 2 * k1, H2)
-        k3 = p * np.cross(V + dt / 2 * k2, H2)
-        k4 = p * np.cross(V + dt * k3, H3)
+class RungeKutta4SimulatorFast(GTSimulator):
+    def getFields(self, X):
+        x, y, z = X
+        if self.Bfield is not None:
+            H = np.array(self.Bfield.GetBfield(x, y, z))
+        else:
+            H = np.zeros(3)
 
-        Vp = dt / 6 * (k1 + 2 * (k2 + k3) + k4) + V
+        if self.Efield is not None:
+            E = np.array(self.Efield.GetEfield(x, y, z))
+        else:
+            E = np.zeros(3)
 
-        return Vp, Yp, Yp
+        return E, H
+
+    def AlgoStep(self, T, M, Q, V, X, H, E):
+        if M != 0:
+            m = M * Units.MeV2kg
+            Ym = T / M + 1
+            P = Ym * m * V
+            dt = self.Step
+            c = Constants.c
+
+            # k1
+            P1 = P
+            V1, F1 = self.__algo(P1, Q, m, E, H, c)
+
+            # k2
+            P2 = P + 0.5 * dt * F1
+            V2, F2 = self.__algo(P2, Q, m, E, H, c)
+
+            # k3
+            P3 = P + 0.5 * dt * F2
+            V3, F3 = self.__algo(P3, Q, m, E, H, c)
+
+            # k4
+            P4 = P + dt * F3
+            V4, F4 = self.__algo(P4, Q, m, E, H, c)
+
+            X_new, V_new, Y_new, Ya = self.__algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4)
+
+
+        else:
+            V_new, Y_new, Ya = V, 0, 0
+
+        return X_new, V_new, Y_new, Ya
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def __algo(P, Q, m, E, H, c):
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V = P / Y / m
+        F = Q * (E + np.cross(V, H))
+        return V, F
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def __algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4):
+        X_new = X + dt * (V1 + 2 * V2 + 2 * V3 + V4) / 6
+        P_new = P + dt * (F1 + 2 * F2 + 2 * F3 + F4) / 6
+
+        Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
+        V_new = P_new / Y_new / m
+        Ya = 0.5 * (Ym + Y_new)
+        return X_new, V_new, Y_new, Ya
+
+
+# class RungeKutta4Simulator(GTSimulator):
+#     def AlgoStep(self, T, M, q, V, X, H1, E):
+#         x, y, z = X
+#         vx, vy, vz = V
+#         dt = self.Step
+#         if self.Bfield is not None:
+#             # H1 = np.array(self.Bfield.GetBfield(x, y, z))
+#             H2 = np.array(self.Bfield.GetBfield(x + vx * dt / 2, y + vy * dt / 2, z + vz * dt / 2))
+#             H3 = np.array(self.Bfield.GetBfield(x + vx * dt, y + vy * dt, z + vz * dt))
+#             if len(H1.shape) == 2:
+#                 # H1 = H1[:, 0]
+#                 H2 = H2[:, 0]
+#                 H3 = H3[:, 0]
+#         else:
+#             # H1 = np.zeros(3)
+#             H2 = np.zeros(3)
+#             H3 = np.zeros(3)
+#
+#         # if self.Efield is not None:
+#         #     E = np.array(self.Efield.GetEfield(x, y, z))
+#         # else:
+#         #     E = np.zeros(3)
+#
+#         if M != 0:
+#             return self.__algo(H1, H2, H3, M, T, V, q, dt)#, H1, E
+#         else:
+#             return V, 0, 0#, H1, E
+#
+#     @staticmethod
+#     @jit(nopython=True, fastmath=True)
+#     def __algo(H1, H2, H3, M, T, V, q, dt):
+#         Yp = T / M + 1
+#         p = 2 * q / (Yp * dt)
+#
+#         k1 = p * np.cross(V, H1)
+#         k2 = p * np.cross(V + dt / 2 * k1, H2)
+#         k3 = p * np.cross(V + dt / 2 * k2, H2)
+#         k4 = p * np.cross(V + dt * k3, H3)
+#
+#         Vp = dt / 6 * (k1 + 2 * (k2 + k3) + k4) + V
+#
+#         return Vp, Yp, Yp
 
 
 class RungeKutta6Simulator(GTSimulator):
