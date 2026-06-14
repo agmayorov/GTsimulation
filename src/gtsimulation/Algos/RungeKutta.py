@@ -87,12 +87,7 @@ class RungeKutta4Simulator(GTSimulator):
             E4, H4 = self.getFields(X4)
             V4, F4 = self.__algo(P4, Q, m, c, E4, H4)
 
-            X_new = X + dt * (V1 + 2 * V2 + 2 * V3 + V4) / 6
-            P_new = P + dt * (F1 + 2 * F2 + 2 * F3 + F4) / 6
-
-            Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
-            V_new = P_new / Y_new / m
-            Ya = 0.5 * (Ym + Y_new)
+            X_new, V_new, Y_new, Ya = self.__algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4)
 
         else:
             V_new, Y_new, Ya = V, 0, 0
@@ -107,21 +102,18 @@ class RungeKutta4Simulator(GTSimulator):
         F = Q * (E + np.cross(V, H))
         return V, F
 
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def __algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4):
+        X_new = X + dt * (V1 + 2 * V2 + 2 * V3 + V4) / 6
+        P_new = P + dt * (F1 + 2 * F2 + 2 * F3 + F4) / 6
+
+        Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
+        V_new = P_new / Y_new / m
+        Ya = 0.5 * (Ym + Y_new)
+        return X_new, V_new, Y_new, Ya
+
 class RungeKutta4SimulatorFast(GTSimulator):
-    def getFields(self, X):
-        x, y, z = X
-        if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
-        else:
-            H = np.zeros(3)
-
-        if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
-        else:
-            E = np.zeros(3)
-
-        return E, H
-
     def AlgoStep(self, T, M, Q, V, X, H, E):
         if M != 0:
             m = M * Units.MeV2kg
@@ -219,71 +211,161 @@ class RungeKutta4SimulatorFast(GTSimulator):
 
 
 class RungeKutta6Simulator(GTSimulator):
-    def AlgoStep(self, T, M, q, V, X, H1, E):
-        x, y, z = X
-        vx, vy, vz = V
-        dt = self.Step
-        c = np.array([0, 1 / 3, 2 / 3, 1 / 3, 1 / 2, 1 / 2, 1])
-        b = np.array([11 / 120, 0, 27 / 40, 27 / 40, -4 / 15, -4 / 15, 11 / 120])
-        a = np.array([[0, 0, 0, 0, 0, 0, 0],
-                      [1 / 3, 0, 0, 0, 0, 0, 0],
-                      [0, 2 / 3, 0, 0, 0, 0, 0],
-                      [1 / 12, 1 / 3, -1 / 12, 0, 0, 0, 0],
-                      [-1 / 16, 9 / 8, -3 / 16, -3 / 8, 0, 0, 0],
-                      [0, 9 / 8, -3 / 8, -3 / 4, 1 / 2, 0, 0],
-                      [9 / 44, -9 / 11, 63 / 44, 18 / 11, 0, -16 / 11, 0]])
-        if self.Bfield is not None:
-            # H1 = np.array(self.Bfield.GetBfield(x, y, z))
-            H2 = np.array(self.Bfield.GetBfield(x + vx * dt * c[1], y + vy * dt * c[1], z + vz * dt * c[1]))
-            H3 = np.array(self.Bfield.GetBfield(x + vx * dt * c[2], y + vy * dt * c[2], z + vz * dt * c[2]))
-            H4 = H2
-            H5 = np.array(self.Bfield.GetBfield(x + vx * dt * c[4], y + vy * dt * c[4], z + vz * dt * c[4]))
-            H6 = H5
-            H7 = np.array(self.Bfield.GetBfield(x + vx * dt * c[6], y + vy * dt * c[6], z + vz * dt * c[6]))
-            if len(H1.shape) == 2:
-                H1 = H1[:, 0]
-                H2 = H2[:, 0]
-                H3 = H3[:, 0]
-                H4 = H4[:, 0]
-                H5 = H5[:, 0]
-                H6 = H6[:, 0]
-                H7 = H7[:, 0]
-        else:
-            # H1 = np.zeros(3)
-            H2 = np.zeros(3)
-            H3 = np.zeros(3)
-            H4 = np.zeros(3)
-            H5 = np.zeros(3)
-            H6 = np.zeros(3)
-            H7 = np.zeros(3)
 
-        # if self.Efield is not None:
-        #     E = np.array(self.Efield.GetEfield(x, y, z))
-        # else:
-        #     E = np.zeros(3)
-        if M != 0:
-            return self.__algo(H1, H2, H3, H4, H5, H6, H7, a, b, M, T, V, q, dt)#, H1, E
+    def getFields(self, X):
+        x, y, z = X
+        if self.Bfield is not None:
+            H = np.array(self.Bfield.GetBfield(x, y, z))
         else:
-            return V, 0, 0#, H1, E
+            H = np.zeros(3)
+
+        if self.Efield is not None:
+            E = np.array(self.Efield.GetEfield(x, y, z))
+        else:
+            E = np.zeros(3)
+
+        return E, H
+
+    def AlgoStep(self, T, M, Q, V, X, H, E):
+        if M != 0:
+            c = np.array([0, 1 / 3, 2 / 3, 1 / 3, 1 / 2, 1 / 2, 1])
+            b = np.array([11 / 120, 0, 27 / 40, 27 / 40, -4 / 15, -4 / 15, 11 / 120])
+            a = np.array([[0, 0, 0, 0, 0, 0, 0],
+                          [1 / 3, 0, 0, 0, 0, 0, 0],
+                          [0, 2 / 3, 0, 0, 0, 0, 0],
+                          [1 / 12, 1 / 3, -1 / 12, 0, 0, 0, 0],
+                          [-1 / 16, 9 / 8, -3 / 16, -3 / 8, 0, 0, 0],
+                          [0, 9 / 8, -3 / 8, -3 / 4, 1 / 2, 0, 0],
+                          [9 / 44, -9 / 11, 63 / 44, 18 / 11, 0, -16 / 11, 0]])
+
+            m = M * Units.MeV2kg
+            Ym = T / M + 1
+            P = Ym * m * V
+            dt = self.Step
+            c_ = Constants.c
+
+            # k1
+            V1, F1 = self.__algo(P, Q, m, c_, E, H)
+
+            # k2
+            X2 = X + a[1, 0] * dt * V1
+            P2 = P + a[1, 0] * dt * F1
+            E2, H2 = self.getFields(X2)
+            V2, F2 = self.__algo(P2, Q, m, c_, E2, H2)
+
+            # k3
+            X3 = X + a[2, 1] * dt * V2
+            P3 = P + a[2, 1] * dt * F2
+            E3, H3 = self.getFields(X3)
+            V3, F3 = self.__algo(P3, Q, m, c_, E3, H3)
+
+            # k4
+            X4 = X + dt * (a[3, 0] * V1 + a[3, 1] * V2 + a[3, 2] * V3)
+            P4 = P + dt * (a[3, 0] * F1 + a[3, 1] * F2 + a[3, 2] * F3)
+            E4, H4 = self.getFields(X4)
+            V4, F4 = self.__algo(P4, Q, m, c_, E4, H4)
+
+            # k5
+            X5 = X + dt * (a[4, 0] * V1 + a[4, 1] * V2 + a[4, 2] * V3 + a[4, 3] * V4)
+            P5 = P + dt * (a[4, 0] * F1 + a[4, 1] * F2 + a[4, 2] * F3 + a[4, 3] * F4)
+            E5, H5 = self.getFields(X5)
+            V5, F5 = self.__algo(P5, Q, m, c_, E5, H5)
+
+            # k6
+            X6 = X + dt * (a[5, 0] * V1 + a[5, 1] * V2 + a[5, 2] * V3 + a[5, 3] * V4 + a[5, 4] * V5)
+            P6 = P + dt * (a[5, 0] * F1 + a[5, 1] * F2 + a[5, 2] * F3 + a[5, 3] * F4 + a[5, 4] * F5)
+            E6, H6 = self.getFields(X6)
+            V6, F6 = self.__algo(P6, Q, m, c_, E6, H6)
+
+            # k7
+            X7 = X + dt * (a[6, 0] * V1 + a[6, 1] * V2 + a[6, 2] * V3 + a[6, 3] * V4 + a[6, 4] * V5 + a[6, 5] * V6)
+            P7 = P + dt * (a[6, 0] * F1 + a[6, 1] * F2 + a[6, 2] * F3 + a[6, 3] * F4 + a[6, 4] * F5 + a[6, 5] * F6)
+            E7, H7 = self.getFields(X7)
+            V7, F7 = self.__algo(P7, Q, m, c_, E7, H7)
+
+            X_new = X + dt * (b[0] * V1 + b[1] * V2 + b[2] * V3 + b[3] * V4 + b[4] * V5 + b[5] * V6 + b[6] * V7)
+            P_new = P + dt * (b[0] * F1 + b[1] * F2 + b[2] * F3 + b[3] * F4 + b[4] * F5 + b[5] * F6 + b[6] * F7)
+
+            Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c_)) ** 2)
+            V_new = P_new / Y_new / m
+            Ya = 0.5 * (Ym + Y_new)
+
+        else:
+            V_new, Y_new, Ya = V, 0, 0
+
+        return X_new, V_new, Y_new, Ya
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
-    def __algo(H1, H2, H3, H4, H5, H6, H7, a, b, M, T, V, q, dt):
-        Yp = T / M + 1
-        p = 2 * q / (Yp * dt)
+    def __algo(P, Q, m, c, E, H):
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V = P / Y / m
+        F = Q * (E + np.cross(V, H))
+        return V, F
 
-        k = np.zeros((7, 3))
+class RungeKutta6SimulatorFast(GTSimulator):
 
-        k[0] = p * np.cross(V, H1)
-        k[1] = p * np.cross(V + dt * k[0] * a[1, 0], H2)
-        k[2] = p * np.cross(V + dt * k[1] * a[2, 1], H3)
-        k[3] = p * np.cross(V + dt * (a[3, 0] * k[0] + a[3, 1] * k[1] + a[3, 2] * k[2]), H4)
-        k[4] = p * np.cross(V + dt * (a[4, 0] * k[0] + a[4, 1] * k[1] + a[4, 2] * k[2] + a[4, 3] * k[3]), H5)
-        k[5] = p * np.cross(V + dt * (a[5, 0] * k[0] + a[5, 1] * k[1] + a[5, 2] * k[2] + a[5, 3] * k[3] + a[5, 4]*k[4]),
-                            H6)
-        k[6] = p * np.cross(V + dt * (a[6, 0] * k[0] + a[6, 1] * k[1] + a[6, 2] * k[2] + a[6, 3] * k[3] + a[6, 4]*k[4] +
-                                      a[6, 5]*k[5]), H7)
+    def AlgoStep(self, T, M, Q, V, X, H, E):
+        if M != 0:
+            c = np.array([0, 1 / 3, 2 / 3, 1 / 3, 1 / 2, 1 / 2, 1])
+            b = np.array([11 / 120, 0, 27 / 40, 27 / 40, -4 / 15, -4 / 15, 11 / 120])
+            a = np.array([[0, 0, 0, 0, 0, 0, 0],
+                          [1 / 3, 0, 0, 0, 0, 0, 0],
+                          [0, 2 / 3, 0, 0, 0, 0, 0],
+                          [1 / 12, 1 / 3, -1 / 12, 0, 0, 0, 0],
+                          [-1 / 16, 9 / 8, -3 / 16, -3 / 8, 0, 0, 0],
+                          [0, 9 / 8, -3 / 8, -3 / 4, 1 / 2, 0, 0],
+                          [9 / 44, -9 / 11, 63 / 44, 18 / 11, 0, -16 / 11, 0]])
 
-        Vp = dt * np.sum(b*k.T, axis=1) + V
+            m = M * Units.MeV2kg
+            Ym = T / M + 1
+            P = Ym * m * V
+            dt = self.Step
+            c_ = Constants.c
 
-        return Vp, Yp, Yp
+            # k1
+            V1, F1 = self.__algo(P, Q, m, c_, E, H)
+
+            # k2
+            P2 = P + a[1, 0] * dt * F1
+            V2, F2 = self.__algo(P2, Q, m, c_, E, H)
+
+            # k3
+            P3 = P + a[2, 1] * dt * F2
+            V3, F3 = self.__algo(P3, Q, m, c_, E, H)
+
+            # k4
+            P4 = P + dt * (a[3, 0] * F1 + a[3, 1] * F2 + a[3, 2] * F3)
+            V4, F4 = self.__algo(P4, Q, m, c_, E, H)
+
+            # k5
+            P5 = P + dt * (a[4, 0] * F1 + a[4, 1] * F2 + a[4, 2] * F3 + a[4, 3] * F4)
+            V5, F5 = self.__algo(P5, Q, m, c_, E, H)
+
+            # k6
+            P6 = P + dt * (a[5, 0] * F1 + a[5, 1] * F2 + a[5, 2] * F3 + a[5, 3] * F4 + a[5, 4] * F5)
+            V6, F6 = self.__algo(P6, Q, m, c_, E, H)
+
+            # k7
+            P7 = P + dt * (a[6, 0] * F1 + a[6, 1] * F2 + a[6, 2] * F3 + a[6, 3] * F4 + a[6, 4] * F5 + a[6, 5] * F6)
+            V7, F7 = self.__algo(P7, Q, m, c_, E, H)
+
+            X_new = X + dt * (b[0] * V1 + b[1] * V2 + b[2] * V3 + b[3] * V4 + b[4] * V5 + b[5] * V6 + b[6] * V7)
+            P_new = P + dt * (b[0] * F1 + b[1] * F2 + b[2] * F3 + b[3] * F4 + b[4] * F5 + b[5] * F6 + b[6] * F7)
+
+            Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c_)) ** 2)
+            V_new = P_new / Y_new / m
+            Ya = 0.5 * (Ym + Y_new)
+
+        else:
+            V_new, Y_new, Ya = V, 0, 0
+
+        return X_new, V_new, Y_new, Ya
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True)
+    def __algo(P, Q, m, c, E, H):
+        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V = P / Y / m
+        F = Q * (E + np.cross(V, H))
+        return V, F
