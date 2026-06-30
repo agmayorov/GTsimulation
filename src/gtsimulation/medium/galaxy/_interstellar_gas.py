@@ -3,7 +3,7 @@ from numpy.polynomial.polynomial import polyval
 from numba import jit
 
 from gtsimulation.Global import Regions, Units
-from gtsimulation.Medium import GTGeneralMedium
+from gtsimulation.medium import GTGeneralMedium
 
 
 class InterstellarGas(GTGeneralMedium):

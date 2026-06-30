@@ -16,7 +16,7 @@ from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex
 from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
-from gtsimulation.Medium import GTGeneralMedium
+from gtsimulation.medium import GTGeneralMedium
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
 
@@ -56,11 +56,11 @@ class GTSimulator(ABC):
         Electric field model object. If None, no electric field is applied.
         Default is None.
 
-    Medium : :py:class:`~gtsimulation.Medium.GTGeneralMedium` or None, optional
+    Medium : :py:class:`~gtsimulation.medium.GTGeneralMedium` or None, optional
         Propagation medium for particles. Defines density and composition of the environment
         through which particles travel. Required when nuclear interactions are enabled
         (via `InteractNUC` parameter), but optional for simulations without interactions.
-        See :py:mod:`gtsimulation.Medium`.
+        See :py:mod:`gtsimulation.medium`.
         Default is None.
 
     Region : :py:class:`~gtsimulation.Global.regions.Regions`, optional
@@ -159,7 +159,7 @@ class GTSimulator(ABC):
     :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
     :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
     :py:class:`gtsimulation.MagneticFields` : Magnetic field module
-    :py:class:`gtsimulation.Medium` : Medium module
+    :py:class:`gtsimulation.medium` : Medium module
     """
 
     def __init__(

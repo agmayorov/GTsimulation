@@ -2,7 +2,7 @@ from datetime import datetime
 
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
-from gtsimulation.Medium import GTUniformMedium
+from gtsimulation.medium import GTUniformMedium
 from gtsimulation.particle import Flux
 from gtsimulation.particle.generator import Monolines, SphereSurf
 

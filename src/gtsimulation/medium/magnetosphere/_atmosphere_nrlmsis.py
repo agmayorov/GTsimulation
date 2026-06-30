@@ -4,7 +4,7 @@ from pyproj import Transformer
 from pymsis import msis
 
 from gtsimulation.Global import Regions
-from gtsimulation.Medium import GTGeneralMedium
+from gtsimulation.medium import GTGeneralMedium
 
 
 class GTnrlmsis(GTGeneralMedium):

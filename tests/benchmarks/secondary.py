@@ -5,7 +5,7 @@ import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
-from gtsimulation.Medium import GTUniformMedium
+from gtsimulation.medium import GTUniformMedium
 from gtsimulation.Interaction import NuclearInteraction
 from gtsimulation.particle import Flux, generator
 

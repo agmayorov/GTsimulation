@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.particle import Flux
-from gtsimulation.Medium import GTUniformMedium
+from gtsimulation.medium import GTUniformMedium
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.particle.generator import Monolines, SphereSurf
 from gtsimulation.Global import Regions
