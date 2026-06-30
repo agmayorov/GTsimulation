@@ -4,8 +4,8 @@ import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.electric_field import UniformFieldE
 from gtsimulation.Global import Regions, Units as U
-from gtsimulation.Particle import Flux
-from gtsimulation.Particle.generator import Monolines, SphereSurf
+from gtsimulation.particle import Flux
+from gtsimulation.particle.generator import Monolines, SphereSurf
 
 date = datetime(2025, 1, 1)
 b_field = None

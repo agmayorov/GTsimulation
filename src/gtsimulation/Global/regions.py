@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 from numba import jit
 from pyproj import Transformer
 
-from gtsimulation.Particle import CRParticle, Flux
-from gtsimulation.Particle.generator import distribution, spectrum
+from gtsimulation.particle import CRParticle, Flux
+from gtsimulation.particle.generator import distribution, spectrum
 from gtsimulation.Interaction import G4Shower
 
 

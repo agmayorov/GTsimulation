@@ -5,7 +5,7 @@ from datetime import datetime
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.MagneticFields.Magnetosphere import Gauss
-from gtsimulation.Particle import Flux, FluxPitchPhase, generator
+from gtsimulation.particle import Flux, FluxPitchPhase, generator
 from gtsimulation.Medium import GTnrlmsis
 
 parser = argparse.ArgumentParser()

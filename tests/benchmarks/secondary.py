@@ -7,7 +7,7 @@ from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.Medium import GTUniformMedium
 from gtsimulation.Interaction import NuclearInteraction
-from gtsimulation.Particle import Flux, generator
+from gtsimulation.particle import Flux, generator
 
 def get_number_of_secondaries(gt_output):
     n = np.zeros(len(gt_output))

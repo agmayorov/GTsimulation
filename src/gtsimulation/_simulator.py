@@ -17,8 +17,8 @@ from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, 
 from gtsimulation.MagneticFields import AbsBfield
 from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
 from gtsimulation.Medium import GTGeneralMedium
-from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
-from gtsimulation.Particle.generator import distribution, spectrum
+from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
+from gtsimulation.particle.generator import distribution, spectrum
 
 
 class GTSimulator(ABC):
@@ -33,7 +33,7 @@ class GTSimulator(ABC):
     ----------
     Particles : :py:class:`~gtsimulation.Particle.Flux`
         Particle flux generator defining initial spectrum, distribution and composition.
-        See :py:mod:`gtsimulation.Particle`.
+        See :py:mod:`gtsimulation.particle`.
 
     Num : int
         Maximum number of simulation steps.
@@ -155,7 +155,7 @@ class GTSimulator(ABC):
 
     See Also
     --------
-    :py:class:`gtsimulation.Particle.Flux` : Particle flux generation
+    :py:class:`gtsimulation.particle.Flux` : Particle flux generation
     :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
     :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
     :py:class:`gtsimulation.MagneticFields` : Magnetic field module
