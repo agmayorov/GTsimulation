@@ -15,7 +15,7 @@ from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
+from gtsimulation.MagneticFields.magnetosphere import Functions, Additions
 from gtsimulation.medium import GTGeneralMedium
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum

@@ -2,7 +2,7 @@ import numpy as np
 import copy
 
 from gtsimulation.Global import Units, Constants, Origins
-from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
+from gtsimulation.MagneticFields.magnetosphere.Functions import transformations
 from gtsimulation.functions import *
 from numba import jit
 

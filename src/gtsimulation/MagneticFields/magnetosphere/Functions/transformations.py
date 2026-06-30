@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 from numba import jit
 
-from gtsimulation.MagneticFields.Magnetosphere.Functions import gauss
+from gtsimulation.MagneticFields.magnetosphere.Functions import gauss
 
 
 @jit(fastmath=True, nopython=True)

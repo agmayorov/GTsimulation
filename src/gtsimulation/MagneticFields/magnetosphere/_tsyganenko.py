@@ -4,7 +4,7 @@ import numpy as np
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations, t89, t96, t15B, gauss
+from gtsimulation.MagneticFields.magnetosphere.Functions import transformations, t89, t96, t15B, gauss
 
 
 class Tsyganenko(AbsBfield):

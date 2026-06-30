@@ -4,7 +4,7 @@ from datetime import datetime
 
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.pusher import BunemanBorisSimulator
-from gtsimulation.MagneticFields.Magnetosphere import Gauss
+from gtsimulation.MagneticFields.magnetosphere import Gauss
 from gtsimulation.particle import Flux, FluxPitchPhase, generator
 from gtsimulation.medium.magnetosphere import GTnrlmsis
 

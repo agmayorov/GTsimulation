@@ -7,7 +7,7 @@ from numba import jit
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Magnetosphere.Functions.gauss import LoadGaussCoeffs
+from gtsimulation.MagneticFields.magnetosphere.Functions.gauss import LoadGaussCoeffs
 
 
 class GaussModels(Enum):

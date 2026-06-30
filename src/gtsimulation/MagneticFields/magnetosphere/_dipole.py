@@ -5,7 +5,7 @@ from numba import jit
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Magnetosphere.Functions import transformations
+from gtsimulation.MagneticFields.magnetosphere.Functions import transformations
 
 
 class Dipole(AbsBfield):
