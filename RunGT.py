@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 
 from gtsimulation.Global import Regions, Units as U
-from gtsimulation.Algos import BunemanBorisSimulator
+from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.MagneticFields.Magnetosphere import Gauss
 from gtsimulation.Particle import Flux, FluxPitchPhase, generator
 from gtsimulation.Medium import GTnrlmsis

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from gtsimulation.Algos import BunemanBorisSimulator
+from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.Medium import GTUniformMedium
 from gtsimulation.Particle import Flux

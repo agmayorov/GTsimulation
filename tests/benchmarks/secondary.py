@@ -2,7 +2,7 @@ from datetime import datetime
 from timeit import default_timer as timer
 
 import numpy as np
-from gtsimulation.Algos import BunemanBorisSimulator
+from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.Medium import GTUniformMedium

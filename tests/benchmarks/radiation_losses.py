@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import numpy as np
-from gtsimulation.Algos import BunemanBorisSimulator
+from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.MagneticFields import Uniform
 from gtsimulation.Particle import Flux
