@@ -2,7 +2,7 @@ from ._magnetic_field import AbsBfield
 from ._summed_field import Summed
 from ._uniform import Uniform
 
-from . import magnetosphere, Heliosphere, Galaxy
+from . import magnetosphere, heliosphere, Galaxy
 
 __all__ = [
     "AbsBfield",

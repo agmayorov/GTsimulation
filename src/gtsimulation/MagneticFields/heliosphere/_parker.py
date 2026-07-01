@@ -4,7 +4,7 @@ from numba import njit, prange
 
 from gtsimulation.Global import Units, Regions
 from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
+from gtsimulation.MagneticFields.heliosphere.Functions import transformations
 
 
 class Parker(AbsBfield):
@@ -77,7 +77,7 @@ class Parker(AbsBfield):
 
     Examples
     --------
-    >>> from gtsimulation.MagneticFields.Heliosphere import Parker
+    >>> from gtsimulation.MagneticFields.heliosphere import Parker
 
     Create a model with default parameters (regular field only, no noise).
     Compute the field at Earth's orbit (1 AU along the X-axis).
