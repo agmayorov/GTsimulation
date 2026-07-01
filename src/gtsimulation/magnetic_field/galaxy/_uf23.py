@@ -7,7 +7,7 @@ from numba import jit
 from enum import Enum
 
 from gtsimulation.Global import Units, Regions
-from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.magnetic_field import AbsBfield
 import sys
 
 

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from scipy.optimize import fsolve
 
-from gtsimulation.MagneticFields.heliosphere import ParkerUniform
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform
 from gtsimulation.Global.consts import Units, Constants
 
 

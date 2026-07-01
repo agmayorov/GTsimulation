@@ -15,7 +15,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from gtsimulation.MagneticFields.heliosphere import ParkerUniform, Parker
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform, Parker
 
 
 au2cm = 1.5e13

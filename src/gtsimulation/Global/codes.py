@@ -7,9 +7,9 @@ Simulation break reasons and the corresponding code.
 
 :param Loop: The simulation went through all its steps
 
-:param Xmin:Ymin:Zmin: The absolute value of *x, y, z* coordinate is less than `Xmin`, `Ymin`, `Zmin` (in :py:mod:`MagneticFields` units)
+:param Xmin:Ymin:Zmin: The absolute value of *x, y, z* coordinate is less than `Xmin`, `Ymin`, `Zmin` (in :py:mod:`magnetic_field` units)
 
-:param Xmax:Ymax:Zmax: The absolute value of *x, y, z* coordinate is greater than `Xmax`, `Ymax`, `Zmax` (in :py:mod:`MagneticFields` units)
+:param Xmax:Ymax:Zmax: The absolute value of *x, y, z* coordinate is greater than `Xmax`, `Ymax`, `Zmax` (in :py:mod:`magnetic_field` units)
 
 :param Rmin:Rmax: The radius is less(greater) than `Rmin`(`Rmax`) (in :py:mod:`MagneticField` units)
 
@@ -17,7 +17,7 @@ Simulation break reasons and the corresponding code.
 
 :param Death: The particle went into an nuclear interaction.
 
-:param MaxPath:MaxTime: The path (time) travelled is greater than the parameters (in :py:mod:`MagneticFields` units for `MaxPath`)
+:param MaxPath:MaxTime: The path (time) travelled is greater than the parameters (in :py:mod:`magnetic_field` units for `MaxPath`)
 
 :param MaxRev: The maximum number of revolutions.
 """

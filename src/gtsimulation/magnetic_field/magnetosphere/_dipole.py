@@ -4,8 +4,8 @@ import numpy as np
 from numba import jit
 
 from gtsimulation.Global import Units, Regions
-from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.magnetosphere.Functions import transformations
+from gtsimulation.magnetic_field import AbsBfield
+from gtsimulation.magnetic_field.magnetosphere.Functions import transformations
 
 
 class Dipole(AbsBfield):

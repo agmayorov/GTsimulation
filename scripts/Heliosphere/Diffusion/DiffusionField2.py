@@ -1,5 +1,5 @@
 import numpy as np
-from gtsimulation.MagneticFields.heliosphere import ParkerUniform
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform
 from gtsimulation.Global import Units, Constants
 import matplotlib.pyplot as plt
 

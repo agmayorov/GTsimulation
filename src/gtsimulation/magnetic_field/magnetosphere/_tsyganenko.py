@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 
 from gtsimulation.Global import Units, Regions
-from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.magnetosphere.Functions import transformations, t89, t96, t15B, gauss
+from gtsimulation.magnetic_field import AbsBfield
+from gtsimulation.magnetic_field.magnetosphere.Functions import transformations, t89, t96, t15B, gauss
 
 
 class Tsyganenko(AbsBfield):

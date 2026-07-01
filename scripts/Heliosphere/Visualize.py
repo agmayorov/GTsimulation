@@ -5,7 +5,7 @@ plt.rcParams.update({"font.size":15})
 
 from tqdm import tqdm
 
-from gtsimulation.MagneticFields.heliosphere import Parker, ParkerUniform
+from gtsimulation.magnetic_field.heliosphere import Parker, ParkerUniform
 
 b = ParkerUniform(x=1/np.sqrt(2), y=1/np.sqrt(2), z=0, use_noise=False)
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.magnetic_field import AbsBfield
 
 
 class Summed(AbsBfield):

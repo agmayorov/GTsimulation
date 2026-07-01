@@ -4,8 +4,8 @@ import numpy as np
 from numba import jit, prange
 
 from gtsimulation.Global import Units, Regions
-from gtsimulation.MagneticFields.heliosphere import Parker
-from gtsimulation.MagneticFields.heliosphere.Functions import transformations
+from gtsimulation.magnetic_field.heliosphere import Parker
+from gtsimulation.magnetic_field.heliosphere.Functions import transformations
 
 
 class ParkerUniform(Parker):

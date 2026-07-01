@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
-from gtsimulation.MagneticFields import Uniform
+from gtsimulation.magnetic_field import Uniform
 from gtsimulation.particle import Flux
 from gtsimulation.particle.generator import Monolines, SphereSurf
 

@@ -14,8 +14,8 @@ from gtsimulation import functions
 from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
-from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.magnetosphere import Functions, Additions
+from gtsimulation.magnetic_field import AbsBfield
+from gtsimulation.magnetic_field.magnetosphere import Functions, Additions
 from gtsimulation.medium import GTGeneralMedium
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
@@ -48,7 +48,7 @@ class GTSimulator(ABC):
         * ``MaxLarmorRad``: int – The minimal number of points per Larmor radius.
         * ``LarmorRad``: int – The fixed number of points per Larmor radius (used when a fixed resolution is desired).
 
-    Bfield : :py:class:`~gtsimulation.MagneticFields.AbsBfield` or None, optional
+    Bfield : :py:class:`~gtsimulation.magnetic_field.AbsBfield` or None, optional
         Magnetic field model object. If None, no magnetic field is applied.
         Default is None.
 
@@ -158,7 +158,7 @@ class GTSimulator(ABC):
     :py:class:`gtsimulation.particle.Flux` : Particle flux generation
     :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
     :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
-    :py:class:`gtsimulation.MagneticFields` : Magnetic field module
+    :py:class:`gtsimulation.magnetic_field` : Magnetic field module
     :py:class:`gtsimulation.medium` : Medium module
     """
 

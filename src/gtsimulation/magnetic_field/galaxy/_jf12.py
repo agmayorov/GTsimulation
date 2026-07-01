@@ -5,7 +5,7 @@ import numpy as np
 from numba import jit
 
 from gtsimulation.Global import Units, Regions
-from gtsimulation.MagneticFields import AbsBfield
+from gtsimulation.magnetic_field import AbsBfield
 
 
 class JF12mod(AbsBfield):
