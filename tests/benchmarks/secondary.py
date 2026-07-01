@@ -6,7 +6,7 @@ from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.Global import Regions, Units as U
 from gtsimulation.magnetic_field import Uniform
 from gtsimulation.medium import GTUniformMedium
-from gtsimulation.Interaction import NuclearInteraction
+from gtsimulation.interaction import NuclearInteraction
 from gtsimulation.particle import Flux, generator
 
 def get_number_of_secondaries(gt_output):

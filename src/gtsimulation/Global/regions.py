@@ -7,7 +7,7 @@ from pyproj import Transformer
 
 from gtsimulation.particle import CRParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
-from gtsimulation.Interaction import G4Shower
+from gtsimulation.interaction import G4Shower
 
 
 class _AbsRegion(ABC):

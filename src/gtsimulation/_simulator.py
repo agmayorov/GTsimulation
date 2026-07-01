@@ -13,7 +13,7 @@ from numba import njit
 from gtsimulation import functions
 from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
+from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.magnetic_field.magnetosphere import Functions, Additions
 from gtsimulation.medium import GTGeneralMedium
@@ -82,7 +82,7 @@ class GTSimulator(ABC):
         Enable particle decay processes.
         Default is False.
 
-    InteractNUC : :py:class:`~gtsimulation.Interaction.NuclearInteraction` or None, optional
+    InteractNUC : :py:class:`~gtsimulation.interaction.NuclearInteraction` or None, optional
         Nuclear interaction module. Requires Medium to be set.
         Default is None.
 
@@ -261,7 +261,7 @@ class GTSimulator(ABC):
         self.logger.debug("Decay: %s", self.UseDecay)
 
         if self.Medium is None and InteractNUC is not None:
-            raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+            raise ValueError('Nuclear interaction is enabled but Medium is not set')
         self.nuclear_interaction = InteractNUC
         self.logger.debug("Nuclear Interactions: %s", self.nuclear_interaction)
 
@@ -372,7 +372,7 @@ class GTSimulator(ABC):
     # def __set_nuclear_interaction(self, UseDecay, UseInteractNUC):
     #     self.UseDecay = UseDecay
     #     if self.Medium is None and UseInteractNUC is not None:
-    #         raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+    #         raise ValueError('Nuclear interaction is enabled but Medium is not set')
     #     self.nuclear_interaction = UseInteractNUC
     #     if self.nuclear_interaction is not None and 'l' in self.nuclear_interaction.get("ExcludeParticleList", []):
     #         self.nuclear_interaction['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
@@ -666,7 +666,7 @@ class GTSimulator(ABC):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
                         self.IsPrimDeath = True
 
-                # Nuclear Interaction
+                # Nuclear interaction
                 check_interaction = (
                     self.nuclear_interaction is not None
                     and local_path_den > self.nuclear_interaction.grammage_threshold
