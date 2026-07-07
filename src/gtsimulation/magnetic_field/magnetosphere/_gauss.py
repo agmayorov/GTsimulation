@@ -5,7 +5,7 @@ from enum import Enum
 import numpy as np
 from numba import jit
 
-from gtsimulation.Global import Units, Regions
+from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.magnetic_field.magnetosphere.Functions.gauss import LoadGaussCoeffs
 

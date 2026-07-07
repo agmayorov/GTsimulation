@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from gtsimulation.Global import Regions, Units as U
+from gtsimulation.common import Regions, Units as U
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.magnetic_field.magnetosphere import Gauss
 from gtsimulation.particle import Flux, FluxPitchPhase, generator

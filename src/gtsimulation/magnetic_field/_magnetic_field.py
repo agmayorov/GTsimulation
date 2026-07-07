@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from gtsimulation.Global import Units, Regions
+from gtsimulation.common import Units, Regions
 
 
 class AbsBfield(ABC):

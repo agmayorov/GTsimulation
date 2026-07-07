@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from gtsimulation.Global import Regions
+from gtsimulation.common import Regions
 
 
 class GeneralFieldE(ABC):

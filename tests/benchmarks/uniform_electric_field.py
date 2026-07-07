@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
 from gtsimulation.electric_field import UniformFieldE
-from gtsimulation.Global import Regions, Units as U
+from gtsimulation.common import Regions, Units as U
 from gtsimulation.particle import Flux
 from gtsimulation.particle.generator import Monolines, SphereSurf
 

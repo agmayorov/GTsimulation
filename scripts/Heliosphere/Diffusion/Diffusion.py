@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 
 import matplotlib.pyplot as plt
 
-from gtsimulation.Global import Units
+from gtsimulation.common import Units
 from scripts.Heliosphere import misc
 
 plt.rcParams.update({'font.size': 20})

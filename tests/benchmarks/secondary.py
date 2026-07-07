@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 
 import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
-from gtsimulation.Global import Regions, Units as U
+from gtsimulation.common import Regions, Units as U
 from gtsimulation.magnetic_field import Uniform
 from gtsimulation.medium import GTUniformMedium
 from gtsimulation.interaction import NuclearInteraction

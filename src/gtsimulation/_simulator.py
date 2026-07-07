@@ -12,7 +12,7 @@ from numba import njit
 
 from gtsimulation import functions
 from gtsimulation.electric_field import GeneralFieldE
-from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
+from gtsimulation.common import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.magnetic_field.magnetosphere import Functions, Additions
@@ -63,19 +63,19 @@ class GTSimulator(ABC):
         See :py:mod:`gtsimulation.medium`.
         Default is None.
 
-    Region : :py:class:`~gtsimulation.Global.regions.Regions`, optional
+    Region : :py:class:`~gtsimulation.common.regions.Regions`, optional
         Simulation region specifying the physical environment.
         Available options:
-        :py:attr:`~gtsimulation.Global.regions.Regions.Magnetosphere`,
-        :py:attr:`~gtsimulation.Global.regions.Regions.Heliosphere`,
-        :py:attr:`~gtsimulation.Global.regions.Regions.Galaxy`.
-        See :py:mod:`gtsimulation.Global.regions`.
+        :py:attr:`~gtsimulation.common.regions.Regions.Magnetosphere`,
+        :py:attr:`~gtsimulation.common.regions.Regions.Heliosphere`,
+        :py:attr:`~gtsimulation.common.regions.Regions.Galaxy`.
+        See :py:mod:`gtsimulation.common.regions`.
         Default is `Regions.Undefined`.
 
     BreakCondition : dict or list or None, optional
         Simulation termination conditions. If dict: {condition: value}.
         If list format: [conditions_dict, center_point_array].
-        Available conditions: see :py:data:`~gtsimulation.Global.codes.BreakCode`.
+        Available conditions: see :py:data:`~gtsimulation.common.codes.BreakCode`.
         Default is None.
 
     UseDecay : bool, optional
@@ -98,7 +98,7 @@ class GTSimulator(ABC):
     Save : int or list, optional
         Save interval configuration. If int N, save every N steps.
         If list format: [N, {"Clock": True, ...}] to save additional parameters.
-        See :py:data:`~gtsimulation.Global.codes.SaveCode`.
+        See :py:data:`~gtsimulation.common.codes.SaveCode`.
         Default is 1.
 
     Nfiles : int or list, optional
@@ -122,7 +122,7 @@ class GTSimulator(ABC):
         Additional parameter tracking. If True, all available parameters are tracked.
         If dict, specify which parameters to track:
         {'Invariants': True, 'GuidingCenter': True, etc.}.
-        See :py:attr:`~gtsimulation.Global.regions._AbsRegion.SaveAdd`.
+        See :py:attr:`~gtsimulation.common.regions._AbsRegion.SaveAdd`.
         Default is False.
 
     ParticleOrigin : bool, optional
@@ -156,8 +156,8 @@ class GTSimulator(ABC):
     See Also
     --------
     :py:class:`gtsimulation.particle.Flux` : Particle flux generation
-    :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
-    :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
+    :py:data:`gtsimulation.common.codes.SaveCode` : Available save parameters
+    :py:data:`gtsimulation.common.codes.BreakCode` : Available break conditions
     :py:class:`gtsimulation.magnetic_field` : Magnetic field module
     :py:class:`gtsimulation.medium` : Medium module
     """

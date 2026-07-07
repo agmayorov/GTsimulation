@@ -2,7 +2,7 @@ import numpy as np
 from numba import jit
 
 from gtsimulation import GTSimulator
-from gtsimulation.Global import Constants
+from gtsimulation.common import Constants
 
 
 class BunemanBorisSimulator(GTSimulator):

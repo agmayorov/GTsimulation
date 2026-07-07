@@ -3,7 +3,7 @@ from datetime import datetime
 from pyproj import Transformer
 from pymsis import msis
 
-from gtsimulation.Global import Regions
+from gtsimulation.common import Regions
 from gtsimulation.medium import GTGeneralMedium
 
 

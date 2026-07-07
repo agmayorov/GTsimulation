@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 from numba import jit, prange
 
-from gtsimulation.Global import Units, Regions
+from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field.heliosphere import Parker
 from gtsimulation.magnetic_field.heliosphere.Functions import transformations
 

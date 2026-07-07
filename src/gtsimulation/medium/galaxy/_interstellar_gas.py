@@ -2,7 +2,7 @@ import numpy as np
 from numpy.polynomial.polynomial import polyval
 from numba import jit
 
-from gtsimulation.Global import Regions, Units
+from gtsimulation.common import Regions, Units
 from gtsimulation.medium import GTGeneralMedium
 
 
