@@ -122,24 +122,7 @@ class RungeKutta4SimulatorFast(GTSimulator):
             dt = self.Step
             c = Constants.c
 
-            # k1
-            P1 = P
-            V1, F1 = self.__algo(P1, Q, m, E, H, c)
-
-            # k2
-            P2 = P + 0.5 * dt * F1
-            V2, F2 = self.__algo(P2, Q, m, E, H, c)
-
-            # k3
-            P3 = P + 0.5 * dt * F2
-            V3, F3 = self.__algo(P3, Q, m, E, H, c)
-
-            # k4
-            P4 = P + dt * F3
-            V4, F4 = self.__algo(P4, Q, m, E, H, c)
-
-            X_new, V_new, Y_new, Ya = self.__algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4)
-
+            X_new, V_new, Y_new, Ya = self.__algo(X, P, Q, m, E, H, c, dt, Ym)
 
         else:
             V_new, Y_new, Ya = V, 0, 0
@@ -148,21 +131,37 @@ class RungeKutta4SimulatorFast(GTSimulator):
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
-    def __algo(P, Q, m, E, H, c):
-        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
-        V = P / Y / m
-        F = Q * (E + np.cross(V, H))
-        return V, F
+    def __algo(X, P, Q, m, E, H, c, dt, Ym):
+        # k1
+        Y1 = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V1 = P / Y1 / m
+        F1 = Q * (E + np.cross(V1, H))
 
-    @staticmethod
-    @jit(nopython=True, fastmath=True)
-    def __algo2(X, P, dt, m, c, Ym, V1, V2, V3, V4, F1, F2, F3, F4):
+        # k2
+        P2 = P + 0.5 * dt * F1
+        Y2 = np.sqrt(1 + (np.linalg.norm(P2) / (m * c)) ** 2)
+        V2 = P2 / Y2 / m
+        F2 = Q * (E + np.cross(V2, H))
+
+        # k3
+        P3 = P + 0.5 * dt * F2
+        Y3 = np.sqrt(1 + (np.linalg.norm(P3) / (m * c)) ** 2)
+        V3 = P3 / Y3 / m
+        F3 = Q * (E + np.cross(V3, H))
+
+        # k4
+        P4 = P + dt * F3
+        Y4 = np.sqrt(1 + (np.linalg.norm(P4) / (m * c)) ** 2)
+        V4 = P4 / Y4 / m
+        F4 = Q * (E + np.cross(V4, H))
+
         X_new = X + dt * (V1 + 2 * V2 + 2 * V3 + V4) / 6
         P_new = P + dt * (F1 + 2 * F2 + 2 * F3 + F4) / 6
 
         Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
         V_new = P_new / Y_new / m
         Ya = 0.5 * (Ym + Y_new)
+
         return X_new, V_new, Y_new, Ya
 
 
@@ -307,55 +306,13 @@ class RungeKutta6SimulatorFast(GTSimulator):
 
     def AlgoStep(self, T, M, Q, V, X, H, E):
         if M != 0:
-            c = np.array([0, 1 / 3, 2 / 3, 1 / 3, 1 / 2, 1 / 2, 1])
-            b = np.array([11 / 120, 0, 27 / 40, 27 / 40, -4 / 15, -4 / 15, 11 / 120])
-            a = np.array([[0, 0, 0, 0, 0, 0, 0],
-                          [1 / 3, 0, 0, 0, 0, 0, 0],
-                          [0, 2 / 3, 0, 0, 0, 0, 0],
-                          [1 / 12, 1 / 3, -1 / 12, 0, 0, 0, 0],
-                          [-1 / 16, 9 / 8, -3 / 16, -3 / 8, 0, 0, 0],
-                          [0, 9 / 8, -3 / 8, -3 / 4, 1 / 2, 0, 0],
-                          [9 / 44, -9 / 11, 63 / 44, 18 / 11, 0, -16 / 11, 0]])
-
             m = M * Units.MeV2kg
             Ym = T / M + 1
             P = Ym * m * V
             dt = self.Step
-            c_ = Constants.c
+            c = Constants.c
 
-            # k1
-            V1, F1 = self.__algo(P, Q, m, c_, E, H)
-
-            # k2
-            P2 = P + a[1, 0] * dt * F1
-            V2, F2 = self.__algo(P2, Q, m, c_, E, H)
-
-            # k3
-            P3 = P + a[2, 1] * dt * F2
-            V3, F3 = self.__algo(P3, Q, m, c_, E, H)
-
-            # k4
-            P4 = P + dt * (a[3, 0] * F1 + a[3, 1] * F2 + a[3, 2] * F3)
-            V4, F4 = self.__algo(P4, Q, m, c_, E, H)
-
-            # k5
-            P5 = P + dt * (a[4, 0] * F1 + a[4, 1] * F2 + a[4, 2] * F3 + a[4, 3] * F4)
-            V5, F5 = self.__algo(P5, Q, m, c_, E, H)
-
-            # k6
-            P6 = P + dt * (a[5, 0] * F1 + a[5, 1] * F2 + a[5, 2] * F3 + a[5, 3] * F4 + a[5, 4] * F5)
-            V6, F6 = self.__algo(P6, Q, m, c_, E, H)
-
-            # k7
-            P7 = P + dt * (a[6, 0] * F1 + a[6, 1] * F2 + a[6, 2] * F3 + a[6, 3] * F4 + a[6, 4] * F5 + a[6, 5] * F6)
-            V7, F7 = self.__algo(P7, Q, m, c_, E, H)
-
-            X_new = X + dt * (b[0] * V1 + b[1] * V2 + b[2] * V3 + b[3] * V4 + b[4] * V5 + b[5] * V6 + b[6] * V7)
-            P_new = P + dt * (b[0] * F1 + b[1] * F2 + b[2] * F3 + b[3] * F4 + b[4] * F5 + b[5] * F6 + b[6] * F7)
-
-            Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c_)) ** 2)
-            V_new = P_new / Y_new / m
-            Ya = 0.5 * (Ym + Y_new)
+            X_new, V_new, Y_new, Ya = self.__algo(X, P, Q, m, c, E, H, dt, Ym)
 
         else:
             V_new, Y_new, Ya = V, 0, 0
@@ -364,8 +321,55 @@ class RungeKutta6SimulatorFast(GTSimulator):
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
-    def __algo(P, Q, m, c, E, H):
-        Y = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
-        V = P / Y / m
-        F = Q * (E + np.cross(V, H))
-        return V, F
+    def __algo(X, P, Q, m, c, E, H, dt, Ym):
+        # k1
+        Y1 = np.sqrt(1 + (np.linalg.norm(P) / (m * c)) ** 2)
+        V1 = P / Y1 / m
+        F1 = Q * (E + np.cross(V1, H))
+
+        # k2
+        P2 = P + (1 / 3) * dt * F1
+        Y2 = np.sqrt(1 + (np.linalg.norm(P2) / (m * c)) ** 2)
+        V2 = P2 / Y2 / m
+        F2 = Q * (E + np.cross(V2, H))
+
+        # k3
+        P3 = P + (2 / 3) * dt * F2
+        Y3 = np.sqrt(1 + (np.linalg.norm(P3) / (m * c)) ** 2)
+        V3 = P3 / Y3 / m
+        F3 = Q * (E + np.cross(V3, H))
+
+        # k4
+        P4 = P + dt * ((1 / 12) * F1 + (1 / 3) * F2 + (-1 / 12) * F3)
+        Y4 = np.sqrt(1 + (np.linalg.norm(P4) / (m * c)) ** 2)
+        V4 = P4 / Y4 / m
+        F4 = Q * (E + np.cross(V4, H))
+
+        # k5
+        P5 = P + dt * ((-1 / 16) * F1 + (9 / 8) * F2 + (-3 / 16) * F3 + (-3 / 8) * F4)
+        Y5 = np.sqrt(1 + (np.linalg.norm(P5) / (m * c)) ** 2)
+        V5 = P5 / Y5 / m
+        F5 = Q * (E + np.cross(V5, H))
+
+        # k6
+        P6 = P + dt * (0 * F1 + (9 / 8) * F2 + (-3 / 8) * F3 + (-3 / 4) * F4 + (1 / 2) * F5)
+        Y6 = np.sqrt(1 + (np.linalg.norm(P6) / (m * c)) ** 2)
+        V6 = P6 / Y6 / m
+        F6 = Q * (E + np.cross(V6, H))
+
+        # k7
+        P7 = P + dt * ((9 / 44) * F1 + (-9 / 11) * F2 + (63 / 44) * F3 + (18 / 11) * F4 + 0 * F5 + (-16 / 11) * F6)
+        Y7 = np.sqrt(1 + (np.linalg.norm(P7) / (m * c)) ** 2)
+        V7 = P7 / Y7 / m
+        F7 = Q * (E + np.cross(V7, H))
+
+        X_new = X + dt * ((11 / 120) * V1 + 0 * V2 + (27 / 40) * V3 + (27 / 40) * V4 +
+                          (-4 / 15) * V5 + (-4 / 15) * V6 + (11 / 120) * V7)
+        P_new = P + dt * ((11 / 120) * F1 + 0 * F2 + (27 / 40) * F3 + (27 / 40) * F4 +
+                          (-4 / 15) * F5 + (-4 / 15) * F6 + (11 / 120) * F7)
+
+        Y_new = np.sqrt(1 + (np.linalg.norm(P_new) / (m * c)) ** 2)
+        V_new = P_new / Y_new / m
+        Ya = 0.5 * (Ym + Y_new)
+
+        return X_new, V_new, Y_new, Ya
