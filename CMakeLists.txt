@@ -20,12 +20,12 @@ if(BUILD_GEANT4_COMPONENTS)
         message(STATUS "Geant4 found at ${Geant4_DIR}. Building Geant4-dependent components.")
         set(GEANT4_COMPONENTS_WERE_BUILT TRUE)
         # --- Adding and installing your C++ subprojects ---
-        add_subdirectory(${PACKAGE_SOURCE_DIR}/Interaction/G4source/MatterLayer ${CMAKE_BINARY_DIR}/build_ML)
-        add_subdirectory(${PACKAGE_SOURCE_DIR}/Interaction/G4source/DecayGenerator ${CMAKE_BINARY_DIR}/build_DG)
-        add_subdirectory(${PACKAGE_SOURCE_DIR}/Interaction/G4source/Atmosphere ${CMAKE_BINARY_DIR}/build_A)
+        add_subdirectory(${PACKAGE_SOURCE_DIR}/interaction/G4source/MatterLayer ${CMAKE_BINARY_DIR}/build_ML)
+        add_subdirectory(${PACKAGE_SOURCE_DIR}/interaction/G4source/DecayGenerator ${CMAKE_BINARY_DIR}/build_DG)
+        add_subdirectory(${PACKAGE_SOURCE_DIR}/interaction/G4source/Atmosphere ${CMAKE_BINARY_DIR}/build_A)
         install(
             TARGETS MatterLayer DecayGenerator Atmosphere
-            DESTINATION ${SKBUILD_PROJECT_NAME}/Interaction
+            DESTINATION ${SKBUILD_PROJECT_NAME}/interaction
         )
     else()
         message(WARNING "Geant4 not found, although BUILD_GEANT4_COMPONENTS was ON. Geant4-dependent components will NOT be built.")
@@ -53,13 +53,13 @@ else()
 endif()
 
 configure_file(
-    ${PACKAGE_SOURCE_DIR}/Interaction/_build_config.py.in
-    ${PACKAGE_SOURCE_DIR}/Interaction/_build_config.py
+    ${PACKAGE_SOURCE_DIR}/interaction/_build_config.py.in
+    ${PACKAGE_SOURCE_DIR}/interaction/_build_config.py
     @ONLY
 )
-message(STATUS "Build configuration file generated: ${PACKAGE_SOURCE_DIR}/Interaction/_build_config.py")
+message(STATUS "Build configuration file generated: ${PACKAGE_SOURCE_DIR}/interaction/_build_config.py")
 
 install(FILES
-  ${PACKAGE_SOURCE_DIR}/Interaction/_build_config.py
-  DESTINATION ${SKBUILD_PROJECT_NAME}/Interaction
+  ${PACKAGE_SOURCE_DIR}/interaction/_build_config.py
+  DESTINATION ${SKBUILD_PROJECT_NAME}/interaction
 )
