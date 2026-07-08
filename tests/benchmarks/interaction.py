@@ -2,13 +2,13 @@ from datetime import datetime
 from timeit import default_timer as timer
 
 import numpy as np
-from gtsimulation.Algos import BunemanBorisSimulator
-from gtsimulation.Particle import Flux
-from gtsimulation.Medium import GTUniformMedium
-from gtsimulation.MagneticFields import Uniform
-from gtsimulation.Particle.Generators import Monolines, SphereSurf
-from gtsimulation.Global import Regions
-from gtsimulation.Global import Units as U
+from gtsimulation.pusher import BunemanBorisSimulator
+from gtsimulation.particle import Flux
+from gtsimulation.medium import GTUniformMedium
+from gtsimulation.magnetic_field import Uniform
+from gtsimulation.particle.generator import Monolines, SphereSurf
+from gtsimulation.common import Regions
+from gtsimulation.common import Units as U
 
 date = datetime(2025, 1, 1)
 b_field = Uniform(B=np.array([0, 0, 10]))  # 10 nT

@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from gtsimulation.Algos import BunemanBorisSimulator
-from gtsimulation.Global import Regions, Units as U
-from gtsimulation.Medium import GTUniformMedium
-from gtsimulation.Particle import Flux
-from gtsimulation.Particle.Generators import Monolines, SphereSurf
+from gtsimulation.pusher import BunemanBorisSimulator
+from gtsimulation.common import Regions, Units as U
+from gtsimulation.medium import GTUniformMedium
+from gtsimulation.particle import Flux
+from gtsimulation.particle.generator import Monolines, SphereSurf
 
 date = datetime(2025, 1, 1)
 b_field = None

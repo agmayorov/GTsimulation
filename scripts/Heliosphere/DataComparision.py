@@ -2,7 +2,7 @@ import os
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-from gtsimulation.MagneticFields.Heliosphere import Parker, ParkerUniform
+from gtsimulation.magnetic_field.heliosphere import Parker, ParkerUniform
 
 from scipy.optimize import curve_fit, minimize
 

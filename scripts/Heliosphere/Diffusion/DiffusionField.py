@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from scipy.optimize import fsolve
 
-from gtsimulation.MagneticFields.Heliosphere import ParkerUniform
-from gtsimulation.Global.consts import Units, Constants
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform
+from gtsimulation.common import Units, Constants
 
 
 date = datetime.datetime(2008, 1, 1)

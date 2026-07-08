@@ -1,11 +1,11 @@
 from datetime import datetime
 
 import numpy as np
-from gtsimulation.Algos import BunemanBorisSimulator
-from gtsimulation.Global import Regions, Units as U
-from gtsimulation.MagneticFields import Uniform
-from gtsimulation.Particle import Flux
-from gtsimulation.Particle.Generators import Monolines, SphereSurf
+from gtsimulation.pusher import BunemanBorisSimulator
+from gtsimulation.common import Regions, Units as U
+from gtsimulation.magnetic_field import Uniform
+from gtsimulation.particle import Flux
+from gtsimulation.particle.generator import Monolines, SphereSurf
 
 date = datetime(2025, 1, 1)
 b_field = Uniform(B=np.array([0, 0, 10])) # 10 nT

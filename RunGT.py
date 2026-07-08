@@ -2,14 +2,11 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-from gtsimulation.Global import Regions
-from gtsimulation.Global import Units as U
-from gtsimulation.Algos import BunemanBorisSimulator, RungeKutta4Simulator, RungeKutta6Simulator
-from gtsimulation.MagneticFields.Magnetosphere import Gauss
-from gtsimulation.Particle.Flux import Flux, FluxPitchPhase
-from gtsimulation.Particle.Generators.Spectrums import Monolines
-from gtsimulation.Particle.Generators.Distributions import SphereSurf
-from gtsimulation.Medium import GTnrlmsis
+from gtsimulation.common import Regions, Units as U
+from gtsimulation.pusher import BunemanBorisSimulator
+from gtsimulation.magnetic_field.magnetosphere import Gauss
+from gtsimulation.particle import Flux, FluxPitchPhase, generator
+from gtsimulation.medium.magnetosphere import GTnrlmsis
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int)
@@ -27,8 +24,8 @@ Bfield = Gauss(date=Date, model="CHAOS", model_type="core", version=7.18)
 Medium = GTnrlmsis(date=Date, version=0)
 
 Particles = Flux(
-    Spectrum = Monolines(energy = 1.5 * U.GeV),
-    Distribution = SphereSurf(Radius = 10 * U.RE),
+    Spectrum = generator.spectrum.Monolines(energy =1.5 * U.GeV),
+    Distribution = generator.distribution.SphereSurf(Radius =10 * U.RE),
     Names = "proton",
     Nevents = 10
 )
@@ -54,19 +51,21 @@ Save = [1, {"Clock": True, "Path": True}]
 Verbose = 2
 BreakConditions = None
 
-simulator = BunemanBorisSimulator(Bfield=Bfield,
-                                  Region=Region,
-                                  Particles=Particles,
-                                  Medium=Medium,
-                                  InteractNUC=NuclearInteraction,
-                                  UseDecay=UseDecay,
-                                  Date=Date,
-                                  Step=1e-6,
-                                  Num=100000,
-                                  ForwardTrck=1,
-                                  BreakCondition=BreakConditions,
-                                  Save=Save,
-                                  Nfiles=Nfiles,
-                                  Output=Output,
-                                  Verbose=Verbose)
+simulator = BunemanBorisSimulator(
+    Particles=Particles,
+    Num=100000,
+    Step=1e-6,
+    Bfield=Bfield,
+    Region=Region,
+    Medium=Medium,
+    InteractNUC=NuclearInteraction,
+    UseDecay=UseDecay,
+    Date=Date,
+    ForwardTrck=1,
+    BreakCondition=BreakConditions,
+    Save=Save,
+    Nfiles=Nfiles,
+    Output=Output,
+    Verbose=Verbose
+)
 simulator()

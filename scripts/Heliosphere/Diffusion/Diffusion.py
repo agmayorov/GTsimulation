@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 
 import matplotlib.pyplot as plt
 
-from gtsimulation.Global import Units
+from gtsimulation.common import Units
 from scripts.Heliosphere import misc
 
 plt.rcParams.update({'font.size': 20})
@@ -15,7 +15,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from gtsimulation.MagneticFields.Heliosphere import ParkerUniform, Parker
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform, Parker
 
 
 au2cm = 1.5e13

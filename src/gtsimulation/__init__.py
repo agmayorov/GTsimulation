@@ -1,4 +1,4 @@
 from ._simulator import GTSimulator
-from . import Algos, ElectricFields, Global, Interaction, MagneticFields, Medium, Particle
+from . import pusher, electric_field, common, interaction, magnetic_field, medium, particle
 
 __all__ = ["GTSimulator"]

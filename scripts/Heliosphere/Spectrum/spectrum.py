@@ -6,8 +6,8 @@ from scipy.interpolate import interp2d
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from gtsimulation.MagneticFields.Heliosphere import ParkerUniform, Parker
-from gtsimulation.MagneticFields.Heliosphere.Functions import transformations
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform, Parker
+from gtsimulation.magnetic_field.heliosphere.Functions import transformations
 from scripts.Heliosphere import misc
 
 

@@ -1,6 +1,6 @@
 import numpy as np
-from gtsimulation.MagneticFields.Heliosphere import ParkerUniform
-from gtsimulation.Global import Units, Constants
+from gtsimulation.magnetic_field.heliosphere import ParkerUniform
+from gtsimulation.common import Units, Constants
 import matplotlib.pyplot as plt
 
 x = 1 / np.sqrt(2)

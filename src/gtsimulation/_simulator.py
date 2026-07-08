@@ -11,14 +11,14 @@ import numpy as np
 from numba import njit
 
 from gtsimulation import functions
-from gtsimulation.ElectricFields import GeneralFieldE
-from gtsimulation.Global import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from gtsimulation.Interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
-from gtsimulation.MagneticFields import AbsBfield
-from gtsimulation.MagneticFields.Magnetosphere import Functions, Additions
-from gtsimulation.Medium import GTGeneralMedium
-from gtsimulation.Particle import ConvertT2R, GetAntiParticle, Flux
-from gtsimulation.Particle.Generators import Distributions, Spectrums
+from gtsimulation.electric_field import GeneralFieldE
+from gtsimulation.common import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
+from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
+from gtsimulation.magnetic_field import AbsBfield
+from gtsimulation.magnetic_field.magnetosphere import Functions, Additions
+from gtsimulation.medium import GTGeneralMedium
+from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
+from gtsimulation.particle.generator import distribution, spectrum
 
 
 class GTSimulator(ABC):
@@ -33,7 +33,7 @@ class GTSimulator(ABC):
     ----------
     Particles : :py:class:`~gtsimulation.Particle.Flux`
         Particle flux generator defining initial spectrum, distribution and composition.
-        See :py:mod:`gtsimulation.Particle`.
+        See :py:mod:`gtsimulation.particle`.
 
     Num : int
         Maximum number of simulation steps.
@@ -48,41 +48,41 @@ class GTSimulator(ABC):
         * ``MaxLarmorRad``: int – The minimal number of points per Larmor radius.
         * ``LarmorRad``: int – The fixed number of points per Larmor radius (used when a fixed resolution is desired).
 
-    Bfield : :py:class:`~gtsimulation.MagneticFields.AbsBfield` or None, optional
+    Bfield : :py:class:`~gtsimulation.magnetic_field.AbsBfield` or None, optional
         Magnetic field model object. If None, no magnetic field is applied.
         Default is None.
 
-    Efield : :py:class:`~gtsimulation.ElectricFields.GeneralFieldE` or None, optional
+    Efield : :py:class:`~gtsimulation.electric_field.GeneralFieldE` or None, optional
         Electric field model object. If None, no electric field is applied.
         Default is None.
 
-    Medium : :py:class:`~gtsimulation.Medium.GTGeneralMedium` or None, optional
+    Medium : :py:class:`~gtsimulation.medium.GTGeneralMedium` or None, optional
         Propagation medium for particles. Defines density and composition of the environment
         through which particles travel. Required when nuclear interactions are enabled
         (via `InteractNUC` parameter), but optional for simulations without interactions.
-        See :py:mod:`gtsimulation.Medium`.
+        See :py:mod:`gtsimulation.medium`.
         Default is None.
 
-    Region : :py:class:`~gtsimulation.Global.regions.Regions`, optional
+    Region : :py:class:`~gtsimulation.common.regions.Regions`, optional
         Simulation region specifying the physical environment.
         Available options:
-        :py:attr:`~gtsimulation.Global.regions.Regions.Magnetosphere`,
-        :py:attr:`~gtsimulation.Global.regions.Regions.Heliosphere`,
-        :py:attr:`~gtsimulation.Global.regions.Regions.Galaxy`.
-        See :py:mod:`gtsimulation.Global.regions`.
+        :py:attr:`~gtsimulation.common.regions.Regions.Magnetosphere`,
+        :py:attr:`~gtsimulation.common.regions.Regions.Heliosphere`,
+        :py:attr:`~gtsimulation.common.regions.Regions.Galaxy`.
+        See :py:mod:`gtsimulation.common.regions`.
         Default is `Regions.Undefined`.
 
     BreakCondition : dict or list or None, optional
         Simulation termination conditions. If dict: {condition: value}.
         If list format: [conditions_dict, center_point_array].
-        Available conditions: see :py:data:`~gtsimulation.Global.codes.BreakCode`.
+        Available conditions: see :py:data:`~gtsimulation.common.codes.BreakCode`.
         Default is None.
 
     UseDecay : bool, optional
         Enable particle decay processes.
         Default is False.
 
-    InteractNUC : :py:class:`~gtsimulation.Interaction.NuclearInteraction` or None, optional
+    InteractNUC : :py:class:`~gtsimulation.interaction.NuclearInteraction` or None, optional
         Nuclear interaction module. Requires Medium to be set.
         Default is None.
 
@@ -98,7 +98,7 @@ class GTSimulator(ABC):
     Save : int or list, optional
         Save interval configuration. If int N, save every N steps.
         If list format: [N, {"Clock": True, ...}] to save additional parameters.
-        See :py:data:`~gtsimulation.Global.codes.SaveCode`.
+        See :py:data:`~gtsimulation.common.codes.SaveCode`.
         Default is 1.
 
     Nfiles : int or list, optional
@@ -122,7 +122,7 @@ class GTSimulator(ABC):
         Additional parameter tracking. If True, all available parameters are tracked.
         If dict, specify which parameters to track:
         {'Invariants': True, 'GuidingCenter': True, etc.}.
-        See :py:attr:`~gtsimulation.Global.regions._AbsRegion.SaveAdd`.
+        See :py:attr:`~gtsimulation.common.regions._AbsRegion.SaveAdd`.
         Default is False.
 
     ParticleOrigin : bool, optional
@@ -155,11 +155,11 @@ class GTSimulator(ABC):
 
     See Also
     --------
-    :py:class:`gtsimulation.Particle.Flux` : Particle flux generation
-    :py:data:`gtsimulation.Global.codes.SaveCode` : Available save parameters
-    :py:data:`gtsimulation.Global.codes.BreakCode` : Available break conditions
-    :py:class:`gtsimulation.MagneticFields` : Magnetic field module
-    :py:class:`gtsimulation.Medium` : Medium module
+    :py:class:`gtsimulation.particle.Flux` : Particle flux generation
+    :py:data:`gtsimulation.common.codes.SaveCode` : Available save parameters
+    :py:data:`gtsimulation.common.codes.BreakCode` : Available break conditions
+    :py:class:`gtsimulation.magnetic_field` : Magnetic field module
+    :py:class:`gtsimulation.medium` : Medium module
     """
 
     def __init__(
@@ -261,7 +261,7 @@ class GTSimulator(ABC):
         self.logger.debug("Decay: %s", self.UseDecay)
 
         if self.Medium is None and InteractNUC is not None:
-            raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+            raise ValueError('Nuclear interaction is enabled but Medium is not set')
         self.nuclear_interaction = InteractNUC
         self.logger.debug("Nuclear Interactions: %s", self.nuclear_interaction)
 
@@ -373,7 +373,7 @@ class GTSimulator(ABC):
     # def __set_nuclear_interaction(self, UseDecay, UseInteractNUC):
     #     self.UseDecay = UseDecay
     #     if self.Medium is None and UseInteractNUC is not None:
-    #         raise ValueError('Nuclear Interaction is enabled but Medium is not set')
+    #         raise ValueError('Nuclear interaction is enabled but Medium is not set')
     #     self.nuclear_interaction = UseInteractNUC
     #     if self.nuclear_interaction is not None and 'l' in self.nuclear_interaction.get("ExcludeParticleList", []):
     #         self.nuclear_interaction['ExcludeParticleList'].extend([11, 12, 13, 14, 15, 16, 17, 18,
@@ -667,7 +667,7 @@ class GTSimulator(ABC):
                         self.__Decay(Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r)
                         self.IsPrimDeath = True
 
-                # Nuclear Interaction
+                # Nuclear interaction
                 check_interaction = (
                         self.nuclear_interaction is not None
                         and local_path_den > self.nuclear_interaction.grammage_threshold
@@ -717,8 +717,8 @@ class GTSimulator(ABC):
                                 params = self.ParamDict.copy()
                                 params["Date"] += datetime.timedelta(seconds=TotTime)
                                 params["Particles"] = Flux(
-                                    Distribution=Distributions.UserInput(R0=r_interaction, V0=V_p),
-                                    Spectrum=Spectrums.UserInput(energy=T_p),
+                                    Distribution=distribution.UserInput(R0=r_interaction, V0=V_p),
+                                    Spectrum=spectrum.UserInput(energy=T_p),
                                     PDGcode=PDGcode_p
                                 )
                                 # if (PDGcode_p in self.nuclear_interaction.get("ExcludeParticleList", [])
@@ -849,8 +849,8 @@ class GTSimulator(ABC):
                 PDGcode_p = p["PDGcode"]
                 params = self.ParamDict.copy()
                 params["Particles"] = Flux(
-                    Distribution=Distributions.UserInput(R0=r_p, V0=V_p),
-                    Spectrum=Spectrums.UserInput(energy=T_p),
+                    Distribution=distribution.UserInput(R0=r_p, V0=V_p),
+                    Spectrum=spectrum.UserInput(energy=T_p),
                     PDGcode=PDGcode_p
                 )
                 params["Date"] = params["Date"] + datetime.timedelta(seconds=TotTime)
