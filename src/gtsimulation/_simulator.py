@@ -31,7 +31,7 @@ class GTSimulator(ABC):
 
     Parameters
     ----------
-    Particles : :py:class:`~gtsimulation.Particle.Flux`
+    Particles : :py:class:`~gtsimulation.particle.Flux`
         Particle flux generator defining initial spectrum, distribution and composition.
         See :py:mod:`gtsimulation.particle`.
 

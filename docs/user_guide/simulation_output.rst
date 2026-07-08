@@ -26,7 +26,7 @@ has the following keys:
 - `Particle`
 - `BC`
 - `Child`
-- `Additions` (only present for the :py:attr:`~gtsimulation.Global.regions.Regions.Magnetosphere` region)
+- `Additions` (only present for the :py:attr:`~gtsimulation.common.regions.Regions.Magnetosphere` region)
 
 .. code-block:: python
 
@@ -65,7 +65,7 @@ Dictionary structure
 
 3. **BC** – break conditions:
 
-   - `WOut` – break code indicating why the simulation stopped (see :py:data:`~gtsimulation.Global.codes.BreakCode`)
+   - `WOut` – break code indicating why the simulation stopped (see :py:data:`~gtsimulation.common.codes.BreakCode`)
 
 4. **Child** – array of secondary particles produced in interactions. Each element has the same structure as described above.
 
@@ -74,13 +74,13 @@ Dictionary structure
 Plotting trajectories
 ---------------------
 To plot the trajectory of the *i*-th particle, use ``events[i]["Track"]["Coordinates"]``. Coordinates are in
-the default **GT** units (meters). You may convert them to other units using the :py:data:`gtsimulation.Global.consts.Units` module.
+the default **GT** units (meters). You may convert them to other units using the :py:data:`~gtsimulation.common.Units` class.
 
 .. code-block:: python
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from Global.consts import Units
+    from gtsimulation.common import Units
 
     # Load data
     events = np.load("reading_files_example_1.npy", allow_pickle=True)

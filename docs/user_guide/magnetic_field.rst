@@ -2,9 +2,9 @@ Magnetic field
 ==============
 
 The magnetic field is implemented through a dedicated **Magnetic Field Module**.
-The core of this module is the abstract base class :py:class:`gtsimulation.MagneticFields.AbsBfield`.
+The core of this module is the abstract base class :py:class:`gtsimulation.magnetic_field.AbsBfield`.
 Any custom magnetic field model must be defined as a concrete subclass of this class, which requires the explicit
-implementation of a :py:meth:`~gtsimulation.MagneticFields.AbsBfield.CalcBfield` method. This method returns the
+implementation of a :py:meth:`~gtsimulation.magnetic_field.AbsBfield.CalcBfield` method. This method returns the
 magnetic field vector at a given point.
 
 The module comes with a library of pre-implemented models ready for immediate use:
@@ -14,7 +14,7 @@ The module comes with a library of pre-implemented models ready for immediate us
 * **Heliosphere:** The Parker spiral model.
 * **Galaxy:** The Jansson & Farrar (JF12) and Unger & Farrar (UF23) models.
 
-The specific classes that implement these field models can be found within the :py:mod:`gtsimulation.MagneticFields`
+The specific classes that implement these field models can be found within the :py:mod:`gtsimulation.magnetic_field`
 module and its submodules. These models support dynamic fields that can evolve in time during particle tracing.
 The abstract architecture enables users to seamlessly integrate their own field models by subclassing the base class
 and implementing the required interface.
