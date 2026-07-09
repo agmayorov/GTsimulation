@@ -1,3 +1,9 @@
+"""Particle trajectory pushers.
+
+This subpackage provides numerical methods for advancing particle trajectories
+in electromagnetic fields.
+"""
+
 from ._buneman_boris import BunemanBorisSimulator
 from ._runge_kutta import RungeKutta4Simulator, RungeKutta6Simulator, RungeKutta4SimulatorFast, RungeKutta6SimulatorFast
 from ._higuera_cary import HigueraCarySimulator
