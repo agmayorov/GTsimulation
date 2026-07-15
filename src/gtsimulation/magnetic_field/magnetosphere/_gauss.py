@@ -10,6 +10,12 @@ from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.magnetic_field.magnetosphere.Functions.gauss import LoadGaussCoeffs
 
 
+class GaussPlanets(Enum):
+    Earth = 1
+    Jupiter = 2
+    Saturn = 3
+
+
 class GaussModels(Enum):
     IGRF = 1
     CHAOS = 2
@@ -18,6 +24,10 @@ class GaussModels(Enum):
     LCS = 5
     SIFM = 6
     DIFI = 7
+    JRM33 = 8
+    JRM09 = 9
+    Cassini11 = 10
+    Cassini11plus = 11
 
 
 class GaussTypes(Enum):
@@ -26,25 +36,55 @@ class GaussTypes(Enum):
     ionosphere = 3
 
 
+radius_dict = {GaussPlanets.Earth: 6371.2,
+               GaussPlanets.Jupiter: 71492.0,
+               GaussPlanets.Saturn: 60268.0}
+
+
+planet_dict = {GaussPlanets.Earth: [
+               GaussModels.IGRF,
+               GaussModels.CHAOS,
+               GaussModels.CM,
+               GaussModels.COV_OBS,
+               GaussModels.LCS,
+               GaussModels.SIFM,
+               GaussModels.DIFI,
+               ],
+               GaussPlanets.Jupiter: [
+               GaussModels.JRM33,
+               GaussModels.JRM09
+               ],
+               GaussPlanets.Saturn:  [
+               GaussModels.Cassini11,
+               GaussModels.Cassini11plus
+               ]}
+
+
 versions_dict = {GaussModels.IGRF: [13, 14],
                  GaussModels.CHAOS: [7.18, 8.5],
                  GaussModels.CM: [6],
                  GaussModels.COV_OBS: [2],
                  GaussModels.LCS: [1],
                  GaussModels.DIFI: [6],
-                 GaussModels.SIFM: [None]}
+                 GaussModels.SIFM: [None],
+                 GaussModels.JRM33: [None],
+                 GaussModels.JRM09: [None],
+                 GaussModels.Cassini11: [None],
+                 GaussModels.Cassini11plus: [None]}
 
 
 class Gauss(AbsBfield):
     ToMeters = Units.km2m
 
-    def __init__(self, date: datetime.datetime, model: GaussModels | str, model_type: GaussTypes | str, version=None,
+    def __init__(self, date: datetime.datetime, planet: GaussPlanets | str, model: GaussModels | str, model_type: GaussTypes | str, version=None,
                  coord: int = 1, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.Units = "km"
-        self.Model = model if isinstance(model_type, GaussModels) else GaussModels[model]
+        self.Planet = planet if isinstance(planet, GaussPlanets) else GaussPlanets[planet]
+        self.Model = model if isinstance(model, GaussModels) else GaussModels[model]
         self.type = model_type if isinstance(model_type, GaussTypes) else GaussTypes[model_type]
+        self.Rplanet_km = radius_dict[self.Planet]
         self.version = version
         self.Date = date
         self.coord = coord
@@ -57,18 +97,18 @@ class Gauss(AbsBfield):
     def CalcBfield(self, x, y, z, **kwargs):
         coord = self.coord
         gh = self.gh
-        Bx, By, Bz = self.__calc_b(x, y, z, coord, gh)
+        Rplanet_km = self.Rplanet_km
+        Bx, By, Bz = self.__calc_b(x, y, z, coord, gh, Rplanet_km)
 
         return Bx, By, Bz
 
     @staticmethod
     @jit(nopython=True, fastmath=True)
-    def __calc_b(x, y, z, coord, gh):
+    def __calc_b(x, y, z, coord, gh, Rplanet_km):
         altitude = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         phi = np.arctan2(y, x)
         theta = np.arccos(z / altitude)
         lat = np.pi/2 - theta
-        Rearth_km = 6371.2
         costheta = np.cos(theta)
         sintheta = np.sin(theta)
         # if coord == 0:
@@ -105,12 +145,12 @@ class Gauss(AbsBfield):
         m = 1
         n = 0
         coefindex = 0
-        a_r = (Rearth_km / r) ** 2
+        a_r = (Rplanet_km / r) ** 2
         for Pindex in range(1, Pmax):
             if n < m:
                 m = 0
                 n += 1
-                a_r *= (Rearth_km / r)
+                a_r *= (Rplanet_km / r)
 
             if m < n and Pindex != 2:
                 last1n = Pindex - n
@@ -136,7 +176,7 @@ class Gauss(AbsBfield):
                 Bt -= coef * dP[Pindex]
 
                 if sintheta == 0:
-                    Bp -= costheta * a_r * (-gh[coefindex] * sinphi[m - 1] + gh[coefindex] * cosphi[m - 1]) * \
+                    Bp -= costheta * a_r * (-gh[coefindex] * sinphi[m - 1] + gh[coefindex+1] * cosphi[m - 1]) * \
                           dP[Pindex]
                 else:
                     Bp -= 1 / sintheta * a_r * m * (
@@ -161,7 +201,7 @@ class Gauss(AbsBfield):
                        [0., 0., 1.]])
 
         B = np.array([Bx, By, Bz]) @ My @ Mz
-        
+
         Bx = B[0]
         By = B[1]
         Bz = B[2]
@@ -173,6 +213,7 @@ class Gauss(AbsBfield):
         self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
     def SetFullModelName(self):
+        assert self.Model in planet_dict[self.Planet]
         assert self.version in versions_dict[self.Model]
         txt_file = ""
         mat_file = ""
@@ -227,13 +268,38 @@ class Gauss(AbsBfield):
             txt_file = self.ModelName + ".shc.txt"
             mat_file = self.ModelName + "_" + self.type.name + ".mat"
             npy_file = self.ModelName + "_" + self.type.name + ".npy"
+        elif self.Model == GaussModels.JRM33:
+            self.ModelName = self.Model.name
+            assert self.type == GaussTypes.core
+            txt_file = self.ModelName + "_" + self.type.name + ".shc.txt"
+            mat_file = self.ModelName + "_" + self.type.name + ".mat"
+            npy_file = self.ModelName + "_" + self.type.name + ".npy"
+        elif self.Model == GaussModels.JRM09:
+            self.ModelName = self.Model.name
+            assert self.type == GaussTypes.core
+            txt_file = self.ModelName + "_" + self.type.name + ".shc.txt"
+            mat_file = self.ModelName + "_" + self.type.name + ".mat"
+            npy_file = self.ModelName + "_" + self.type.name + ".npy"
+        elif self.Model == GaussModels.Cassini11:
+            self.ModelName = self.Model.name
+            assert self.type == GaussTypes.core
+            txt_file = self.ModelName + "_" + self.type.name + ".shc.txt"
+            mat_file = self.ModelName + "_" + self.type.name + ".mat"
+            npy_file = self.ModelName + "_" + self.type.name + ".npy"
+        elif self.Model == GaussModels.Cassini11plus:
+            self.ModelName = self.Model.name
+            assert self.type == GaussTypes.core
+            txt_file = self.ModelName + "_" + self.type.name + ".shc.txt"
+            mat_file = self.ModelName + "_" + self.type.name + ".mat"
+            npy_file = self.ModelName + "_" + self.type.name + ".npy"
 
-        self.txt_file_loc = loc + os.sep + self.ModelName + os.sep + txt_file
-        self.mat_file_loc = loc + os.sep + self.ModelName + os.sep + mat_file
-        self.npy_file_loc = loc + os.sep + self.ModelName + os.sep + npy_file
+        self.txt_file_loc = loc + os.sep + self.Planet.name + os.sep + self.ModelName + os.sep + txt_file
+        self.mat_file_loc = loc + os.sep + self.Planet.name + os.sep + self.ModelName + os.sep + mat_file
+        self.npy_file_loc = loc + os.sep + self.Planet.name + os.sep + self.ModelName + os.sep + npy_file
 
     def to_string(self):
         s = f"""{self.Model.name}
+        Planet: {self.Planet.name}
         Type: {self.type.name}
         Version: {self.version}"""
 

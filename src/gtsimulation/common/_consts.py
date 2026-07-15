@@ -38,6 +38,12 @@ class Units:
     RM2m = 1737400
     RM2km = 1737.4
 
+    RJ2m = 71492000
+    RJ2km = 71492.0
+
+    RS2m =60268000
+    RS2km = 60268.0
+
     T2nT = 1e9
 
     # System of units
