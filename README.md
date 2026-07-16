@@ -1,5 +1,3 @@
-![](docs/_static/gtsimulation_logo.png)
-
 [**GT simulation**](https://geospace.mephi.ru/GTsimulation) (GT) is a package that is created for simulations of propagation of charged particles in electromagnetic fields.
 GT solves the relativistic equation of motion of a particle using Buneman-Boris scheme. That allows to recover the trajectory
 of a particle with high precision. Additionally, we take into account the energy losses of particles such as, radiation losses
@@ -9,8 +7,7 @@ with the medium secondary particles may be created, that are later simulated in 
 The code is written in a flexible manner, and easily can be extended by inheriting from the abstract classes of each module. To
 enhance the speed of calculations **numba** just-in-time compiler is used to compile the main functions.
 
-
-## Installation
+# Installation
 
 GT requires Python 3.10+. To avoid possible package conflicts, you can optionally create an isolated virtual environment
 using `venv`:

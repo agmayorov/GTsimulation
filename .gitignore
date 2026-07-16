@@ -1,6 +1,6 @@
 build
 docs/_build/
-docs/reference/
+docs/reference/generated
 .idea/
 __pycache__/
 

@@ -3,33 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: /_static/gtsimulation_logo.png
+.. image:: /_static/gtsimulation_logo.svg
+   :width: 90%
+   :align: center
+   :class: no-bg
 
 .. include:: ../README.md
    :parser: myst_parser.sphinx_
 
 .. toctree::
-   :maxdepth: 2
-   :caption: User Guide
+   :hidden:
 
-   user_guide/getting_started
-   user_guide/particle_pusher
-   user_guide/magnetic_field
-   user_guide/medium
-   user_guide/simulation_output
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Examples
-
-   examples/general
-   examples/magnetosphere
-   examples/heliosphere
-   examples/galaxy
-
-.. autosummary::
-   :toctree: reference
-   :caption: API reference
-   :recursive:
-
-   gtsimulation
+   user_guide/index
+   examples/index
+   API <reference/index>

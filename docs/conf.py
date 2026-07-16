@@ -46,16 +46,29 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+html_css_files = ['css/custom.css']
 html_favicon = '_static/favicon.svg'
+html_logo = '_static/gtsimulation_logo.svg'
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/agmayorov/gtsimulation",
+            "icon": "fa-brands fa-github",
+        },
+    ],
+}
 
-autosummary_generate = True
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,
 }
 autosectionlabel_prefix_document = True
+
+autosummary_generate = True
+autosummary_imported_members = True
 
 # -- Options for myst_nb ------------------------------------------------------
 # https://myst-nb.readthedocs.io/en/latest/configuration.html
