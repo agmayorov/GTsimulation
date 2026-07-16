@@ -1,18 +1,22 @@
 function GetGaussCoeffs(GCparam)
-%   Function to get Gauss coefficients from initial file of Earth MF Model
+%   Function to get Gauss coefficients from initial file of a planetary MF Model
 %   Ver. 1, red. 1 / 17 April 2023 / A. Mayorov
 %   Data teken from http://www.spacecenter.dk/files/magnetic-models/
 %                   https://www.space.dtu.dk/english/research/scientific_data_and_models/magnetic_field_models
 %                   https://geomag.colorado.edu/difi-6
 %
 %   Examples
-%       GetGaussCoeffs('Model', 'IGRF', 'Ver', 13);
-%       GetGaussCoeffs('Model', 'CHAOS', 'Ver', 7.13);
-%       GetGaussCoeffs('Model', 'CM', 'Ver', 6);
-%       GetGaussCoeffs('Model', 'COV-OBS', 'Ver', 2);
-%       GetGaussCoeffs('Model', 'LCS', 'Ver', 1)
-%       GetGaussCoeffs('Model', 'DIFI', 'Ver', 6)
-%       GetGaussCoeffs('Model', 'SIFM')
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'IGRF', 'Ver', 13);
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'CHAOS', 'Ver', 7.13);
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'CM', 'Ver', 6);
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'COV-OBS', 'Ver', 2);
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'LCS', 'Ver', 1)
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'DIFI', 'Ver', 6)
+%       GetGaussCoeffs('Planet', 'Earth', 'Model', 'SIFM')
+%       GetGaussCoeffs('Planet', 'Jupiter', 'Model', 'JRM33')
+%       GetGaussCoeffs('Planet', 'Jupiter', 'Model', 'JRM09')
+%       GetGaussCoeffs('Planet', 'Saturn', 'Model', 'Cassini11')
+%       GetGaussCoeffs('Planet', 'Saturn', 'Model', 'Cassini11plus')
 %
 
 %   TODO
@@ -21,75 +25,77 @@ function GetGaussCoeffs(GCparam)
 %   lithospheric MF
 
     arguments
+        GCparam.Planet          char    {mustBeMember(GCparam.Planet, ...
+                                            {'Earth', 'Jupiter', 'Saturn'})}
         GCparam.Model           char    {mustBeMember(GCparam.Model, ...
-                                            {'IGRF', 'CHAOS', 'CM', 'COV-OBS', 'LCS', 'DIFI','SIFM'})}
+                                            {'IGRF', 'CHAOS', 'CM', 'COV-OBS', 'LCS', 'DIFI','SIFM', 'JRM33', 'JRM09', 'Cassini11', 'Cassini11plus'})}
         GCparam.Ver     (1,1)   double  {mustBePositive(GCparam.Ver)}   = 1;
     end
 
     if strcmp(GCparam.Model, 'CHAOS') % Chenk number of lines in txt files
         % Core field model 1 to 20
-        Model = GetBfieldFullModelName('Model', 'CHAOS', 'Ver', GCparam.Ver, 'Type', 'core');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'CHAOS', 'Ver', GCparam.Ver, 'Type', 'core');
         coefs = getcoefs(Model.TxtFileLoc, 230, 210, 0, 1, 20, 4, 1);
-        save(Model.MatFile, 'coefs');
-        
+        save(Model.MatFileLoc, 'coefs');
+
         % Lithospheric field model 21 to 185
-        Model = GetBfieldFullModelName('Model', 'CHAOS', 'Ver', GCparam.Ver, 'Type', 'static');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'CHAOS', 'Ver', GCparam.Ver, 'Type', 'static');
         coefs = getcoefs(Model.TxtFileLoc, 17160, 16995, 440, 21, 185, 4, 1);
-        save(Model.MatFile, 'coefs');
+        save(Model.MatFileLoc, 'coefs');
     end
-    
+
     if strcmp(GCparam.Model, 'CM')
         % Core field model 1 to 18
-        Model = GetBfieldFullModelName('Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'core');
-        coefs = getcoefs(Model.TxtFile, 189, 171, 99999999, 1, 18, 4, 1);
-        save(Model.MatFile, 'coefs');
-        
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'core');
+        coefs = getcoefs(Model.TxtFileLoc, 189, 171, 99999999, 1, 18, 4, 1);
+        save(Model.MatFileLoc, 'coefs');
+
         % Lithospheric field model 14 to 120
-        Model = GetBfieldFullModelName('Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'static');
-        coefs = getcoefs(Model.TxtFile, 7276, 7169, 99999999, 14, 120, 4, 1);
-        save(Model.MatFile, 'coefs');
-        
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'static');
+        coefs = getcoefs(Model.TxtFileLoc, 7276, 7169, 99999999, 14, 120, 4, 1);
+        save(Model.MatFileLoc, 'coefs');
+
         % Ionosphere field model 14 to 60 / 1 to 12
-%         Model = GetBfieldFullModelName('Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'ionosphere');
-%         coefs = getcoefs(Model.TxtFile, 1428, 1308, 99999999, 1, 60, 4, 1);
-%         save(Model.MatFile, 'coefs');
+%         Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'CM', 'Ver', GCparam.Ver, 'Type', 'ionosphere');
+%         coefs = getcoefs(Model.TxtFileLoc, 1428, 1308, 99999999, 1, 60, 4, 1);
+%         save(Model.MatFileLoc, 'coefs');
     end
-    
+
     if strcmp(GCparam.Model, 'COV-OBS')
         % Core field model 1 to 14
-        Model = GetBfieldFullModelName('Model', 'COV-OBS', 'Ver', GCparam.Ver, 'Type', 'core');
-        coefs = getcoefs(Model.TxtFile, 119, 105, 99999999, 1, 14, 7, 1);
-        save(Model.MatFile, 'coefs');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'COV-OBS', 'Ver', GCparam.Ver, 'Type', 'core');
+        coefs = getcoefs(Model.TxtFileLoc, 119, 105, 99999999, 1, 14, 7, 1);
+        save(Model.MatFileLoc, 'coefs');
     end
 
     if strcmp(GCparam.Model, 'LCS')
         % Lithospheric field model 1 to 185
-        Model = GetBfieldFullModelName('Model', 'LCS', 'Ver', GCparam.Ver, 'Type', 'static');
-        coefs = getcoefs(Model.TxtFile, 17389, 17205, 99999999, 1, 185, 4, 1);
-        save(Model.MatFile, 'coefs');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'LCS', 'Ver', GCparam.Ver, 'Type', 'static');
+        coefs = getcoefs(Model.TxtFileLoc, 17389, 17205, 99999999, 1, 185, 4, 1);
+        save(Model.MatFileLoc, 'coefs');
     end
-    
+
     if strcmp(GCparam.Model, 'SIFM')
         % Core field model 1 to 13
-        Model = GetBfieldFullModelName('Model', 'SIFM', 'Ver', GCparam.Ver, 'Type', 'core');
-        coefs = getcoefs(Model.TxtFile, 104, 91, 99999999, 1, 13, 6, 1);
-        save(Model.MatFile, 'coefs');
-        
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'SIFM', 'Ver', GCparam.Ver, 'Type', 'core');
+        coefs = getcoefs(Model.TxtFileLoc, 104, 91, 99999999, 1, 13, 6, 1);
+        save(Model.MatFileLoc, 'coefs');
+
         % Lithospheric field model 14 to 70
-        Model = GetBfieldFullModelName('Model', 'SIFM', 'Ver', GCparam.Ver, 'Type', 'static');
-        coefs = getcoefs(Model.TxtFile, 2457, 2388, 99999999, 14, 70, 6, 1);
-        save(Model.MatFile, 'coefs');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'SIFM', 'Ver', GCparam.Ver, 'Type', 'static');
+        coefs = getcoefs(Model.TxtFileLoc, 2457, 2388, 99999999, 14, 70, 6, 1);
+        save(Model.MatFileLoc, 'coefs');
     end
-    
+
     if strcmp(GCparam.Model, 'IGRF') % Change initialization
-        Model = GetBfieldFullModelName('Model', 'IGRF', 'Ver', GCparam.Ver, 'Type', 'core');
+        Model = GetBfieldFullModelName('Planet', 'Earth', 'Model', 'IGRF', 'Ver', GCparam.Ver, 'Type', 'core');
         fid = fopen(Model.TxtFileLoc);
-        
+
         for l = 1:3
             fgetl(fid);
         end
         L = strsplit(fgetl(fid));
-        year = cell2mat(cellfun(@str2num, L(4:end-1), 'uni', 0))';
+        year = cell2mat(cellfun(@str2num, L(4:end-1), 'uni', 0));
         year(end+1) = year(end) + 5;
 
         [s, sg, sh, gN, gM, hN, hM, g, h, gh] = initialization(104, 91, 0, length(year));
@@ -117,19 +123,43 @@ function GetGaussCoeffs(GCparam)
 
         coefs = setcoefs(year, g, gN, gM, h, hN, hM, gh, 13, 14);
 
-        save(Model.MatFile, 'coefs');
+        save(Model.MatFileLoc, 'coefs');
+    end
+
+    if strcmp(GCparam.Model, 'JRM33')
+       Model = GetBfieldFullModelName('Planet', 'Jupiter', 'Model', 'JRM33', 'Type', 'core');
+       coefs = getcoefs(Model.TxtFileLoc, 189, 171, 0, 1, 18, 2, 2);
+       save(Model.MatFileLoc, 'coefs');
+    end
+
+    if strcmp(GCparam.Model, 'JRM09')
+       Model = GetBfieldFullModelName('Planet', 'Jupiter', 'Model', 'JRM09', 'Type', 'core');
+       coefs = getcoefs(Model.TxtFileLoc, 65, 55, 0, 1, 10, 2, 2);
+       save(Model.MatFileLoc, 'coefs');
+    end
+
+    if strcmp(GCparam.Model, 'Cassini11')
+       Model = GetBfieldFullModelName('Planet', 'Saturn', 'Model', 'Cassini11', 'Type', 'core');
+       coefs = getcoefs(Model.TxtFileLoc, 77, 66, 0, 1, 11, 2, 2);
+       save(Model.MatFileLoc, 'coefs');
+    end
+
+    if strcmp(GCparam.Model, 'Cassini11plus')
+       Model = GetBfieldFullModelName('Planet', 'Saturn', 'Model', 'Cassini11plus', 'Type', 'core');
+       coefs = getcoefs(Model.TxtFileLoc, 119, 105, 0, 1, 14, 2, 2);
+       save(Model.MatFileLoc, 'coefs');
     end
 end
 
 function coefs = getcoefs(filename, n, m, qw, kmin, kmax, r, p)
     fid = fopen(filename);
-    
+
     for l = 1:r
         fgetl(fid);
     end
     if ~strcmp(filename, 'CM6/MIO_CM6.DBL.txt')
         L = strsplit(fgetl(fid));
-        year = cell2mat(cellfun(@str2num, L, 'uni', 0))';
+        year = cell2mat(cellfun(@str2num, L, 'uni', 0));
     else
         year = 1999.0:0.5:2023.5;
     end
