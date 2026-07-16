@@ -17,3 +17,4 @@
    user_guide/index
    examples/index
    API <reference/index>
+   about
