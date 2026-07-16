@@ -76,8 +76,8 @@ versions_dict = {GaussModels.IGRF: [13, 14],
 class Gauss(AbsBfield):
     ToMeters = Units.km2m
 
-    def __init__(self, date: datetime.datetime, planet: GaussPlanets | str, model: GaussModels | str, model_type: GaussTypes | str, version=None,
-                 coord: int = 1, **kwargs):
+    def __init__(self, date: datetime.datetime, model: GaussModels | str, model_type: GaussTypes | str, version=None,
+                 planet: GaussPlanets | str = GaussPlanets.Earth, coord: int = 1, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Magnetosphere
         self.Units = "km"
