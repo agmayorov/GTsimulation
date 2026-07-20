@@ -1,18 +1,69 @@
 import os
-import datetime
-import scipy.io
+
 import numpy as np
-from numba import jit
+import scipy.io
+from numba import njit
 
 from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field import AbsBfield
 
 
 class JF12mod(AbsBfield):
-    ToMeters = Units.kpc2m
+    """
+    Modified Jansson–Farrar 2012 model of the Galactic magnetic field.
 
-    def __init__(self, use_noise=True, **kwargs):
-        super().__init__(**kwargs)
+    This class implements the regular (disk, toroidal halo, X‑field) and
+    optional turbulent (striated and isotropic) components of the Milky Way's
+    magnetic field. The isotropic turbulent part is
+    based on a synthetic Kolmogorov-like spectrum generated on a grid.
+
+    Parameters
+    ----------
+    use_noise : bool, optional
+        If `True`, include turbulent magnetic field components. Default is `True`.
+
+    Notes
+    -----
+    The regular field follows the prescription of Jansson & Farrar (2012) with
+    modifications described in [1]_, [2]_. The model parameters (e.g., `b_disk`,
+    `r_arms`, `pitch`, `B_n`, `bX`, etc.) are hard‑coded to the best‑fit values
+    given in publications. For a detailed description of each parameter, please
+    refer to the original publications. The realization of an isotropic turbulent
+    field follows from [3]_.
+
+    The regular field consists of:
+      - a spiral disk field with pitch angle 11.5°,
+      - a toroidal halo field (north/south asymmetry),
+      - an X‑shaped halo field.
+
+    The turbulent field (if enabled) includes:
+      - an anisotropic (striated) component with parameter `beta_str`,
+      - an isotropic component combining a thin disk and a halo term.
+
+    Coordinates are expected in **kiloparsecs (kpc)**. The returned field
+    components are in **nanotesla (nT)**.
+
+    References
+    ----------
+    .. [1] Jansson, Ronnie, and Glennys R. Farrar. "A new model of the galactic magnetic field."
+        The Astrophysical Journal 757.1 (2012): 14.
+    .. [2] Jansson, Ronnie, and Glennys R. Farrar. "The galactic magnetic field." The Astrophysical
+        Journal Letters 761.1 (2012): L11.
+    .. [3] Beck, Marcus C., et al. "New constraints on modelling the random magnetic field of the MW."
+        Journal of Cosmology and Astroparticle Physics 2016.05 (2016): 056-056.
+
+    Examples
+    --------
+    >>> from gtsimulation.magnetic_field.galaxy import JF12mod
+    >>> model = JF12mod(use_noise=False)
+    >>> bx, by, bz = model.CalcBfield(x=-8.5, y=0.0, z=0.0)  # Sun's position
+    >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
+    """
+
+    ToMeters = Units.kpc
+
+    def __init__(self, use_noise=True):
+        super().__init__()
         self.Region = Regions.Galaxy
         self.ModelName = "JF12mod"
         self.Units = "kpc"
@@ -82,42 +133,72 @@ class JF12mod(AbsBfield):
             self.x_grid, self.y_grid, self.z_grid = np.zeros(3), np.zeros(3), np.zeros(3)
 
     def CalcBfield(self, x, y, z, **kwargs):
-        return self.__calc_b_field(x, y, z,
-                                   self.h_disk, self.w_disk,
-                                   self.b_ring, self.b_disk,
-                                   self.r_arms,
-                                   self.pitch, self.sinPitch, self.cosPitch,
-                                   self.z_0, self.r_n, self.r_s, self.w_h,
-                                   self.B_n, self.B_s,
-                                   self.rXc, self.rX,
-                                   self.tanThetaX0, self.sinThetaX0, self.cosThetaX0,
-                                   self.bX,
-                                   self.x_grid, self.y_grid, self.z_grid,
-                                   self.Gx, self.Gy, self.Gz,
-                                   self.beta_str,
-                                   self.b_int_turb, self.b_disk_turb, self.z_disk_turb,
-                                   self.b_halo_turb, self.r_halo_turb, self.z_halo_turb,
-                                   self.f_a, self.f_i,
-                                   self.use_noise)
+        """
+        Compute the magnetic field vector at a given Galactic position.
+
+        Parameters
+        ----------
+        x : float
+            Galactic X‑coordinate (kpc).
+        y : float
+            Galactic Y‑coordinate (kpc).
+        z : float
+            Galactic Z‑coordinate (kpc).
+        **kwargs : additional arguments
+            Ignored; present only for compatibility with the base class.
+
+        Returns
+        -------
+        tuple of (float, float, float)
+            The three components of the magnetic field :math:`(B_x, B_y, B_z)`
+            in **nanotesla (nT)**.
+
+        Notes
+        -----
+        If `use_noise` was set to `False` at construction, the turbulent
+        contributions are zero; otherwise they are interpolated from the
+        pre‑computed Gaussian random field.
+
+        The position is expected to be within the Galactic disk
+        (roughly :math:`r < 20` kpc and :math:`|z| < 20` kpc); outside this
+        region the field strength equal to zero.
+        """
+        return self.__calc_field(x, y, z,
+                                 self.h_disk, self.w_disk,
+                                 self.b_ring, self.b_disk,
+                                 self.r_arms,
+                                 self.pitch, self.sinPitch, self.cosPitch,
+                                 self.z_0, self.r_n, self.r_s, self.w_h,
+                                 self.B_n, self.B_s,
+                                 self.rXc, self.rX,
+                                 self.tanThetaX0, self.sinThetaX0, self.cosThetaX0,
+                                 self.bX,
+                                 self.x_grid, self.y_grid, self.z_grid,
+                                 self.Gx, self.Gy, self.Gz,
+                                 self.beta_str,
+                                 self.b_int_turb, self.b_disk_turb, self.z_disk_turb,
+                                 self.b_halo_turb, self.r_halo_turb, self.z_halo_turb,
+                                 self.f_a, self.f_i,
+                                 self.use_noise)
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def __calc_b_field(x, y, z,
-                       h_disk, w_disk,
-                       b_ring, b_disk, r_arms,
-                       pitch, sinPitch, cosPitch,
-                       z_0, r_n, r_s, w_h,
-                       B_n, B_s,
-                       rXc, rX,
-                       tanThetaX0, sinThetaX0, cosThetaX0,
-                       bX,
-                       x_grid, y_grid, z_grid,
-                       Gx, Gy, Gz,
-                       beta_str,
-                       b_int_turb, b_disk_turb, z_disk_turb,
-                       b_halo_turb, r_halo_turb, z_halo_turb,
-                       f_a, f_i,
-                       use_noise):
+    @njit(fastmath=True)
+    def __calc_field(x, y, z,
+                     h_disk, w_disk,
+                     b_ring, b_disk, r_arms,
+                     pitch, sinPitch, cosPitch,
+                     z_0, r_n, r_s, w_h,
+                     B_n, B_s,
+                     rXc, rX,
+                     tanThetaX0, sinThetaX0, cosThetaX0,
+                     bX,
+                     x_grid, y_grid, z_grid,
+                     Gx, Gy, Gz,
+                     beta_str,
+                     b_int_turb, b_disk_turb, z_disk_turb,
+                     b_halo_turb, r_halo_turb, z_halo_turb,
+                     f_a, f_i,
+                     use_noise):
         R = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         r = np.sqrt(x ** 2 + y ** 2)
         phi = np.arctan2(y, x)
@@ -239,8 +320,8 @@ class JF12mod(AbsBfield):
     def UpdateState(self, new_date):
         pass
 
-    def to_string(self):
-        s = f"""JF12mod
-        Noise: {self.use_noise}"""
-
-        return s
+    def __str__(self):
+        return (
+            "JF12mod\n"
+            f"\tNoise: {self.use_noise}"
+        )

@@ -1,37 +1,94 @@
-import datetime
-from typing import Callable, Any
-
-import scipy.io
-import numpy as np
-from numba import jit
 from enum import Enum
+
+import numpy as np
+from numba import njit
 
 from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field import AbsBfield
-import sys
 
 
-class ModelTypes(Enum):
-    base = 1,
-    expX = 2,
-    neCL = 3,
-    twistX = 4,
-    nebCor = 5,
-    cre10 = 6,
+class UF23ModelType(Enum):
+    """
+    Available UF23 magnetic field models.
+    """
+    base = 1
+    expX = 2
+    neCL = 3
+    twistX = 4
+    nebCor = 5
+    cre10 = 6
     synCG = 7
 
 
 class UF23(AbsBfield):
-    ToMeters = Units.kpc2m
+    """
+    Unger–Farrar 2023 model of the Galactic magnetic field.
 
-    def __init__(self, model_type: ModelTypes | str = ModelTypes.base, use_noise=True, **kwargs):
+    This class implements a comprehensive model of the Milky Way's magnetic
+    field, including a logarithmic spiral disk, a toroidal halo, and a
+    poloidal (X‑shaped) halo component. Several variants of the model are
+    available, corresponding to different astrophysical constraints or
+    physical assumptions.
+
+    Parameters
+    ----------
+    model_type : :py:class:`~gtsimulation.magnetic_field.galaxy.UF23ModelType` or str, optional
+        The specific variant of the UF23 model to use. Can be given as an enum
+        member (e.g., ``UF23ModelType.base``) or as its name (e.g., ``"base"``).
+        The following strings are accepted:
+
+            - ``"base"``   : baseline best‑fit model
+            - ``"expX"``   : exponential suppression of the poloidal field
+            - ``"neCL"``   : no extra‑galactic cosmic‑ray constraints
+            - ``"nebCor"`` : nebula‑corrected model
+            - ``"cre10"``  : model with CR electron constraints at 10 GeV
+            - ``"synCG"``  : model fitted to synchrotron data and CMB foregrounds
+
+        The variant ``"twistX"`` (twisted poloidal field) is listed in the
+        original work but is **not yet implemented**.
+        Default is ``UF23ModelType.base``.
+    use_noise : bool, optional
+        If `True`, turbulent field components are enabled. **Currently not
+        implemented** – the parameter is accepted but has no effect.
+        Default is `True`.
+    **kwargs : additional keyword arguments
+        Passed to the base class :class:`~gtsimulation.magnetic_field.AbsBfield`.
+
+    Notes
+    -----
+    The magnetic field model is implemented in accordance with [1]_; all parameters
+    for each variant are hard‑coded to the best‑fit values given in Table 1 of the publication.
+
+    The regular field consists of:
+      - a logarithmic spiral disk field,
+      - a toroidal halo field (north/south asymmetric),
+      - a poloidal (X‑shaped) halo field.
+
+    Coordinates are expected in **kiloparsecs (kpc)**. The returned field
+    components are in **nanotesla (nT)**.
+
+    References
+    ----------
+    .. [1] Unger, Michael, and Glennys R. Farrar. "The coherent magnetic field of
+        the Milky Way." The Astrophysical Journal 970.1 (2024): 95.
+
+    Examples
+    --------
+    >>> from gtsimulation.magnetic_field.galaxy import UF23
+    >>> model = UF23(model_type="base", use_noise=False)
+    >>> Bx, By, Bz = model.CalcBfield(x=-8.2, y=0.0, z=0.0)  # Sun's position
+    >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
+    """
+
+    ToMeters = Units.kpc
+
+    def __init__(self, model_type: UF23ModelType | str = UF23ModelType.base, use_noise=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Galaxy
         self.ModelName = "UF23"
-        self.model_type = model_type if isinstance(model_type, ModelTypes) else ModelTypes[model_type]
+        self.model_type = model_type if isinstance(model_type, UF23ModelType) else UF23ModelType[model_type]
         self.Units = "kpc"
         self.use_noise = use_noise
-        self.float_min = sys.float_info.min
 
         # Regular field #
         # Disk field
@@ -43,7 +100,7 @@ class UF23(AbsBfield):
 
         # TODO add 'twistX' model
         match self.model_type:
-            case ModelTypes.base:
+            case UF23ModelType.base:
                 # Disk field
                 self.pitch = 10.11 * np.pi / 180  # rad
                 self.z_disk = 0.794  # kpc
@@ -75,7 +132,7 @@ class UF23(AbsBfield):
                 self.xi = 0.346
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-            case ModelTypes.expX:
+            case UF23ModelType.expX:
                 # Disk field
                 self.pitch = 10.03 * np.pi / 180  # rad
                 self.z_disk = 0.715  # kpc
@@ -107,7 +164,7 @@ class UF23(AbsBfield):
                 self.xi = 0.51
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-            case ModelTypes.neCL:
+            case UF23ModelType.neCL:
                 # Disk field
                 self.pitch = 11.9 * np.pi / 180  # rad
                 self.z_disk = 0.674  # kpc
@@ -139,7 +196,7 @@ class UF23(AbsBfield):
                 self.xi = 0.336
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-            case ModelTypes.nebCor:
+            case UF23ModelType.nebCor:
                 # Disk field
                 self.pitch = 10.15 * np.pi / 180  # rad
                 self.z_disk = 0.812  # kpc
@@ -171,7 +228,7 @@ class UF23(AbsBfield):
                 self.xi = 0.0
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-            case ModelTypes.synCG:
+            case UF23ModelType.synCG:
                 # Disk field
                 self.pitch = 9.90 * np.pi / 180  # rad
                 self.z_disk = 0.622  # kpc
@@ -203,7 +260,7 @@ class UF23(AbsBfield):
                 self.xi = 0.63
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-            case ModelTypes.cre10:
+            case UF23ModelType.cre10:
                 # Disk field
                 self.pitch = 10.16 * np.pi / 180  # rad
                 self.z_disk = 0.808  # kpc
@@ -236,31 +293,60 @@ class UF23(AbsBfield):
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
     def CalcBfield(self, x, y, z, **kwargs):
-        return self.__calc_b_field(x, y, z,
-                                   self.pitch, self.z_disk, self.w_disk,
-                                   self.B_1, self.B_2, self.B_3,
-                                   self.phi_1, self.phi_2, self.phi_3,
-                                   self.r_0, self.r_1, self.r_2,
-                                   self.w_1, self.w_2,
-                                   self.B_n, self.B_s,
-                                   self.z_t, self.r_t, self.w_t, self.t,
-                                   self.B_p, self.p, self.z_p, self.r_p, self.w_p, self.a_c,
-                                   self.float_min,
-                                   self.use_noise, self.model_type.value[0])
+        """
+        Compute the magnetic field vector at a given Galactic position.
+
+        Parameters
+        ----------
+        x : float
+            Galactic X‑coordinate (kpc).
+        y : float
+            Galactic Y‑coordinate (kpc).
+        z : float
+            Galactic Z‑coordinate (kpc).
+        **kwargs : additional arguments
+            Ignored; present only for compatibility with the base class.
+
+        Returns
+        -------
+        tuple of (float, float, float)
+            The three components :math:`(B_x, B_y, B_z)` of the magnetic field
+            in **nanotesla (nT)**.
+
+        Notes
+        -----
+        The field is evaluated using the parameters of the model variant
+        selected at instantiation. The calculation includes the disk,
+        toroidal halo, and poloidal halo contributions. No turbulent
+        component is added even if `use_noise` was set to `True`.
+
+        The position is expected to lie within the Galactic disk region
+        (typically :math:`r < 20` kpc and :math:`|z| < 10` kpc); outside
+        this range the field may be poorly constrained.
+        """
+        return self.__calc_field(x, y, z,
+                                 self.pitch, self.z_disk, self.w_disk,
+                                 self.B_1, self.B_2, self.B_3,
+                                 self.phi_1, self.phi_2, self.phi_3,
+                                 self.r_0, self.r_1, self.r_2,
+                                 self.w_1, self.w_2,
+                                 self.B_n, self.B_s,
+                                 self.z_t, self.r_t, self.w_t, self.t,
+                                 self.B_p, self.p, self.z_p, self.r_p, self.w_p, self.a_c,
+                                 self.use_noise, self.model_type.value)
 
     @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def __calc_b_field(x, y, z,
-                       pitch, z_disk, w_disk,
-                       B_1, B_2, B_3,
-                       phi_1, phi_2, phi_3,
-                       r_0, r_1, r_2,
-                       w_1, w_2,
-                       B_n, B_s,
-                       z_t, r_t, w_t, t,
-                       B_p, p, z_p, r_p, w_p, a_c,
-                       float_min,
-                       use_noise, model_type_value):
+    @njit(fastmath=True)
+    def __calc_field(x, y, z,
+                     pitch, z_disk, w_disk,
+                     B_1, B_2, B_3,
+                     phi_1, phi_2, phi_3,
+                     r_0, r_1, r_2,
+                     w_1, w_2,
+                     B_n, B_s,
+                     z_t, r_t, w_t, t,
+                     B_p, p, z_p, r_p, w_p, a_c,
+                     use_noise, model_type_value):
 
         R = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         r = np.sqrt(x ** 2 + y ** 2)
@@ -309,7 +395,7 @@ class UF23(AbsBfield):
             f_x = 1 - sigmoid((a - r_p) / w_p)
         B0 = B_p * f_x
 
-        if r <= float_min:
+        if r <= 1e-12:
             Br_p = 0.0
         else:
             Br_p = B0 * c * a / r_over_a * np.sign(z) * np.power(np.abs(z), p - 1) / np.sqrt(np.power(delta, 2) + k)
@@ -331,9 +417,8 @@ class UF23(AbsBfield):
     def UpdateState(self, new_date):
         pass
 
-    def to_string(self):
-        s = f"""UF23
-        Noise: {self.use_noise}
-        Model type: {self.model_type.name}"""
-
-        return s
+    def __str__(self):
+        return (
+            "UF23\n"
+            f"\tModel type: {self.model_type.name}"
+        )
