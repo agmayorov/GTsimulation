@@ -51,7 +51,10 @@ class Tsyganenko(AbsBfield):
         self.parmod = self._get_ind()
 
     def _get_psi(self):
-        self.g, self.h, _ = gauss.LoadGaussCoeffs(Path(__file__).resolve().parent.joinpath("IGRF13", "igrf13coeffs.npy"), self.Date)
+        self.g, self.h, _ = gauss.LoadGaussCoeffs(
+            Path(__file__).resolve().parent.joinpath("Earth", "IGRF13", "igrf13coeffs.npy"),
+            self.Date
+        )
         [x, y, z] = transformations.geo2mag_eccentric(0, 0, 1, 0, self.g, self.h)
         [x, y, z] = transformations.gei2geo(x, y, z, self.year, self.doy, self.sec, 0)
         [x, y, z] = transformations.gei2gsm(x, y, z, self.year, self.doy, self.sec, 1)
