@@ -47,7 +47,7 @@ class UF23(AbsBfield):
         The variant ``"twistX"`` (twisted poloidal field) is listed in the
         original work but is **not yet implemented**.
         Default is ``UF23ModelType.base``.
-    use_noise : bool, optional
+    use_turb : bool, optional
         If `True`, turbulent field components are enabled. **Currently not
         implemented** – the parameter is accepted but has no effect.
         Default is `True`.
@@ -75,20 +75,20 @@ class UF23(AbsBfield):
     Examples
     --------
     >>> from gtsimulation.magnetic_field.galaxy import UF23
-    >>> model = UF23(model_type="base", use_noise=False)
+    >>> model = UF23(model_type="base", use_turb=False)
     >>> Bx, By, Bz = model.CalcBfield(x=-8.2, y=0.0, z=0.0)  # Sun's position
     >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
     """
 
     ToMeters = Units.kpc
 
-    def __init__(self, model_type: UF23ModelType | str = UF23ModelType.base, use_noise=True, **kwargs):
+    def __init__(self, model_type: UF23ModelType | str = UF23ModelType.base, use_turb=True, **kwargs):
         super().__init__(**kwargs)
         self.Region = Regions.Galaxy
         self.ModelName = "UF23"
         self.model_type = model_type if isinstance(model_type, UF23ModelType) else UF23ModelType[model_type]
         self.Units = "kpc"
-        self.use_noise = use_noise
+        self.use_turb = use_turb
 
         # Regular field #
         # Disk field
@@ -318,7 +318,7 @@ class UF23(AbsBfield):
         The field is evaluated using the parameters of the model variant
         selected at instantiation. The calculation includes the disk,
         toroidal halo, and poloidal halo contributions. No turbulent
-        component is added even if `use_noise` was set to `True`.
+        component is added even if `use_turb` was set to `True`.
 
         The position is expected to lie within the Galactic disk region
         (typically :math:`r < 20` kpc and :math:`|z| < 10` kpc); outside
@@ -333,7 +333,7 @@ class UF23(AbsBfield):
                                  self.B_n, self.B_s,
                                  self.z_t, self.r_t, self.w_t, self.t,
                                  self.B_p, self.p, self.z_p, self.r_p, self.w_p, self.a_c,
-                                 self.use_noise, self.model_type.value)
+                                 self.use_turb, self.model_type.value)
 
     @staticmethod
     @njit(fastmath=True)
@@ -346,7 +346,7 @@ class UF23(AbsBfield):
                      B_n, B_s,
                      z_t, r_t, w_t, t,
                      B_p, p, z_p, r_p, w_p, a_c,
-                     use_noise, model_type_value):
+                     use_turb, model_type_value):
 
         R = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         r = np.sqrt(x ** 2 + y ** 2)

@@ -19,7 +19,7 @@ class JF12mod(AbsBfield):
 
     Parameters
     ----------
-    use_noise : bool, optional
+    use_turb : bool, optional
         If `True`, include turbulent magnetic field components. Default is `True`.
 
     Notes
@@ -55,19 +55,19 @@ class JF12mod(AbsBfield):
     Examples
     --------
     >>> from gtsimulation.magnetic_field.galaxy import JF12mod
-    >>> model = JF12mod(use_noise=False)
+    >>> model = JF12mod(use_turb=False)
     >>> bx, by, bz = model.CalcBfield(x=-8.5, y=0.0, z=0.0)  # Sun's position
     >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
     """
 
     ToMeters = Units.kpc
 
-    def __init__(self, use_noise=True):
+    def __init__(self, use_turb=True):
         super().__init__()
         self.Region = Regions.Galaxy
         self.ModelName = "JF12mod"
         self.Units = "kpc"
-        self.use_noise = use_noise
+        self.use_turb = use_turb
 
         # Regular field #
 
@@ -116,7 +116,7 @@ class JF12mod(AbsBfield):
         self.r_halo_turb = 10.97
         self.z_halo_turb = 2.84
 
-        if self.use_noise:
+        if self.use_turb:
             # coeffs = np.load(f"Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.npy", allow_pickle=True).item(0)
             path = os.path.dirname(os.path.realpath(__file__))
             coeffs = scipy.io.loadmat(
@@ -155,7 +155,7 @@ class JF12mod(AbsBfield):
 
         Notes
         -----
-        If `use_noise` was set to `False` at construction, the turbulent
+        If `use_turb` was set to `False` at construction, the turbulent
         contributions are zero; otherwise they are interpolated from the
         pre‑computed Gaussian random field.
 
@@ -179,7 +179,7 @@ class JF12mod(AbsBfield):
                                  self.b_int_turb, self.b_disk_turb, self.z_disk_turb,
                                  self.b_halo_turb, self.r_halo_turb, self.z_halo_turb,
                                  self.f_a, self.f_i,
-                                 self.use_noise)
+                                 self.use_turb)
 
     @staticmethod
     @njit(fastmath=True)
@@ -198,7 +198,7 @@ class JF12mod(AbsBfield):
                      b_int_turb, b_disk_turb, z_disk_turb,
                      b_halo_turb, r_halo_turb, z_halo_turb,
                      f_a, f_i,
-                     use_noise):
+                     use_turb):
         R = np.sqrt(x ** 2 + y ** 2 + z ** 2)
         r = np.sqrt(x ** 2 + y ** 2)
         phi = np.arctan2(y, x)
@@ -283,7 +283,7 @@ class JF12mod(AbsBfield):
         By_iso = 0
         Bz_iso = 0
 
-        if use_noise:
+        if use_turb:
             if r < 20 and np.abs(z) < 20:
                 ix = np.where(x % x_grid[-1] >= x_grid[:-1])[0][-1]
                 iy = np.where(y % y_grid[-1] >= y_grid[:-1])[0][-1]
@@ -323,5 +323,5 @@ class JF12mod(AbsBfield):
     def __str__(self):
         return (
             "JF12mod\n"
-            f"\tNoise: {self.use_noise}"
+            f"\tTurbulence: {self.use_turb}"
         )
