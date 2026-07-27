@@ -34,10 +34,10 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx_design',
+    'numpydoc',
     'myst_nb',
 ]
 
@@ -69,10 +69,14 @@ autodoc_default_options = {
 autosectionlabel_prefix_document = True
 
 autosummary_generate = True
-autosummary_imported_members = True
+
+# -- Options for numpydoc -----------------------------------------------------
+# https://numpydoc.readthedocs.io/en/stable/install.html
+
+numpydoc_show_class_members = False
 
 # -- Options for myst_nb ------------------------------------------------------
-# https://myst-nb.readthedocs.io/en/latest/configuration.html
+# https://myst-nb.readthedocs.io/en/stable/configuration.html
 
 myst_enable_extensions = [
     "dollarmath",
