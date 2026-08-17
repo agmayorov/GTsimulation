@@ -188,9 +188,9 @@ class Parker(AbsBfield):
         alpha_rad = self.alpha_rad
         delta_rad = self.delta_rad
 
-        A_azimuth = self.A_azimuth
-        alpha_azimuth = self.alpha_azimuth
-        delta_azimuth = self.delta_azimuth
+        A_az = self.A_az
+        alpha_az = self.alpha_az
+        delta_az = self.delta_az
 
         A_2D = self.A_2D
         alpha_2D = self.alpha_2D
@@ -201,7 +201,7 @@ class Parker(AbsBfield):
 
         Bx_n, By_n, Bz_n = self._calc_noise(r, theta, phi, a,
                                             A_rad, alpha_rad, delta_rad,
-                                            A_azimuth, alpha_azimuth, delta_azimuth,
+                                            A_az, alpha_az, delta_az,
                                             A_2D, alpha_2D, delta_2D,
                                             rs, k, dk, self.use_slab, self.use_2d, self.coeff_2d)
 
@@ -296,19 +296,19 @@ class Parker(AbsBfield):
                                  (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_rad) < 0))
         self.delta_rad = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
-        self.A_azimuth = np.random.randn(self.noise_num, 1) / 4.5
-        self.alpha_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
+        self.A_az = np.random.randn(self.noise_num, 1) / 4.5
+        self.alpha_az = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
-        n = np.trunc(np.sin(self.alpha_azimuth) * self.k)
-        self.alpha_azimuth = np.real(np.arcsin(n / self.k) * (np.cos(self.alpha_azimuth) > 0) +
-                                     (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_azimuth) < 0))
-        self.delta_azimuth = np.random.rand(self.noise_num, 1) * 2 * np.pi
+        n = np.trunc(np.sin(self.alpha_az) * self.k)
+        self.alpha_az = np.real(np.arcsin(n / self.k) * (np.cos(self.alpha_az) > 0) +
+                                (np.pi - np.arcsin(n / self.k)) * (np.cos(self.alpha_az) < 0))
+        self.delta_az = np.random.rand(self.noise_num, 1) * 2 * np.pi
 
     @staticmethod
     @njit(fastmath=True)
     def _calc_noise(r, theta, phi, a,
                     A_rad, alpha_rad, delta_rad,
-                    A_azimuth, alpha_azimuth, delta_azimuth,
+                    A_az, alpha_az, delta_az,
                     A_2d, alpha_2d, delta_2d,
                     rs, k, dk, use_slab, use_2d, component_2d):
         """
@@ -319,11 +319,11 @@ class Parker(AbsBfield):
         p = 0
         gamma = 3
 
-        cospsi = 1. / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
-        sinpsi = ((r - rs) * np.sin(theta) / a) / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
+        cosPsi = 1. / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
+        sinPsi = ((r - rs) * np.sin(theta) / a) / np.sqrt(1 + ((r - rs) * np.sin(theta) / a) ** 2)
 
-        cospsi_ = 1. / np.sqrt(1 + ((r - rs) / a) ** 2)
-        sinpsi_ = ((r - rs) / a) / np.sqrt(1 + ((r - rs) / a) ** 2)
+        cosPsi_ = 1. / np.sqrt(1 + ((r - rs) / a) ** 2)
+        sinPsi_ = ((r - rs) / a) / np.sqrt(1 + ((r - rs) / a) ** 2)
 
         lam_2d = 0.04 * (r / (rs / 5)) ** 0.8 * (rs / 5)
         dlamd_2d = 0.032 * (rs / (5 * r)) ** 0.2
@@ -338,28 +338,23 @@ class Parker(AbsBfield):
             numer_slab = dk[mod, 0] * k[mod, 0] ** p
 
             # Radial spectrum
-
             B_rad = A_rad[mod, 0] * r ** (-gamma / 2)
             brk_rad = lam_slab * k[mod, 0] / np.sqrt(a * r)
             denom_rad = (1 + brk_rad ** (p + q_slab))
-
             spectrum_rad = np.sqrt(numer_slab / denom_rad)
-            deltaB_rad = 2 * B_rad * spectrum_rad * cospsi_ * r * np.sqrt(r * a)
+            deltaB_rad = 2 * B_rad * spectrum_rad * cosPsi_ * r * np.sqrt(r * a)
 
             # Azimuthal spectrum
-
-            B_azimuth = A_azimuth[mod, 0] * r ** (-gamma / 2)
-            brk_azimuth = lam_slab * k[mod, 0] / r
-            denom_azimuth = (1 + brk_azimuth ** (p + q_slab))
-            spectrum_azimuth = np.sqrt(numer_slab / denom_azimuth)
-
-            deltaB_azimuth = B_azimuth * spectrum_azimuth
-            dspectrum_azimuth = -spectrum_azimuth * (p + q_2d) * (denom_azimuth - 1) * (r * dlam_slab - lam_slab) / (
-                    denom_azimuth * 2 * r * lam_slab)
-            ddeltaB_azimtuth = B_azimuth * dspectrum_azimuth + spectrum_azimuth * B_azimuth * (-gamma / (2 * r))
+            B_az = A_az[mod, 0] * r ** (-gamma / 2)
+            brk_az = lam_slab * k[mod, 0] / r
+            denom_az = (1 + brk_az ** (p + q_slab))
+            spectrum_az = np.sqrt(numer_slab / denom_az)
+            deltaB_az = B_az * spectrum_az
+            dspectrum_az = -spectrum_az * (p + q_2d) * (denom_az - 1) * (r * dlam_slab - lam_slab) / (
+                    denom_az * 2 * r * lam_slab)
+            ddeltaB_az = B_az * dspectrum_az + spectrum_az * B_az * (-gamma / (2 * r))
 
             # 2d spectrum
-
             B_2d = A_2d[mod, 0] * r ** (-gamma / 2)
             brk_2d = lam_2d * k[mod, 0] / r
             denom_2d = (1 + brk_2d ** (p + q_2d))
@@ -371,15 +366,11 @@ class Parker(AbsBfield):
                     denom_2d * 2 * r * lam_2d)
             ddeltaB_2d = B_2d * dspectrum_2d + spectrum_2d * B_2d * (-gamma / (2 * r))
 
-            # Radial polarization and phase
+            # Polarization and phase
             phase_rad = k[mod, 0] * np.sqrt(r / a) + delta_rad[mod, 0]
-
-            # Azimuthal polarization and phase
-            phase_azimuth = k[mod, 0] * phi + delta_azimuth[mod, 0]
-
-            # 2d polarization and phase
-            phase_2d = k[mod, 0] * ((r / a + phi) * np.sin(alpha_2d[mod, 0]) + theta * np.cos(alpha_2d[mod, 0])) + \
-                       delta_2d[mod, 0]
+            phase_az = k[mod, 0] * phi + delta_az[mod, 0]
+            phase_2d = k[mod, 0] * ((r / a + phi) * np.sin(alpha_2d[mod, 0]) + \
+                                    theta * np.cos(alpha_2d[mod, 0])) + delta_2d[mod, 0]
 
             # Radial field
             Br_rad = 0
@@ -389,27 +380,25 @@ class Parker(AbsBfield):
                     2 * r * np.sin(theta) * np.sqrt(a * r))
 
             # Azimuthal field
-
-            Br_az = -deltaB_azimuth * sinpsi_ * np.cos(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
-            Btheta_az = deltaB_azimuth * sinpsi_ * np.sin(alpha_azimuth[mod, 0]) * np.cos(phase_azimuth)
-            Bphi_az = 1/k[mod, 0] * (np.sin(theta) * np.sin(phase_azimuth) * np.cos(alpha_azimuth[mod, 0]) *
-                                     (2*deltaB_azimuth*sinpsi_ + r/a * deltaB_azimuth * cospsi_ + r * sinpsi_ * ddeltaB_azimtuth) -
-                                     np.cos(theta)*deltaB_azimuth*np.sin(phase_azimuth)*sinpsi_*np.sin(alpha_azimuth[mod, 0]))
+            Br_az     = -deltaB_az * sinPsi_ * np.cos(alpha_az[mod, 0]) * np.cos(phase_az)
+            Btheta_az =  deltaB_az * sinPsi_ * np.sin(alpha_az[mod, 0]) * np.cos(phase_az)
+            Bphi_az = np.sin(phase_az) * sinPsi_ / k[mod, 0] * (
+                np.sin(theta) * np.cos(alpha_az[mod, 0]) * (2 * deltaB_az + deltaB_az * cosPsi_ ** 2 + r * ddeltaB_az) -
+                np.cos(theta) * np.sin(alpha_az[mod, 0]) * deltaB_az
+            )
 
             # 2d field
-            Br_2d = -deltaB_2d / (r * k[mod, 0] ) * (np.sin(phase_2d)*sinpsi*np.tan(theta)**(-1) +
-                                                     k[mod, 0]*np.cos(alpha_2d[mod, 0])*np.cos(phase_2d)*sinpsi +
-                                                     np.sin(phase_2d)*sinpsi*cospsi**2*np.tan(theta)**(-1))
-            Btheta_2d = deltaB_2d / (r * np.sin(theta)) * cospsi * np.sin(alpha_2d[mod, 0] * np.cos(phase_2d)) \
-                        - np.sin(theta) * cospsi / (a * r * k[mod, 0]) * (ddeltaB_2d * r * (r - rs) * np.sin(phase_2d) +
-                                                                          deltaB_2d * np.sin(phase_2d) * (
-                                                                                  2 * r - rs - r * sinpsi ** 2) +
-                                                                          k[mod, 0] * r * (r - rs) / a *
-                                                                          np.sin(alpha_2d[mod, 0]) * np.cos(phase_2d) *
-                                                                          deltaB_2d)
-
-            Bphi_2d = -deltaB_2d / (r * k[mod, 0]) * (cospsi * k[mod, 0] * np.cos(alpha_2d[mod, 0]) * np.cos(phase_2d) -
-                                                      (np.tan(theta))**(-1) * np.sin(phase_2d) * cospsi * sinpsi**2)
+            Br_2d = -deltaB_2d / (k[mod, 0] * r) * sinPsi * (np.cos(phase_2d) * np.cos(alpha_2d[mod, 0]) * k[mod, 0] +
+                                                             np.sin(phase_2d) * cosPsi ** 2 / np.tan(theta) +
+                                                             np.sin(phase_2d) / np.tan(theta))
+            Btheta_2d = deltaB_2d / (r * np.sin(theta)) * cosPsi * np.sin(alpha_2d[mod, 0]) * np.cos(phase_2d) \
+                        - np.sin(theta) * cosPsi / (a * r * k[mod, 0]) * (
+                                ddeltaB_2d * r * (r - rs) * np.sin(phase_2d) +
+                                deltaB_2d * np.sin(phase_2d) * (2 * r - rs - r * sinPsi ** 2) +
+                                k[mod, 0] * r * (r - rs) / a * np.sin(alpha_2d[mod, 0]) * np.cos(phase_2d) * deltaB_2d
+                        )
+            Bphi_2d = -deltaB_2d / (k[mod, 0] * r) * cosPsi * (np.cos(phase_2d) * np.cos(alpha_2d[mod, 0]) * k[mod, 0] -
+                                                               np.sin(phase_2d) * sinPsi ** 2 / np.tan(theta))
 
             # Total field
             coeff_slab = 0
@@ -420,9 +409,9 @@ class Parker(AbsBfield):
             if use_2d:
                 coeff_2d = component_2d
 
-            Br += coeff_2d*Br_2d + coeff_slab * (Br_az + Br_rad)
-            Btheta += coeff_2d*Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad)
-            Bphi += coeff_2d*Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad)
+            Br += coeff_2d * Br_2d + coeff_slab * (Br_az + Br_rad)
+            Btheta += coeff_2d * Btheta_2d + coeff_slab * (Btheta_az + Btheta_rad)
+            Bphi += coeff_2d * Bphi_2d + coeff_slab * (Bphi_az + Bphi_rad)
 
         # B = np.zeros((3, *Br_2d.shape))
         # B[0] = Br_2d + coeff_slab * (Br_az + Br_rad)
