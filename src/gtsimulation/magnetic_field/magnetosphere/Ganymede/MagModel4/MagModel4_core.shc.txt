@@ -1,0 +1,11 @@
+# MagModel4: Dipole + Quadrupole model of Ganymede's internal magnetic field based on Galileo and Juno data (Galileo 1996-2000 + Juno 2021), degree n=1, 2
+# Extracted from Jia et al., 2025, DOI:10.1029/2024JE008309
+2008.5
+1    0    -725.6
+1    1     35.7
+1   -1     6.9
+2    0     3.8
+2    1     31.9
+2   -1     13.5
+2    2    -9.8
+2   -2    -5.4
