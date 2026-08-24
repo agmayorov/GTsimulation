@@ -1,0 +1,18 @@
+# Q3: NASA Goddard Space Flight Center (GSFC) Q3 model of the planetary magnetic field of Uranus based on Voyager 2 flyby observations
+# Use degrees 1-2 for physical modeling. "Only coefficients up to and including the quadrupole are adequately resolved." (Connerney et al., 1987, DOI: 10.1029/JA092iA13p15329)
+1986.0651
+g  1   0     11893.0
+g  1   1     11579.0
+h  1  -1    -15684.0
+g  2   0     -6030.0
+g  2   1    -12587.0
+h  2  -1      6116.0
+g  2   2       196.0
+h  2  -2      4759.0
+g  3   0      2705.0
+g  3   1      1188.0
+h  3  -1     -7095.0
+g  3   2     -4808.0
+h  3  -2     -1616.0
+g  3   3     -2412.0
+h  3  -3     -2608.0

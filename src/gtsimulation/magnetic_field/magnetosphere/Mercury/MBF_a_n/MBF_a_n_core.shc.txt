@@ -1,0 +1,19 @@
+# MBF_a_n:  Mercury Body Fixed coordinate system; a = altitude range below 1000 km; n = night side external field
+# Preferred model of Mercury's internal magnetic field based on MESSENGER orbital data (2011-2015)
+# Extracted from Wardinski et al., 2019, DOI: 10.1029/2018JE005835
+2013.2669
+g  1   0      -215.8
+g  1   1         0.2
+h  1  -1         2.7
+g  2   0       -57.0
+g  2   1         1.0
+h  2  -1        -1.4
+g  2   2        -7.0
+h  2  -2        -3.3
+g  3   0       -36.7
+g  3   1         2.9
+h  3  -1         0.8
+g  3   2         9.2
+h  3  -2         2.6
+g  3   3        -2.5
+h  3  -3         0.1
