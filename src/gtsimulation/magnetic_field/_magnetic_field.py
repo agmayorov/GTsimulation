@@ -36,10 +36,3 @@ class AbsBfield(ABC):
         if self.use_tesla:
             return self.to_tesla(Bx, By, Bz)
         return Bx, By, Bz
-
-    @abstractmethod
-    def to_string(self):
-        pass
-
-    def __str__(self):
-        return self.to_string()

@@ -26,10 +26,10 @@ class Summed(AbsBfield):
             if hasattr(model, "UpdateState"):
                 model.UpdateState(new_date)
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Summed
         #-#-#-#-#-#-#-#-#\n"""
         for model in self.models:
-            s += "\t\t"+model.to_string()
+            s += f"\t\t{model}"
             s += "\n\t\t#-#-#-#-#-#-#-#-#\n"
         return s

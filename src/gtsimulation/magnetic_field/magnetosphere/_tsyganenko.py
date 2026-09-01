@@ -90,7 +90,7 @@ class Tsyganenko(AbsBfield):
         self.Date = new_date
         self.__set_psi_ind()
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Tsyganenko
         Mode: {self.mod_code}
         Psi: {self.ps}"""

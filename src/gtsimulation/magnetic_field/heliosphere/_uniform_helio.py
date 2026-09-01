@@ -170,7 +170,7 @@ class UniformHelio(AbsBfield):
             By += (iy_c - iy) * By_xf + (iy - iy_f) * By_xc
         return Bx, By
 
-    def to_string(self):
+    def __str__(self):
         s = f"""{self.ModelName}
             Regular: {self.use_reg}
             Noise: {self.use_noise}

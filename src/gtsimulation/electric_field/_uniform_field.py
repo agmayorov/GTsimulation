@@ -13,7 +13,7 @@ class UniformFieldE(GeneralFieldE):
     def calc_field(self, *args):
         return self.E
 
-    def to_string(self):
+    def __str__(self):
         s = f"""{self.model_name}
             E: {self.E} V/m"""
         return s
