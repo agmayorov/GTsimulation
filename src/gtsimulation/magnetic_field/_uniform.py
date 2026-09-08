@@ -16,12 +16,7 @@ class Uniform(AbsBfield):
     def UpdateState(self, new_date):
         pass
 
-    # def to_string(self):
-    #     s = f"""{self.ModelName}
-    #         B: {self.B} nT"""
-    #     return s
-
     def __str__(self):
-        rs = f"""{self.ModelName}
+        s = f"""{self.ModelName}
             B: {self.B} nT"""
         return s
