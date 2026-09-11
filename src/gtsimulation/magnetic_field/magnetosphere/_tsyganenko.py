@@ -55,11 +55,10 @@ class Tsyganenko(AbsBfield):
             Path(__file__).resolve().parent.joinpath("Earth", "IGRF13", "igrf13coeffs.npy"),
             self.Date
         )
-        [x, y, z] = transformations.geo2mag_eccentric(0, 0, 1, 0, self.g, self.h)
-        [x, y, z] = transformations.gei2geo(x, y, z, self.year, self.doy, self.sec, 0)
-        [x, y, z] = transformations.gei2gsm(x, y, z, self.year, self.doy, self.sec, 1)
+        x, y, z = transformations.geo2mag_eccentric(0, 0, 1, self.g, self.h, inverse=True)
+        x, y, z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, self.g, self.h)
         psi = np.arccos(z / np.linalg.norm([x, y, z]))
-        return psi[0]
+        return psi
 
     def _get_ind(self):
         ia = np.argmax(self.T_input['date'] >= self.Date)
@@ -74,7 +73,7 @@ class Tsyganenko(AbsBfield):
                 return None
 
     def CalcBfield(self, x, y, z, **kwargs):
-        X, Y, Z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, 1)
+        X, Y, Z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, self.g, self.h)
         Bx, By, Bz = 0, 0, 0
         if self.mod_code == "89":
             Bx, By, Bz = t89.t89(self.parmod, self.ps, X, Y, Z)
@@ -83,7 +82,7 @@ class Tsyganenko(AbsBfield):
         elif self.mod_code == "15B":
             Bx, By, Bz = t15B.t15B(self.parmod, self.ps, X, Y, Z)
 
-        Bx, By, Bz = transformations.geo2gsm(Bx, By, Bz, self.year, self.doy, self.sec, 0)
+        Bx, By, Bz = transformations.geo2gsm(Bx, By, Bz, self.year, self.doy, self.sec, self.g, self.h, inverse=True)
         return Bx, By, Bz
 
     def UpdateState(self, new_date):

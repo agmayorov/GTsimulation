@@ -70,8 +70,8 @@ class Dipole(AbsBfield):
     def CalcBfield(self, x, y, z, **kwargs):
         psi = self.psi
         M = self.M
-        X, Y, Z = transformations.geo2dipmag(x, y, z, psi, 1)
-        return transformations.geo2dipmag(*self.__calcBfield(X, Y, Z, M, psi), psi, 0)
+        X, Y, Z = transformations.geo2dipmag(x, y, z, psi)
+        return transformations.geo2dipmag(*self.__calcBfield(X, Y, Z, M, psi), psi, inverse=True)
 
     @staticmethod
     @jit(fastmath=True, nopython=True)

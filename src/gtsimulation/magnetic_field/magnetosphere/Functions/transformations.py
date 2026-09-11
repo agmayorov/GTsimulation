@@ -1,11 +1,8 @@
-import datetime
 import numpy as np
-from numba import jit
-
-from gtsimulation.magnetic_field.magnetosphere.Functions import gauss
+from numba import njit
 
 
-@jit(fastmath=True, nopython=True)
+@njit(fastmath=True)
 def DirectionEarthtoSun(Year, Day, Secs):
     RAD = 57.2958
     GST = 0
@@ -34,7 +31,7 @@ def DirectionEarthtoSun(Year, Day, Secs):
     return Vector, GST, SLONG
 
 
-@jit(fastmath=True, nopython=True)
+@njit(fastmath=True)
 def DisplacementForEccentricDipole(g, h):
     v = np.array([g[0, 0], g[0, 1], h[0, 1]])
     B0 = np.linalg.norm(v)
@@ -49,8 +46,8 @@ def DisplacementForEccentricDipole(g, h):
     return np.array([[DX], [DY], [DZ]])
 
 
-@jit(fastmath=True, nopython=True)
-def geo2mag_eccentric(x, y, z, j, g, h):
+@njit(fastmath=True)
+def geo2mag_eccentric(x, y, z, g, h, inverse=False):
     RE = 6378137.1
     A = DisplacementForEccentricDipole(g, h) * RE
 
@@ -63,70 +60,63 @@ def geo2mag_eccentric(x, y, z, j, g, h):
                       [0.938257039240758, 0.345938908356903, 0],
                       [0.068589929661063, -0.186019809236783, 0.980148994857721]])
 
-    if j > 0:
+    if not inverse:
         vec = mat @ (np.array([[x], [y], [z]], dtype=mat.dtype) - A)
     else:
         vec = np.transpose(mat) @ np.array([[x], [y], [z]], dtype=mat.dtype) + A
 
     vec = np.transpose(vec)
 
-    X = vec[:, 0][:, np.newaxis]
-    Y = vec[:, 1][:, np.newaxis]
-    Z = vec[:, 2][:, np.newaxis]
+    X = vec[0, 0]
+    Y = vec[0, 1]
+    Z = vec[0, 2]
 
     return X, Y, Z
 
+@njit(fastmath=True)
+def gei2geo(x, y, z, year, doy, ut_sec, inverse=False):
+    _, GST, _ = DirectionEarthtoSun(year, doy, ut_sec)
+    theta = np.radians(GST)
 
-def gei2geo(x, y, z, Year, Day, Secs, j):
-    _, GST, _ = DirectionEarthtoSun(Year, Day, Secs)
-    if j > 0:
-        vec = np.transpose([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-                            [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                            [0, 0, 1]]) @ np.vstack((x, y, z))
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+
+    if not inverse:
+        # GEI → GEO
+        X = cos_theta * x + sin_theta * y
+        Y = -sin_theta * x + cos_theta * y
     else:
-        vec = [[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-               [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-               [0, 0, 1]] @ np.vstack((x, y, z))
+        # GEO → GEI
+        X = cos_theta * x - sin_theta * y
+        Y = sin_theta * x + cos_theta * y
 
-    X = vec[0, :]
-    Y = vec[1, :]
-    Z = vec[2, :]
-
-    return X, Y, Z
+    return X, Y, z
 
 
-def gei2gsm(x, y, z, Year, Day, Secs, j):
-    S, GST, _ = DirectionEarthtoSun(Year, Day, Secs)
+@njit(fastmath=True)
+def gei2gsm(x, y, z, year, doy, ut_sec, g, h, inverse=False):
+    if not inverse:
+        # GEI -> GEO
+        x, y, z = gei2geo(x, y, z, year, doy, ut_sec)
 
-    D = np.array([[0.068589929661063], [-0.186019809236783], [0.980148994857721]])
+        # GEO -> GSM
+        X, Y, Z = geo2gsm(x, y, z, year, doy, ut_sec, g, h)
 
-    D = np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0],
-                  [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0],
-                  [0, 0, 1]]) @ D
-
-    a = np.cross(D[:, 0], S)
-    Y = a / np.sqrt(np.sum(a ** 2))
-
-    Z = np.cross(S, Y)
-
-    if j > 0:
-        vec = np.vstack((S, Y, Z)) @ np.vstack((x, y, z))
     else:
-        vec = np.vstack((S, Y, Z)).T @ np.vstack((x, y, z))
+        # GSM -> GEO
+        x, y, z = geo2gsm(x, y, z, year, doy, ut_sec, g, h, inverse=True)
 
-    X = vec[0, :]
-    Y = vec[1, :]
-    Z = vec[2, :]
+        # GEO -> GEI
+        X, Y, Z = gei2geo(x, y, z, year, doy, ut_sec, inverse=True)
 
     return X, Y, Z
 
-
-@jit(nopython=True, fastmath=True)
-def geo2dipmag(x, y, z, psi, j):
+@njit(fastmath=True)
+def geo2dipmag(x, y, z, psi, inverse=False):
     mat = np.array([[np.cos(psi), 0., np.sin(psi)],
                     [0., 1., 0.],
                     [-np.sin(psi), 0., np.cos(psi)]])
-    if j > 0:
+    if not inverse:
         vec = mat @ np.array([[x], [y], [z]], dtype=mat.dtype)
     else:
         vec = np.transpose(mat) @ np.array([[x], [y], [z]], dtype=mat.dtype)
@@ -137,54 +127,113 @@ def geo2dipmag(x, y, z, psi, j):
 
     return X, Y, Z
 
+@njit(fastmath=True)
+def geo2mag(x, y, z, inverse=False):
+    R = np.array([[0.339067758413505, -0.919633920274268, -0.198258689306225],
+                    [0.938257039240758, 0.345938908356903, 0.],
+                    [0.068589929661063, -0.186019809236783, 0.980148994857721]])
 
-def geo2mag(x, y, z, j):
-    if j > 0:
-        vec = np.array([[0.339067758413505, -0.919633920274268, -0.198258689306225],
-                        [0.938257039240758, 0.345938908356903, 0],
-                        [0.068589929661063, -0.186019809236783, 0.980148994857721]]) @ np.vstack((x, y, z))
+    if not inverse > 0:
+        vec = R @ np.array([[x], [y], [z]], dtype=R.dtype)
     else:
-        vec = np.array([[0.339067758413505, -0.919633920274268, -0.198258689306225],
-                        [0.938257039240758, 0.345938908356903, 0],
-                        [0.068589929661063, -0.186019809236783, 0.980148994857721]]).T @ np.vstack((x, y, z))
+        vec = R.T @ np.array([[x], [y], [z]], dtype=R.dtype)
 
-    X = vec[0, :]
-    Y = vec[1, :]
-    Z = vec[2, :]
+    X = vec[0, 0]
+    Y = vec[1, 0]
+    Z = vec[2, 0]
 
     return X, Y, Z
 
 
-@jit(fastmath=True, nopython=True)
-def geo2gsm(x, y, z, Year, DoY, Secs, d):
-    S, GST, _ = DirectionEarthtoSun(Year, DoY, Secs)
-    mat = np.array([[np.cos(np.radians(GST)), -np.sin(np.radians(GST)), 0.],
-                    [np.sin(np.radians(GST)), np.cos(np.radians(GST)), 0.],
-                    [0., 0., 1.]])
-    D = mat @ np.array([0.068589929661063, -0.186019809236783, 0.980148994857721], dtype=mat.dtype)
-    a = np.cross(D, S)
-    Y = a / np.sqrt(np.sum(a ** 2))
-    Z = np.cross(S, Y)
+@njit(fastmath=True)
+def get_dipole_direction(g, h):
+    g10 = g[0, 0]
+    g11 = g[0, 1]
+    h11 = h[0, 1]
 
-    # if np.ndim(x) > 1 and x.shape[1] == 1:
-    #     x = np.transpose(x)
-    #     y = np.transpose(y)
-    #     z = np.transpose(z)
+    b0 = np.sqrt(g10**2 + g11**2 + h11**2)
 
-    SYZ = np.zeros((3, 3), dtype=mat.dtype)
-    SYZ[0, :] = S
-    SYZ[1, :] = Y
-    SYZ[2, :] = Z
+    alpha = np.arccos(-g10 / b0)
+    beta = np.arctan(h11 / g11)
 
-    if d == 1:
-        vec = SYZ @ (mat @ np.array([[x], [y], [z]], dtype=mat.dtype))
+    return np.array([
+        np.sin(alpha) * np.cos(beta),
+        np.sin(alpha) * np.sin(beta),
+        np.cos(alpha)
+    ])
+
+
+@njit(fastmath=True)
+def geo2gsm(x, y, z, year, doy, ut_sec, g, h, inverse=False):
+    # Sun direction and Greenwich sidereal time
+    sun, GST, _ = DirectionEarthtoSun(year, doy, ut_sec)
+
+    xS = sun[0]
+    yS = sun[1]
+    zS = sun[2]
+
+    theta = np.radians(GST)
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+
+    # Dipole direction in GEO
+    dipole = get_dipole_direction(g, h)
+
+    xDip = dipole[0]
+    yDip = dipole[1]
+    zDip = dipole[2]
+
+    # Dipole direction in GEI
+    xD = cos_theta * xDip - sin_theta * yDip
+    yD = sin_theta * xDip + cos_theta * yDip
+    zD = zDip
+
+    # GSM Y axis
+    xSD = yD * zS - yS * zD
+    ySD = zD * xS - zS * xD
+    zSD = xD * yS - xS * yD
+
+    norm = np.sqrt(xSD * xSD + ySD * ySD + zSD * zSD)
+
+    xSD /= norm
+    ySD /= norm
+    zSD /= norm
+
+    # GSM Z axis
+    xSSD = yS * zSD - ySD * zS
+    ySSD = zS * xSD - zSD * xS
+    zSSD = xS * ySD - xSD * yS
+
+    norm = np.sqrt(
+        xSSD * xSSD +
+        ySSD * ySSD +
+        zSSD * zSSD
+    )
+
+    xSSD /= norm
+    ySSD /= norm
+    zSSD /= norm
+
+    if not inverse:
+        # GEO -> GEI
+        xGEI = cos_theta * x - sin_theta * y
+        yGEI = sin_theta * x + cos_theta * y
+        zGEI = z
+
+        # GEI -> GSM
+        X = xS * xGEI + yS * yGEI + zS * zGEI
+        Y = xSD * xGEI + ySD * yGEI + zSD * zGEI
+        Z = xSSD * xGEI + ySSD * yGEI + zSSD * zGEI
+
     else:
-        vec = mat.T @ (SYZ.T @ np.array([[x], [y], [z]], dtype=mat.dtype))
+        # GSM -> GEI
+        xGEI = xS * x + xSD * y + xSSD * z
+        yGEI = yS * x + ySD * y + ySSD * z
+        zGEI = zS * x + zSD * y + zSSD * z
 
-    vec = vec.T
-
-    X = vec[0, 0]
-    Y = vec[0, 1]
-    Z = vec[0, 2]
+        # GEI -> GEO
+        X = cos_theta * xGEI + sin_theta * yGEI
+        Y = -sin_theta * xGEI + cos_theta * yGEI
+        Z = zGEI
 
     return X, Y, Z

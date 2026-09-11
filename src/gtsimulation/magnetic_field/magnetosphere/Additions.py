@@ -299,8 +299,7 @@ def GetTrackParams(Simulator, RetArr_i):
         GuidingCenter["parBeq"] = parBeq
         GuidingCenter["parBB0"] = parBBo
 
-        parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], 1, Simulator.Bfield.g,
-                                                      Simulator.Bfield.h)
+        parReqNew = transformations.geo2mag_eccentric(parReq[0], parReq[1], parReq[2], Simulator.Bfield.g, Simulator.Bfield.h)
         parL = np.linalg.norm(parReqNew) / Units.RE
 
         GuidingCenter["parL"] = parL
@@ -309,8 +308,7 @@ def GetTrackParams(Simulator, RetArr_i):
         GuidingCenter["BB0"] = BBo
 
         if Bn.size > 0:
-            ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], 1, Simulator.Bfield.g,
-                                                       Simulator.Bfield.h)
+            ReqNew = transformations.geo2mag_eccentric(Req[0], Req[1], Req[2], Simulator.Bfield.g, Simulator.Bfield.h)
             L = np.linalg.norm(ReqNew) / Units.RE
         GuidingCenter["L"] = L
 
