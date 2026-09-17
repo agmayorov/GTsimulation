@@ -100,8 +100,8 @@ class JF12mod(AbsBfield):
 
         # Non-regular field #
 
-        self.f_a = 0.6
-        self.f_i = 0.3
+        self.f_a = 0.3
+        self.f_i = 0.6
 
         # Striated field parameter
         self.beta_str = 1.36
