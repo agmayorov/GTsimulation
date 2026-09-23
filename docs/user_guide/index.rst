@@ -5,6 +5,7 @@ User Guide
    :maxdepth: 2
 
    getting_started
+   simulation_input
    particle_pusher
    magnetic_field
    medium

@@ -84,4 +84,5 @@ myst_enable_extensions = [
 ]
 
 nb_execution_mode = "off"
+nb_merge_streams = True
 myst_dmath_double_inline = True
