@@ -1,19 +1,3 @@
-'''
-11.10.2024
-Функция SynchrotronEmission выполняет расчет энергий фотонов, испускаемых заряженной частицей
-(T_e_MeV, m, Z) за временной промежуток delta_t, движущейся в магнитном поле B под углом alpha.
-Фотоны испускаются вдоль направления движения частицы.
-INPUT
-    delta_t -   sec     -   временной промежуток, за который частица испускает излучение
-    T_e_MeV -   MeV     -   кинетическая энергия частицы
-    B       -   Tesla   -   средняя индукция магнитного поля, в котором находится частица за delta_t
-    alpha   -   radians -   средний угол между магнитным полем и скоростью частицы за delta_t
-    m       -   kg      -   масса частицы
-    Z       -   units   -   зарядовое число частицы
-OUTPUT
-    E_keV_photons   -   keV -  ndarray  -   массив энергий испускаемых фотонов
-'''
-
 import os
 import sys
 import warnings
@@ -24,6 +8,31 @@ from scipy.special import kv
 
 
 def MakeSynchrotronEmission(delta_t, T_MeV, Bsina, M, Z):
+    """
+    Calculate the energies of synchrotron-emitted photons.
+
+    Parameters
+    ----------
+    delta_t : float
+        Time interval during which the particle emits radiation, s.
+    T_MeV : float
+        Kinetic energy of the particle, MeV.
+    Bsina : float
+        Perpendicular component of the magnetic field, T.
+    M : float
+        Particle mass in MeV/c².
+    Z : int or float
+        Charge number of the particle.
+
+    Returns
+    -------
+    E_keV_photons : numpy.ndarray
+        Array of emitted photon energies, keV.
+
+    Notes
+    -----
+    The photons are assumed to be emitted along the direction of particle motion.
+    """
     # Константы
     h = 6.62607015e-34  # kg*m^2/sec
     eps0 = 8.85418781762039e-12  # m^-3*kg^-1*sec^4*A^2
@@ -84,7 +93,27 @@ def MakeSynchrotronEmission(delta_t, T_MeV, Bsina, M, Z):
 
     return E_keV_photons
 
+
 def get_N_avg(B_perp, delta_t, M, Z):
+    """
+    Calculate the average number of emitted synchrotron photons.
+
+    Parameters
+    ----------
+    B_perp : float
+        Perpendicular component of the magnetic field, T.
+    delta_t : float
+        Time interval, s.
+    M : float
+        Particle mass in MeV/c².
+    Z : int or float
+        Charge number of the particle.
+
+    Returns
+    -------
+    float
+        Average number of emitted photons.
+    """
     h = 6.62607015e-34
     eps0 = 8.85418781762039e-12
     e = abs(Z) * 1.602176634e-19

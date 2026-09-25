@@ -23,7 +23,7 @@ Simulation break reasons and the corresponding code.
 """
 BreakIndex = {-1: "Loop", 0: "Xmin", 1: "Ymin", 2: "Zmin", 3: "Rmin", 4: "Dist2Path", 5: "Xmax",
                              6: "Ymax", 7: "Zmax", 8: "Rmax", 9: "MaxPath", 10: "MaxTime", 11: "MaxRev", -2: "Death"}
-"""The inverse `dict` to :ref:`BreakCode`"""
+"""The inverse `dict` to :data:`BreakCode`"""
 BreakDef = np.array([0, 0, 0, 0, 0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
 BreakMetric = np.s_[:-1]
 

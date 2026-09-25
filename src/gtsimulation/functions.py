@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import njit
 
 def GetLastPoints(RetArr_i, s):
     R = RetArr_i["Track"]['Coordinates'][-1]
@@ -8,17 +8,23 @@ def GetLastPoints(RetArr_i, s):
         V *= -1
     return R, V
 
-@jit(fastmath=True, nopython=True)
+
+@njit(fastmath=True)
 def CalcPitchAngles(H: np.ndarray, V: np.ndarray) -> np.ndarray:
     """
+    Calculate pitch angles of velocity vectors relative to the magnetic field.
+
     Parameters
     ----------
-    H: ndarray of float [nT], shape(3,) or (N, 3) - magnetic field vectors
-    V: ndarray of float [m/s], shape(3,) or (N, 3) - velocity vectors
+    H : numpy.ndarray
+        Magnetic field vectors in nT. Shape ``(3,)`` or ``(N, 3)``.
+    V : numpy.ndarray
+        Velocity vectors in m/s. Shape ``(3,)`` or ``(N, 3)``.
 
     Returns
     -------
-    PitchAngles: ndarray [degrees], shape() or (N,) - pitch angles in degrees
+    numpy.ndarray
+        Pitch angles in degrees. Shape ``()`` or ``(N,)``.
     """
 
     H = np.asarray(H, dtype=np.float64)
@@ -54,25 +60,37 @@ def CalcPitchAngles(H: np.ndarray, V: np.ndarray) -> np.ndarray:
 
     return PitchAngles
 
-@jit(fastmath=True, nopython=True)
+
+@njit(fastmath=True)
 def CalcLarmorRadii(Hm: np.ndarray, T: float, pitchd: float, M: float, Z: int) -> np.ndarray:
     """
+    Calculate Larmor radii of charged particles.
+
     Parameters
     ----------
-    Hm: ndarray of float [T], shape(N,) - module of magnetic induction Bm
-    T: float [MeV] - kinetic energy
-    pitchd: float [degree] - pitch angle
-    M: float [MeV] - mass
-    Z: int [p+] - charge
+    Hm : numpy.ndarray
+        Magnetic induction magnitude in T. Shape ``(N,)``.
+    T : float
+        Kinetic energy in MeV.
+    pitchd : float
+        Pitch angle in degrees.
+    M : float
+        Particle mass in MeV/c².
+    Z : int
+        Particle charge number.
 
     Returns
     -------
-    larmor: ndarray of float [m], shape(N,) - larmor radius
+    numpy.ndarray
+        Larmor radius in m. Shape ``(N,)``.
 
-    Used formulas
-    -------------
-    p = np.sqrt((T+M)**2 - M**2)
-    r = p * sin(pitch) / (q * B)
+    Notes
+    -----
+    The momentum and Larmor radius are calculated as
+
+    ``p = np.sqrt((T + M)**2 - M**2)``
+
+    ``r = p * sin(pitch) / (q * B)``
     """
     Z = abs(Z)
     cc = 2.99792458e8
@@ -81,7 +99,8 @@ def CalcLarmorRadii(Hm: np.ndarray, T: float, pitchd: float, M: float, Z: int) -
 
     return larmor
 
-@jit(fastmath=True, nopython=True)
+
+@njit(fastmath=True)
 def CalcGuidingCenter(coo: np.ndarray,
                       V: np.ndarray,
                       H: np.ndarray,
@@ -90,19 +109,29 @@ def CalcGuidingCenter(coo: np.ndarray,
                       M: float,
                       Z: int) -> np.ndarray:
     """
+    Calculate the guiding center of a charged-particle trajectory.
+
     Parameters
     ----------
-    coo: ndarray [m], shape(m,3)
-    V: ndarray, shape(m,3)
-    H: ndarray [nT], shape(m,3)
-    T: float
-    pitch_deg: float
-    M [MeV]
-    Z [p+]
+    coo : numpy.ndarray
+        Particle coordinates in m. Shape ``(N, 3)``.
+    V : numpy.ndarray
+        Particle velocity vectors in m/s. Shape ``(N, 3)``.
+    H : numpy.ndarray
+        Magnetic field vectors in nT. Shape ``(N, 3)``.
+    T : float
+        Kinetic energy in MeV.
+    pitch_deg : float
+        Pitch angle in degrees.
+    M : float
+        Particle mass in MeV/c².
+    Z : int
+        Particle charge number.
 
     Returns
     -------
-    center [m]
+    numpy.ndarray
+        Guiding-center coordinates in m.
     """
     H = np.asarray(H, dtype=np.float64)
     V = np.asarray(V, dtype=np.float64)
