@@ -39,14 +39,6 @@ class AbsDistribution(ABC):
         v = np.array(v)
         return v
 
-    @abstractmethod
-    def to_string(self):
-        pass
-
-    def __str__(self):
-        return self.to_string()
-
-
 class SphereSurf(AbsDistribution):
     def __init__(self, Radius=0, Center=np.zeros(3), *args, **kwargs):
         self.Center = Center
@@ -90,7 +82,7 @@ class SphereSurf(AbsDistribution):
 
         return r_ret, v
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Sphere Surface
         Center: {self.Center}
         Radius: {self.Radius}"""
@@ -126,7 +118,7 @@ class SphereVol(AbsDistribution):
 
         return r_ret, v
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Sphere Volume
         Center: {self.Center}
         Radius: {self.Radius}"""
@@ -161,7 +153,7 @@ class Disk(AbsDistribution):
 
         return r, v
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Disk Surface
         Width: {self.Width}
         Radius: {self.Radius}"""
@@ -181,7 +173,7 @@ class UserInput(AbsDistribution):
                              "particles")
         return self.r, self.v / np.linalg.norm(self.v, axis=1)[:, None]
 
-    def to_string(self):
+    def __str__(self):
         s = f"""User Input
         R0 shape: {self.r.shape}
         V0 shape: {self.v.shape}"""

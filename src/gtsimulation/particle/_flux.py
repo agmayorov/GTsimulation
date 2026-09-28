@@ -80,7 +80,7 @@ class Flux(Sequence):
     def __len__(self):
         return len(self.particles)
 
-    def to_string(self):
+    def __str__(self):
         s = f"""
         Number of particles: {self.Nevents}"""
         if self.name is not None:
@@ -92,9 +92,6 @@ class Flux(Sequence):
         Distribution: {str(self._distribution)}"""
         return s
 
-    def __str__(self):
-        return self.to_string()
-
 
 class FluxPitchPhase(Flux):
     def __init__(self, Bfield, Pitch=None, Phase=None, *args, **kwargs):
@@ -103,8 +100,8 @@ class FluxPitchPhase(Flux):
         self.Phase = Phase
         self.Bfield = Bfield
 
-    def to_string(self):
-        s = super().to_string()
+    def __str__(self):
+        s = super().__str__()
         s1 = f"""
         Pitch Angle: {self.Pitch} [rad]
         Phase Angles: {self.Phase} [rad]"""
@@ -176,8 +173,8 @@ class GyroCenterFlux(Flux):
         cc = 299_792_458.
         return (np.sqrt((T + M) ** 2 - M ** 2) * 1e6 / cc * np.sin(pitchd / 180 * np.pi)) / (Z * Bm * 1e-9)
 
-    def to_string(self):
-        s = super().to_string()
+    def __str__(self):
+        s = super().__str__()
         s1 = f"""
         GyroCenter Coordinates: {self.coo_gyr} [m]
         Pitch Angle: {self.pitchd} [deg]

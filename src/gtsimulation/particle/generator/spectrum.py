@@ -14,13 +14,6 @@ class AbsSpectrum(ABC):
     def generate_energy_spectrum(self, *args, **kwargs):
         return []
 
-    @abstractmethod
-    def to_string(self):
-        pass
-
-    def __str__(self):
-        return self.to_string()
-
 
 class ContinuumSpectrum(AbsSpectrum):
     def __init__(self, energy_min=500., energy_max=10000., *args, **kwargs):
@@ -32,7 +25,7 @@ class ContinuumSpectrum(AbsSpectrum):
     def generate_energy_spectrum(self, *args, **kwargs):
         return []
 
-    def to_string(self):
+    def __str__(self):
         s = f"""
         Minimal Energy: {self.energy_min}
         Maximal Energy: {self.energy_max}"""
@@ -54,7 +47,7 @@ class Monolines(AbsSpectrum):
                 raise TypeError('Unsupported type')
         return energy
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Monolines
         Energy: {self.T}"""
         return s
@@ -87,10 +80,10 @@ class PowerSpectrum(ContinuumSpectrum):
                 energy[s] = convert_units(energy[s], self.base, self.energy_range_units, m, a, z)
         return energy
 
-    def to_string(self):
+    def __str__(self):
         s = f"""PowerSpectrum
         Spectrum Index: {self.spectrum_index}"""
-        s_super = super().to_string()
+        s_super = super().__str__()
         return s + s_super
 
 
@@ -129,10 +122,10 @@ class ForceField(ContinuumSpectrum):
                 energy[index_inverse == i] = convert_units(energy[index_inverse == i], 'T', self.energy_range_units, m, a, z)
         return energy
 
-    def to_string(self):
+    def __str__(self):
         s = f"""ForceField
         Modulation Potential: {self.modulation_potential} MV"""
-        s_super = super().to_string()
+        s_super = super().__str__()
         return s + s_super
 
 
@@ -143,9 +136,9 @@ class Uniform(ContinuumSpectrum):
     def generate_energy_spectrum(self):
         return np.random.uniform(self.energy_min, self.energy_max, self.flux.Nevents)
 
-    def to_string(self):
+    def __str__(self):
         s = f"""Uniform"""
-        s_super = super().to_string()
+        s_super = super().__str__()
         return s + s_super
 
 
@@ -159,7 +152,7 @@ class UserInput(AbsSpectrum):
             raise ValueError("The number of initial energies does not correspond to the number of particles")
         return self.energy
 
-    def to_string(self):
+    def __str__(self):
         s = f"""User Input
         Energy size: {self.energy.size}"""
         return s

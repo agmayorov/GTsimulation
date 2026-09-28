@@ -8,7 +8,7 @@ from gtsimulation.medium import GTGeneralMedium
 
 class GTiri2016(GTGeneralMedium):
 
-    def to_string(self):
+    def __str__(self):
         return self.model
 
     def __init__(self, date: datetime.datetime):

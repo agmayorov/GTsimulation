@@ -59,6 +59,6 @@ class GTnrlmsis(GTGeneralMedium):
             e /= np.sum(e)
         return e
 
-    def to_string(self):
+    def __str__(self):
         return f"""{self.model}
         Version: {self.version}"""

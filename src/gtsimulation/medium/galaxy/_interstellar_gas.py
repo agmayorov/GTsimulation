@@ -26,7 +26,7 @@ class InterstellarGas(GTGeneralMedium):
     def get_element_abundance(self):
         return np.array([1])
 
-    def to_string(self):
+    def __str__(self):
         return self.model
 
     @staticmethod

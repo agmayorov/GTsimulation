@@ -22,7 +22,7 @@ class GTUniformMedium(GTGeneralMedium):
     def get_element_abundance(self):
         return self.element_abundance
 
-    def to_string(self):
+    def __str__(self):
         return f"""{self.model}
         Density: {self.density} kg/m3"""
 
@@ -33,5 +33,5 @@ class GTVacuum(GTUniformMedium):
         super().__init__(density = 0.)
         self.model = "Vacuum"
 
-    def to_string(self):
+    def __str__(self):
         return f"{self.model}"

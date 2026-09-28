@@ -26,9 +26,3 @@ class GTGeneralMedium(ABC):
     def get_element_abundance(self):
         pass
 
-    @abstractmethod
-    def to_string(self):
-        pass
-
-    def __str__(self):
-        return self.to_string()
