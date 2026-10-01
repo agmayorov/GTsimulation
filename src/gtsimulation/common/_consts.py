@@ -126,6 +126,23 @@ class Units:
     deg = degree
     rad = radian
 
+    # Magnetic field
+    nanotesla = 1
+    microtesla = 1e3 * nanotesla
+    millitesla = 1e6 * nanotesla
+    tesla = 1e9 * nanotesla
+    gauss = 1e5 * nanotesla
+    milligauss = 1e-3 * gauss
+    microgauss = 1e-6 * gauss
+    # Symbols
+    nT = nanotesla
+    uT = microtesla
+    mT = millitesla
+    T = tesla
+    G = gauss
+    mG = milligauss
+    uG = microgauss
+
 
 class Origins(Enum):
     Galactic = 1
