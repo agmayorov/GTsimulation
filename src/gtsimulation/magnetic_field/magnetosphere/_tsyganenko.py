@@ -52,12 +52,32 @@ class Tsyganenko(AbsBfield):
 
     def _get_psi(self):
         self.g, self.h, _ = gauss.LoadGaussCoeffs(
-            Path(__file__).resolve().parent.joinpath("Earth", "IGRF13", "igrf13coeffs.npy"),
+            Path(__file__).resolve().parent.joinpath(
+                "Earth", "IGRF13", "igrf13coeffs.npy"
+            ),
             self.Date
         )
-        x, y, z = transformations.geo2mag_eccentric(0, 0, 1, self.g, self.h, inverse=True)
-        x, y, z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, self.g, self.h)
-        psi = np.arccos(z / np.linalg.norm([x, y, z]))
+
+        # Direction of the centered geomagnetic dipole in GEO
+        dipole_geo = transformations.get_dipole_direction(
+            self.g, self.h
+        )
+
+        # Transform dipole direction GEO -> GSM
+        x, _, _ = transformations.geo2gsm(
+            dipole_geo[0],
+            dipole_geo[1],
+            dipole_geo[2],
+            self.year,
+            self.doy,
+            self.sec,
+            self.g,
+            self.h
+        )
+
+        # In GSM coordinates: D_x = sin(psi)
+        psi = np.arcsin(np.clip(x, -1.0, 1.0))
+
         return psi
 
     def _get_ind(self):
