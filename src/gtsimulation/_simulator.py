@@ -7,13 +7,14 @@ import sys
 from abc import ABC, abstractmethod
 from timeit import default_timer as timer
 
+
 import numpy as np
 from numba import njit
 
 from gtsimulation import functions
 from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.common import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
-from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
+from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep, MagneticPairProduction
 from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.medium import GTGeneralMedium
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
@@ -88,6 +89,10 @@ class GTSimulator(ABC):
     RadLosses : bool or list, optional
         Radiation losses configuration. If False, radiation losses are disabled.
         If list format: [True, {"Photons": True/False, "MinE": float, "MaxE": float}].
+        Default is False.
+
+    PairProduction : bool, optional
+        Enable electron-positron pair production by photons in a magnetic field.
         Default is False.
 
     Date : datetime.datetime, optional
@@ -183,6 +188,7 @@ class GTSimulator(ABC):
             TrackParams=False,
             ParticleOrigin=False,
             IsFirstRun=True,
+            PairProduction=False,
     ):
         self.ParamDict = locals().copy()
         del self.ParamDict['self']
@@ -264,6 +270,8 @@ class GTSimulator(ABC):
         self.nuclear_interaction = InteractNUC
         self.logger.debug("Nuclear Interactions: %s", self.nuclear_interaction)
 
+        self.__SetPairProduction(PairProduction)
+        
         self.__gen = 1
         # self.UseDecay = False
         # self.nuclear_interaction = None
@@ -278,6 +286,7 @@ class GTSimulator(ABC):
         self.__index_brck = BreakIndex.copy()
         self.__brck_arr = BreakDef.copy()
         self.__set_break_condition(BreakCondition)
+
 
         self.index = 0
         self.logger.debug("Simulator object created!\n")
@@ -439,6 +448,17 @@ class GTSimulator(ABC):
         for saves in self.Save.keys():
             self.logger.debug("\t%s: %s", saves, self.Save[saves])
 
+    def __SetPairProduction(self, PairProduction):
+        self.PairProduction = PairProduction
+
+        self.logger.debug(
+            "Magnetic Pair Production: %s",
+            self.PairProduction
+        )
+
+        if PairProduction:
+            MagneticPairProduction.initialize()
+
     def __call__(self):
         Track = []
         self.logger.debug("Launching simulation...\n")
@@ -584,7 +604,9 @@ class GTSimulator(ABC):
 
             st = timer()
 
-            if self.UseRadLosses[1]:
+            UseRadLossesParticle = self.UseRadLosses[0] and M > 0 and Q != 0
+            UseSynchEmissionParticle = self.UseRadLosses[1] and M > 0 and Q != 0
+            if UseSynchEmissionParticle:
                 synch_record = SynchCounter()
             else:
                 synch_record = 0
@@ -628,9 +650,10 @@ class GTSimulator(ABC):
 
                 V_norm, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm)
 
-                if self.UseRadLosses[1]:
+                if UseSynchEmissionParticle:
                     synch_record.add_iteration(T, B, Vm, Step)
-                if self.UseRadLosses[0]:
+
+                if UseRadLossesParticle:
                     Vm, T, new_photons, synch_record = RadLossStep.MakeRadLossStep(
                         Vp, Vm, Yp, Ya, M, Q, r, Step,
                         self.ForwardTracing, self.UseRadLosses[1:], particle, Gen, Constants, synch_record
@@ -741,6 +764,41 @@ class GTSimulator(ABC):
                     lon_total, lon_prev, full_revolutions,
                     BrckArr[BreakCode["MaxRev"]] != BreakDef[-1],
                 )
+                
+                # Magnetic pair production
+                if (
+                        self.PairProduction
+                        and self.ForwardTracing == 1
+                        and particle.PDG == 22
+                ):
+                    pair_result = MagneticPairProduction.produce_pair(
+                        T,
+                        Vp,
+                        B,
+                        PathLen
+                    )
+
+                    if pair_result is not None:
+                        pair, epsilon = pair_result
+
+                        self.IsPrimDeath = True
+
+                        self.logger.debug(
+                            "\tElectron-positron pair produced: epsilon = %f",
+                            epsilon
+                        )
+
+                        for PDGcode_p, T_p, V_p in pair:
+                            prod_tracks.append(
+                                self.__run_secondary(
+                                    PDGcode=PDGcode_p,
+                                    T=T_p,
+                                    r=r,
+                                    V=V_p,
+                                    TotTime=TotTime,
+                                    Gen=Gen
+                                )
+                            )
 
                 brck = self._check_break(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
@@ -819,6 +877,37 @@ class GTSimulator(ABC):
             )
 
         return RetArr
+
+    def __run_secondary(
+            self,
+            PDGcode,
+            T,
+            r,
+            V,
+            TotTime,
+            Gen
+    ):
+        params = self.ParamDict.copy()
+
+        params["Date"] += datetime.timedelta(seconds=TotTime)
+
+        params["ForwardTrck"] = self.ForwardTracing
+
+        params["Particles"] = Flux(
+            Distribution=distribution.UserInput(
+                R0=np.array(r, copy=True),
+                V0=np.array(V, copy=True)
+            ),
+            Spectrum=spectrum.UserInput(
+                energy=T
+            ),
+            PDGcode=PDGcode
+        )
+
+        new_process = self.__class__(**params)
+        new_process.__gen = Gen + 1
+
+        return new_process.CallOneFile()[0]
 
     def __Decay(self, Gen, GenMax, T, TotTime, V_norm, Vm, particle, prod_tracks, r):
         if Gen < GenMax:
