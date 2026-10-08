@@ -24,11 +24,6 @@ class _AbsRegion(ABC):
 
     @staticmethod
     @abstractmethod
-    def additions(*args, **kwargs):
-        pass
-
-    @staticmethod
-    @abstractmethod
     def checkSave(*args, **kwargs):
         pass
 
@@ -46,6 +41,17 @@ class _AbsRegion(ABC):
 
     @staticmethod
     def do_before_loop(*args, **kwargs):
+        pass
+
+    @staticmethod
+    def do_after_step(simulator, 
+                      i, guiding_center, 
+                      lon_total, lon_prev, full_revolutions, 
+                      max_rev_enabled):
+        return lon_total, lon_prev, full_revolutions
+
+    @staticmethod
+    def do_after_loop(simulator, result, lon_total, max_rev_enabled):
         pass
 
 class _Undefined(_AbsRegion):
@@ -100,9 +106,47 @@ class _Magnetosphere(_AbsRegion):
                "GuidingCenter": False}
 
     @staticmethod
-    def additions(*args, **kwargs):
-        # TODO Andrey
-        pass
+    def do_after_step(simulator, i, guiding_center,
+                      lon_total, lon_prev, full_revolutions,
+                      max_rev_enabled):
+        if not (simulator.ParticleOriginIsOn or max_rev_enabled):
+            return lon_total, lon_prev, full_revolutions
+
+        from gtsimulation.magnetic_field.magnetosphere import Additions
+        from gtsimulation.magnetic_field.magnetosphere.Functions import transformations
+
+        a_, b_, _ = transformations.geo2mag_eccentric(
+            guiding_center[0][0],
+            guiding_center[0][1],
+            guiding_center[0][2],
+            simulator.Bfield.g,
+            simulator.Bfield.h,
+        )
+
+        return Additions.AddLon(
+            lon_total, lon_prev, full_revolutions, i,
+            np.array([[a_]]),
+            np.array([[b_]]),
+        )
+
+    @staticmethod
+    def do_after_loop(simulator, result, lon_total, max_rev_enabled):
+        from gtsimulation.magnetic_field.magnetosphere import Additions
+
+        if simulator.TrackParamsIsOn:
+            simulator.logger.debug("Calculating additional parameters ...")
+            track_params = Additions.GetTrackParams(simulator, result)
+
+            if max_rev_enabled:
+                track_params["LonTotal"] = lon_total
+
+            result["Additions"] = track_params
+
+        if simulator.ParticleOriginIsOn and simulator.IsFirstRun:
+            simulator.logger.debug("Finding particle origin ...")
+            origin = Additions.FindParticleOrigin(simulator, result)
+            result["Additions"]["ParticleOrigin"] = origin
+            simulator.logger.debug("Particle origin: %s", origin.name)
 
     @staticmethod
     def transform(x, y, z, name):

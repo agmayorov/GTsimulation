@@ -15,7 +15,6 @@ from gtsimulation.electric_field import GeneralFieldE
 from gtsimulation.common import Constants, Units, Regions, BreakCode, BreakIndex, SaveCode, SaveDef, BreakDef, vecRotMat
 from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.magnetic_field import AbsBfield
-from gtsimulation.magnetic_field.magnetosphere import Functions, Additions
 from gtsimulation.medium import GTGeneralMedium
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
@@ -541,7 +540,7 @@ class GTSimulator(ABC):
                 GetAntiParticle(particle)
                 particle.velocities = -particle.velocities
 
-            Q = particle.Z * Constants.e
+            Q = int(particle.Z) * Constants.e
             M = particle.M
             m = M*Units.MeV2kg
             T = particle.T
@@ -568,7 +567,7 @@ class GTSimulator(ABC):
             )
             self.logger.debug(
                 "Energy: %f [MeV], Rigidity: %f [GV]",
-                T, ConvertT2R(T, M, particle.A, particle.Z) / 1000 if particle.Z != 0 else np.inf
+                T, ConvertT2R(T, M, particle.A, int(particle.Z)) / 1000 if int(particle.Z) != 0 else np.inf
             )
             self.logger.debug("Coordinates: %s [m]", r)
             self.logger.debug("Velocity: %s", V_normalized)
@@ -600,9 +599,9 @@ class GTSimulator(ABC):
                 if SavePA:
                     PitchAngle = functions.CalcPitchAngles(B, Vm)
                 if SaveLR:
-                    LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
+                    LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, int(particle.Z))
                 if SaveGC:
-                    GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
+                    GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, int(particle.Z))
 
                 if i % Nsave == 0 or i == Num - 1 or i_save == 0:
                     self._save_step(
@@ -736,18 +735,12 @@ class GTSimulator(ABC):
                 B = np.array(self.Bfield.GetBfield(*r)) if self.Bfield is not None else np.zeros(3)
                 E = np.array(self.Efield.GetEfield(*r)) if self.Efield is not None else np.zeros(3)
 
-                # TODO the code is region specific
-                # Full revolution
-                if self.Region == Regions.Magnetosphere:
-                    if self.ParticleOriginIsOn or self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
-                        a_, b_, _ = Functions.transformations.geo2mag_eccentric(GuidingCenter[0][0],
-                                                                                GuidingCenter[0][1],
-                                                                                GuidingCenter[0][2],
-                                                                                1,
-                                                                                self.Bfield.g,
-                                                                                self.Bfield.h)
-                        lon_total, lon_prev, full_revolutions = Additions.AddLon(lon_total, lon_prev, full_revolutions,
-                                                                                 i, a_, b_)
+                # Full revolution in Magnetosphere
+                lon_total, lon_prev, full_revolutions = self.Region.value.do_after_step(
+                    self, i, GuidingCenter,
+                    lon_total, lon_prev, full_revolutions,
+                    BrckArr[BreakCode["MaxRev"]] != BreakDef[-1],
+                )
 
                 brck = self._check_break(r, r0, BCcenter, TotPathLen, TotTime, full_revolutions, BrckArr)
                 brk = brck[1]
@@ -755,9 +748,9 @@ class GTSimulator(ABC):
                     if SavePA:
                         PitchAngle = functions.CalcPitchAngles(B, Vm)
                     if SaveLR:
-                        LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, particle.Z)
+                        LarmorRadius = functions.CalcLarmorRadii(np.linalg.norm(B), T, PitchAngle, M, int(particle.Z))
                     if SaveGC:
-                        GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, particle.Z)
+                        GuidingCenter = functions.CalcGuidingCenter(r, Vm, B, T, PitchAngle, M, int(particle.Z))
 
                     if brk != -1:
                         self._save_step(
@@ -815,26 +808,15 @@ class GTSimulator(ABC):
 
             RetArr.append({"Track": track,
                            "BC": {"WOut": brk},
-                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": particle.Z, "Gen": Gen,
+                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": int(particle.Z), "Gen": Gen,
                                         "R0": particle.coordinates, "V0": particle.velocities, "T0": particle.T},
                            "Child": prod_tracks})
 
-            # TODO refactor
-            if self.Region == Regions.Magnetosphere:
-                # Particles in magnetosphere (Part 1)
-                if self.TrackParamsIsOn:
-                    self.logger.debug("Calculating additional parameters ...")
-                    TrackParams_i = Additions.GetTrackParams(self, RetArr[self.index])
-                    if self.__brck_arr[self.__brck_index["MaxRev"]] != BreakDef[-1]:
-                        TrackParams_i["LonTotal"] = lon_total
-                    RetArr[self.index]["Additions"] = TrackParams_i
-
-                # Particles in magnetosphere (Part 2)
-                if self.ParticleOriginIsOn and self.IsFirstRun:
-                    self.logger.debug("Finding particle origin ...")
-                    origin = Additions.FindParticleOrigin(self, RetArr[self.index])
-                    RetArr[self.index]["Additions"]["ParticleOrigin"] = origin
-                    self.logger.debug("Particle origin: %s", origin.name)
+            # Additions in Magnetosphere
+            self.Region.value.do_after_loop(
+                self, RetArr[self.index], lon_total,
+                BrckArr[BreakCode["MaxRev"]] != BreakDef[-1],
+            )
 
         return RetArr
 
