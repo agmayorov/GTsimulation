@@ -14,6 +14,7 @@ class Flux(Sequence):
         self.Nevents = Nevents
         self.name = Names
         self.pdg_code = PDGcode
+        self._generate_by_name = Names is not None and PDGcode is None
         self.V0 = V0
         self.particles = []
         self.r = []
@@ -41,7 +42,7 @@ class Flux(Sequence):
             self.pdg_code = [2212] * self.Nevents
             proton = CRParticle(PDG=2212)
             self.particles = [copy.deepcopy(proton) for _ in range(self.Nevents)]
-        elif self.name is not None and self.pdg_code is None:
+        elif self._generate_by_name:
             if isinstance(self.name, (Iterable, Sequence)) and not isinstance(self.name, str):
                 if len(self.name) == self.Nevents:
                     unique_name, index_inverse = np.unique(self.name, return_inverse=True)
@@ -53,6 +54,7 @@ class Flux(Sequence):
             else:
                 cr_particle = CRParticle(Name=self.name)
                 self.particles = [copy.deepcopy(cr_particle) for _ in range(self.Nevents)]
+                self.name = [cr_particle.Name] * self.Nevents
                 self.pdg_code = [cr_particle.PDG] * self.Nevents
         else:
             if isinstance(self.pdg_code, (Iterable, Sequence)) and not isinstance(self.pdg_code, int):
