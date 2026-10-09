@@ -137,7 +137,7 @@ class _Magnetosphere(_AbsRegion):
             simulator.logger.debug("Calculating additional parameters ...")
             track_params = Additions.GetTrackParams(simulator, result)
 
-            if max_rev_enabled:
+            if simulator.ParticleOriginIsOn or max_rev_enabled:
                 track_params["LonTotal"] = lon_total
 
             result["Additions"] = track_params
