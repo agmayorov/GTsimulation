@@ -10,7 +10,7 @@ from gtsimulation.magnetic_field.heliosphere.Functions import transformations
 
 class ParkerUniform(Parker):
     def __init__(self, x, y, z, t=None, coeff_noise=2, coeff_2d=2.1, *args, **kwargs):
-        super().__init__(coeff_noise=coeff_noise, ceoff_2d=coeff_2d, *args, **kwargs)
+        super().__init__(coeff_noise=coeff_noise, coeff_2d=coeff_2d, *args, **kwargs)
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
         self.b = Parker(*args, **kwargs)
@@ -39,9 +39,9 @@ class ParkerUniform(Parker):
         alpha_rad = self.alpha_rad
         delta_rad = self.delta_rad
 
-        A_azimuth = self.A_azimuth
-        alpha_azimuth = self.alpha_azimuth
-        delta_azimuth = self.delta_azimuth
+        A_azimuth = self.A_az
+        alpha_azimuth = self.alpha_az
+        delta_azimuth = self.delta_az
 
         A_2D = self.A_2D
         alpha_2D = self.alpha_2D
