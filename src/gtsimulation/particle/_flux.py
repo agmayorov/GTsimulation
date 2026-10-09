@@ -131,7 +131,7 @@ class GyroCenterFlux(Flux):
         else:
             self.phased = np.array([Phased] * self.Nevents)[:, np.newaxis]
 
-        bfield = Bfield.copy()
+        bfield = copy.deepcopy(Bfield)
         bfield.use_tesla = False
         bfield.use_meters = True
         self.B = bfield.GetBfield(*self.coo_gyr)
@@ -150,7 +150,7 @@ class GyroCenterFlux(Flux):
         B1 /= np.linalg.norm(B1)
         B2 = np.cross(B3, B1)
         init_v = B1 + np.tan(self.phased * np.pi / 180) * B2 + 1 / np.tan(self.pitchd * np.pi / 180) * B3
-        init_v /= np.linalg.norm(init_v)
+        init_v /= np.linalg.norm(init_v, axis=1, keepdims=True)
         offset = ((np.cross(init_v, self.B) / np.linalg.norm(np.cross(init_v, self.B), axis=1)[:, np.newaxis]) * r_lar)
         init_coo = self.coo_gyr - offset
         self.v = init_v
