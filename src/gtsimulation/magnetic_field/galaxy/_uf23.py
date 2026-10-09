@@ -389,7 +389,7 @@ class UF23(AbsBfield):
         # sign_z = -1 if z < 0 else 1
 
         # Radial functions
-        if model_type_value == 2:
+        if w_p is None:
             f_x = np.exp(-a / r_p)
         else:
             f_x = 1 - sigmoid((a - r_p) / w_p)
