@@ -239,7 +239,11 @@ class GTSimulator(ABC):
         self.logger.debug("Number of files: %s", self.Nfiles)
         self.logger.debug("Output file name: %s_num.npy", self.Output)
 
-        if BreakCondition is not None and hasattr(BreakCondition, 'keys') and 'MaxRev' in BreakCondition.keys():
+        if self.ParticleOriginIsOn or (
+            BreakCondition is not None
+            and hasattr(BreakCondition, "keys")
+            and "MaxRev" in BreakCondition
+        ):
             if not isinstance(Save, list):
                 Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]
             else:
