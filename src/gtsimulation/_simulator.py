@@ -617,8 +617,7 @@ class GTSimulator(ABC):
 
                 if self.UseAdaptiveStep:
                     Step = self._adaptive_step(Q, m, B, Vm, T, M, Step, self.N1, self.N2, self.time_step_max)
-                    if i == 0:
-                        self.Step = Step
+                    self.Step = Step
 
                 PathLen = V_norm * Step
 
