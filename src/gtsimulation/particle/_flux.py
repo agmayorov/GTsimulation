@@ -141,7 +141,7 @@ class GyroCenterFlux(Flux):
         self.generate_particles()
         self.generate_energy_spectrum()
         masses = np.array([particle.M for particle in self.particles])
-        charges = np.array([particle.Z for particle in self.particles])
+        charges = np.array([int(particle.Z) for particle in self.particles])
 
         r_lar = self.larmor(self.kinetic_energy, self.Bm, masses, charges, self.pitchd.flatten())[:, np.newaxis]
         B3 = self.B/self.Bm
