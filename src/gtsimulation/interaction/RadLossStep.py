@@ -27,10 +27,10 @@ def MakeRadLossStep(Vp, Vm, Yp, Ya, M, Q, rm, dt, frwdTracing, sync_params, part
     Vm = V * Vp / Vn
 
     if sync_params[0]:
-        T, B_perp = synch_record.get_averages()
+        T_avg, B_perp = synch_record.get_averages()
         N_avg = get_N_avg(B_perp, synch_record.delta_t, M, particle.Z)
         if N_avg > 1000:
-            E_keV_photons = MakeSynchrotronEmission(synch_record.delta_t, T, B_perp, M, particle.Z)
+            E_keV_photons = MakeSynchrotronEmission(synch_record.delta_t, T_avg, B_perp, M, particle.Z)
             E_MeV_photons = E_keV_photons * 1e-3
             E_MeV_photons = E_MeV_photons[(E_MeV_photons >= sync_params[1][0]) & (E_MeV_photons <= sync_params[1][1])]
             for Energy in E_MeV_photons:
