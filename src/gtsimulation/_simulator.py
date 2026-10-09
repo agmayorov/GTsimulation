@@ -625,7 +625,6 @@ class GTSimulator(ABC):
 
                 r, Vp, Yp, Ya = self.AlgoStep(T, M, Q, Vm, r, B, E)
 
-                V_norm, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm)
 
                 if self.UseRadLosses[1]:
                     synch_record.add_iteration(T, B, Vm, Step)
@@ -643,6 +642,9 @@ class GTSimulator(ABC):
                 if UseAdditionalEnergyLosses:
                     Vm, T = self.Region.value.AdditionalEnergyLosses(r, Vm, T, M, Step, self.ForwardTracing,
                                                                      Constants.c)
+                
+                V_norm, TotPathLen, TotTime = self._update(PathLen, Step, TotPathLen, TotTime, Vm)
+                
                 # Medium
                 if self.Medium is not None:
                     self.Medium.calculate_model(*r)
