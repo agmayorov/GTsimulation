@@ -404,7 +404,7 @@ def GetBCparams(RetArr_i):
     else:
         u = 0
 
-    lon_u = RetArr_i["Additions"]["lon_total"]
+    lon_u = RetArr_i["Additions"]["LonTotal"]
     return u, lon_u
 
 
