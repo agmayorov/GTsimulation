@@ -1,19 +1,27 @@
 [build-system]
-requires = ["scikit-build-core", "ninja", "pybind11>=2.10"]
+requires = [
+  "scikit-build-core>=0.11.0,<1.2",
+  "ninja>=1.11.1.4,<1.14",
+  "pybind11>=2.10.4,<3.2; python_version < '3.12'",
+  "pybind11>=2.11.2,<3.2; python_version == '3.12'",
+  "pybind11>=2.13.6,<3.2; python_version == '3.13'",
+  "pybind11>=3.0.4,<3.2; python_version == '3.14'",
+  "pybind11>=3.1.0,<3.2; python_version >= '3.15'",
+]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "gtsimulation"
 version = "0.3.2"
 dependencies = [
-  "numpy~=2.1.3",
-  "numba~=0.61.0",
-  "scipy~=1.15.2",
-  "pyproj~=3.7.1",
-  "particle>=0.25.4",
-  "pymsis~=0.9.0",
+  "numpy>=2.1.3,<2.6",
+  "numba>=0.61.0,<0.69",
+  "scipy>=1.15.2,<1.19",
+  "pyproj>=3.7.1,<3.9",
+  "particle>=0.25.4,<1.1",
+  "pymsis>=0.9.0,<0.14",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.16"
 authors = [
   {name = "Andrey Mayorov", email = "agmayorov@gmail.com"},
   {name = "Norayr Galikyan"},
