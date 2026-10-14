@@ -3,7 +3,7 @@ import numpy as np
 from gtsimulation.electric_field import GeneralFieldE
 
 
-class UniformFieldE(GeneralFieldE):
+class Uniform(GeneralFieldE):
 
     def __init__(self, E):
         super().__init__()

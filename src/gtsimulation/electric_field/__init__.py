@@ -6,9 +6,9 @@ including a uniform electric field.
 """
 
 from ._general_field import GeneralFieldE
-from ._uniform_field import UniformFieldE
+from ._uniform import Uniform
 
 __all__ = [
     "GeneralFieldE",
-    "UniformFieldE",
+    "Uniform",
 ]

@@ -2,14 +2,14 @@ from datetime import datetime
 
 import numpy as np
 from gtsimulation.pusher import BunemanBorisSimulator
-from gtsimulation.electric_field import UniformFieldE
+from gtsimulation.electric_field import Uniform
 from gtsimulation.common import Regions, Units as U
 from gtsimulation.particle import Flux
 from gtsimulation.particle.generator import Monolines, SphereSurf
 
 date = datetime(2025, 1, 1)
 b_field = None
-e_field = UniformFieldE(E=np.array([1000, 0, 0]))
+e_field = Uniform(E=np.array([1000, 0, 0]))
 medium = None
 use_decay = False
 nuclear_interaction = None
