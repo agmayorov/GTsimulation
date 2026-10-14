@@ -10,7 +10,7 @@ magnetic field vector at a given point.
 The module comes with a library of pre-implemented models ready for immediate use:
 
 * **General:** A uniform magnetic field.
-* **Magnetosphere:** Earth's Dipole field, IGRF, Tsyganenko (89, 96, 15), CHAOS (7, 8), CM6, COV-OBS.x2, LCS-1, SIFM, DIFI-6.
+* **Magnetosphere:** Dipole field, IGRF, Tsyganenko (89, 96, 15), CHAOS (7, 8), CM6, COV-OBS.x2, LCS-1, SIFM, DIFI-6.
 * **Heliosphere:** The Parker spiral model.
 * **Galaxy:** The Jansson & Farrar (JF12) and Unger & Farrar (UF23) models.
 

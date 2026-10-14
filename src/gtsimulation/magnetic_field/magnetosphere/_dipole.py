@@ -1,100 +1,115 @@
-import os
 import datetime
+from collections.abc import Sequence
+from pathlib import Path
+
 import numpy as np
-from numba import jit
+from numba import njit
 
 from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field import AbsBfield
-from gtsimulation.magnetic_field.magnetosphere.Functions import transformations
 
 
 class Dipole(AbsBfield):
-    Re = 6371.137e3
+    """
+    Static magnetic dipole field.
+
+    Parameters
+    ----------
+    B_eq : float or None, optional
+        Equatorial field at the reference radius, in nT. If None, use the
+        Earth normalization: 30100 nT, or the coefficient fit for date.
+        Default is None.
+    reference_radius : float, optional
+        Radius at which B_eq is specified, in metres. Default is Units.RE.
+    direction : array-like, shape (3,), optional
+        Nonzero magnetic moment direction, normalized automatically.
+        Default is (0, 0, -1), matching the Earth dipole polarity.
+    center : array-like, shape (3,), optional
+        Dipole center in metres. Default is (0, 0, 0).
+    name : str or None, optional
+        Object name for the GT logger. If None, use "Earth" when B_eq is
+        omitted, otherwise "Custom dipole". Default is None.
+    date : datetime.datetime or None, optional
+        Date for the Earth normalization fit (1900--2021), used when B_eq
+        is omitted. None selects the fixed 30100 nT value. Default is None.
+    use_tesla : bool, optional
+        If True, GetBfield returns tesla; otherwise it returns nT.
+        Default is True.
+    use_meters : bool, optional
+        If True, GetBfield accepts coordinates in metres; otherwise it
+        accepts coordinates in reference radii. Default is True.
+
+    Notes
+    -----
+    CalcBfield accepts coordinates in units of reference_radius and returns
+    magnetic field components in nT. GetBfield applies the coordinate and
+    field conversions selected by use_meters and use_tesla.
+    The reference radius sets the field normalization, not a surface boundary.
+    """
+
     ToMeters = Units.RE2m
 
-    def __init__(self, date: int | datetime.datetime = 0, units="SI_nT", M=None, psi=0, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self,
+                 B_eq: float | None = None,
+                 reference_radius: float = Units.RE2m,
+                 direction: Sequence[float] | np.ndarray = (0, 0, -1),
+                 center: Sequence[float] | np.ndarray = (0, 0, 0),
+                 name: str | None = None,
+                 date: datetime.datetime | None = None, *,
+                 use_tesla: bool = True,
+                 use_meters: bool = True) -> None:
+        super().__init__(use_tesla=use_tesla, use_meters=use_meters)
         self.Region = Regions.Magnetosphere
         self.ModelName = "Dipole"
-        self.Units = "RE"
+        self.Units = "RE" if reference_radius == Units.RE2m else "R_ref"
+        self.ToMeters = reference_radius
+        self.direction = np.array(direction, dtype=float)
+        self.direction /= np.linalg.norm(self.direction)
+        self.center = np.array(center, dtype=float)
+        self.name = name or ("Earth" if B_eq is None else "Custom dipole")
         self.Date = date
-        self.units = units
-        self.psi = psi
+        self.B_eq = 30100.0 if B_eq is None else B_eq
+        self._earth_normalization = B_eq is None
+        if date is not None:
+            self.UpdateState(date)
 
-        path = os.path.dirname(os.path.realpath(__file__))
+    def from_meters(self, x, y, z):
+        return x / self.ToMeters, y / self.ToMeters, z / self.ToMeters
 
-        coefs = np.load(f"{path}{os.sep}Data{os.sep}HarmonicCoeffsIGRF.npy", allow_pickle=True).item()
-        self.g10sm = np.poly1d(coefs["g10_fit"])
-        self.g11sm = np.poly1d(coefs["g11_fit"])
-        self.h11sm = np.poly1d(coefs["h11_fit"])
+    def CalcBfield(self, x, y, z, **kwargs):
+        return self._calc_field(x - self.center[0] / self.ToMeters,
+                                y - self.center[1] / self.ToMeters,
+                                z - self.center[2] / self.ToMeters,
+                                self.B_eq, self.direction)
 
-        if M is not None:
-            self.M = M
-        elif self.Date == 0:
-            self.M = 30100
-        elif isinstance(self.Date, datetime.datetime):
-            self.__SetEarthDipMagMom()
+    @staticmethod
+    @njit(fastmath=True)
+    def _calc_field(x, y, z, B_eq, direction):
+        r2 = x * x + y * y + z * z
+        scale = B_eq / (r2 * np.sqrt(r2))
+        projection = (direction[0] * x + direction[1] * y + direction[2] * z) / r2
+        return (scale * (3 * projection * x - direction[0]),
+                scale * (3 * projection * y - direction[1]),
+                scale * (3 * projection * z - direction[2]))
 
     def UpdateState(self, new_date: datetime.datetime):
         self.Date = new_date
-        self.__SetEarthDipMagMom()
-
-    def __SetEarthDipMagMom(self):
-        assert self.units in ["SI_nT", "SI", "CGS_G", "CGS", "SEC"]
-        assert 1900 <= self.Date.year <= 2021
-        ND, N = Dipole.GetNDaysInMonth(self.Date.year, self.Date.month)
-        D = self.Date.year + (self.Date.day + np.sum(ND[:self.Date.month - 1]) - 0.5) / np.sum(ND)
-        match self.units:
-            case "SI_nT":
-                Mx = self.g11sm(D)
-                My = self.h11sm(D)
-                Mz = self.g10sm(D)
-            case "SI":
-                Mx = (self.Re ** 3 / 1e-7) * self.g11sm(D) / 1e9
-                My = (self.Re ** 3 / 1e-7) * self.h11sm(D) / 1e9
-                Mz = (self.Re ** 3 / 1e-7) * self.g10sm(D) / 1e9
-            case 'CGS_G':
-                Mx = self.g11sm(D) / 1e9 * 1e4
-                My = self.h11sm(D) / 1e9 * 1e4
-                Mz = self.g10sm(D) / 1e9 * 1e4
-            case "CGS":
-                Mx = (self.Re * 1e2) ** 3 * self.g11sm(D) / 1e9 * 1e4
-                My = (self.Re * 1e2) ** 3 * self.h11sm(D) / 1e9 * 1e4
-                Mz = (self.Re * 1e2) ** 3 * self.g10sm(D) / 1e9 * 1e4
-            case _:
-                Mx = (self.Re * 1e2) * self.g11sm(D) / 1e9 * 1e4 * 300 / 1e9
-                My = (self.Re * 1e2) * self.h11sm(D) / 1e9 * 1e4 * 300 / 1e9
-                Mz = (self.Re * 1e2) * self.g10sm(D) / 1e9 * 1e4 * 300 / 1e9
-        self.M = np.sqrt(Mx ** 2 + My ** 2 + Mz ** 2)
-
-    def CalcBfield(self, x, y, z, **kwargs):
-        psi = self.psi
-        M = self.M
-        X, Y, Z = transformations.geo2dipmag(x, y, z, psi)
-        return transformations.geo2dipmag(*self.__calcBfield(X, Y, Z, M, psi), psi, inverse=True)
-
-    @staticmethod
-    @jit(fastmath=True, nopython=True)
-    def __calcBfield(x, y, z, M, psi):
-        Q = M / (np.sqrt(x ** 2 + y ** 2 + z ** 2)) ** 5
-
-        Bx = Q * ((y ** 2 + z ** 2 - 2 * x ** 2) * np.sin(psi) - 3 * (z * x) * np.cos(psi))
-        By = -3 * y * (Q * (x * np.sin(psi) + z * np.cos(psi)))
-        Bz = Q * ((x ** 2 + y ** 2 - 2 * z ** 2) * np.cos(psi) - 3 * (z * x) * np.sin(psi))
-
-        return Bx, By, Bz
-
-    @staticmethod
-    def GetNDaysInMonth(year, month):
-        ND = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-        if year % 4 == 0:
-            ND[1] = 29
-
-        return ND, ND[month - 1]
+        if self._earth_normalization:
+            assert 1900 <= new_date.year <= 2021
+            coefs = np.load(Path(__file__).parent / "Data" / "HarmonicCoeffsIGRF.npy",
+                            allow_pickle=True).item()
+            # Retain the original decimal-year convention for the Earth fit.
+            days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+            if new_date.year % 4 == 0:
+                days[1] = 29
+            year = new_date.year + (new_date.day + sum(days[:new_date.month - 1]) - 0.5) / sum(days)
+            self.B_eq = np.sqrt(sum(np.polyval(coefs[key], year) ** 2
+                                   for key in ("g11_fit", "h11_fit", "g10_fit")))
 
     def __str__(self):
-        s = f"""Dipole
-        psi: {self.psi}
-        MagMom: {self.M}"""
-        return s
+        return (f"Dipole\n"
+                f"        Object: {self.name}\n"
+                f"        Equatorial field: {self.B_eq:g} nT\n"
+                f"        Reference radius: {self.ToMeters:g} m\n"
+                f"        Moment direction: {self.direction}\n"
+                f"        Center: {self.center} m")

@@ -17,7 +17,7 @@ GT introduces the concept of a *region* to group models associated with near-Ear
 Galaxy, and to facilitate the implementation of region-specific functionality. The pre-implemented models in each
 region use a specific reference frame:
 
-- In the magnetosphere, GT uses the Earth-centered, Earth-fixed coordinate system (ECEF) [1]_, also known as the
+- For Earth magnetospheric models, GT uses the Earth-centered, Earth-fixed coordinate system (ECEF) [1]_, also known as the
   geocentric coordinate system or Geographic (GEO) coordinate system [2]_.
 - In the heliosphere, GT uses the Heliocentric Earth Ecliptic (HEE) coordinate system [2]_, [3]_.
 - In the Galaxy, GT uses a Galactocentric coordinate system with the `x`-axis oriented from the Sun toward the Galactic
