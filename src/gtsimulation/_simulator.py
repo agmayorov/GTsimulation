@@ -895,9 +895,9 @@ class GTSimulator(ABC):
         if SaveT:
             sv[TCode] = T
         if SavePA:
-            sv[PACode] = PitchAngles
+            sv[PACode] = np.asarray(PitchAngles).item()
         if SaveLR:
-            sv[LRCode] = LarmorRadii
+            sv[LRCode] = np.asarray(LarmorRadii).item()
         if SaveGC:
             sv[GCCode] = GuidingCenter
         Saves.append(sv)
