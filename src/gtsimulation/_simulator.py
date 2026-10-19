@@ -227,7 +227,7 @@ class GTSimulator(ABC):
 
         self.TrackParamsIsOn = False
         self.TrackParams = self.Region.value.SaveAdd
-        self.__SetAdditions(TrackParams, Save)
+        Save = self.__SetAdditions(TrackParams, Save)
 
         self.IsFirstRun = IsFirstRun
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
@@ -368,10 +368,16 @@ class GTSimulator(ABC):
                 self.TrackParams[add] = TrackParams[add]
 
         if self.TrackParamsIsOn:
+            required_saves = {"Bfield": True}
+            if self.TrackParams["PitchAngles"]:
+                required_saves["PitchAngles"] = True
+
             if not isinstance(Save, list):
-                Save = [Save, {"Bfield": True}]
+                Save = [Save, required_saves]
             else:
-                Save[1] = Save[1] | {"Bfield": True}
+                Save[1] = Save[1] | required_saves
+
+        return Save
 
     # def __set_nuclear_interaction(self, UseDecay, UseInteractNUC):
     #     self.UseDecay = UseDecay
