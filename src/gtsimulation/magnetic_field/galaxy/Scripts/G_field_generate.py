@@ -12,7 +12,7 @@ boxSize = 1
 n = 512
 
 # distance between grid points
-dl = boxSize / (n - 1)
+dl = boxSize / n
 
 lMin = 2 * dl
 lMax = boxSize
@@ -67,18 +67,11 @@ Gx = Gx / rms
 Gy = Gy / rms
 Gz = Gz / rms
 
-x_grid = np.linspace(0, boxSize, n)
-y_grid = np.linspace(0, boxSize, n)
-z_grid = np.linspace(0, boxSize, n)
-
 filename = f'G_n={n}_boxSize={boxSize}_lMin={lMin:.1e}_lMax={lMax:.1e}_seed={seed}.mat'
 
 mdic = {'Gx': Gx.astype('float32'),
         'Gy': Gy.astype('float32'),
         'Gz': Gz.astype('float32'),
-        'x_grid': x_grid,
-        'y_grid': y_grid,
-        'z_grid': z_grid,
         'boxSize': boxSize,
         'lMin': lMin,
         'lMax': lMax}

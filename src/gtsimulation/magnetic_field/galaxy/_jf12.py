@@ -125,12 +125,10 @@ class JF12mod(AbsBfield):
             self.Gy = coeffs["Gy"]
             self.Gz = coeffs["Gz"]
 
-            self.x_grid = coeffs["x_grid"].flatten()
-            self.y_grid = coeffs["y_grid"].flatten()
-            self.z_grid = coeffs["z_grid"].flatten()
+            self.box_size = float(coeffs["boxSize"].squeeze())
         else:
             self.Gx, self.Gy, self.Gz = np.zeros((1, 1, 1)), np.zeros((1, 1, 1)), np.zeros((1, 1, 1))
-            self.x_grid, self.y_grid, self.z_grid = np.zeros(3), np.zeros(3), np.zeros(3)
+            self.box_size = 1.0
 
     def CalcBfield(self, x, y, z, **kwargs):
         """
@@ -173,8 +171,8 @@ class JF12mod(AbsBfield):
                                  self.rXc, self.rX,
                                  self.tanThetaX0, self.sinThetaX0, self.cosThetaX0,
                                  self.bX,
-                                 self.x_grid, self.y_grid, self.z_grid,
                                  self.Gx, self.Gy, self.Gz,
+                                 self.box_size,
                                  self.beta_str,
                                  self.b_int_turb, self.b_disk_turb, self.z_disk_turb,
                                  self.b_halo_turb, self.r_halo_turb, self.z_halo_turb,
@@ -192,8 +190,8 @@ class JF12mod(AbsBfield):
                      rXc, rX,
                      tanThetaX0, sinThetaX0, cosThetaX0,
                      bX,
-                     x_grid, y_grid, z_grid,
                      Gx, Gy, Gz,
+                     box_size,
                      beta_str,
                      b_int_turb, b_disk_turb, z_disk_turb,
                      b_halo_turb, r_halo_turb, z_halo_turb,
@@ -285,9 +283,10 @@ class JF12mod(AbsBfield):
 
         if use_turb:
             if r < 20 and np.abs(z) < 20:
-                ix = np.where(x % x_grid[-1] >= x_grid[:-1])[0][-1]
-                iy = np.where(y % y_grid[-1] >= y_grid[:-1])[0][-1]
-                iz = np.where(z % z_grid[-1] >= z_grid[:-1])[0][-1]
+                nx, ny, nz = Gx.shape
+                ix = int(np.floor((x % box_size) * nx / box_size)) % nx
+                iy = int(np.floor((y % box_size) * ny / box_size)) % ny
+                iz = int(np.floor((z % box_size) * nz / box_size)) % nz
                 Gx_p = Gx[ix, iy, iz]
                 Gy_p = Gy[ix, iy, iz]
                 Gz_p = Gz[ix, iy, iz]
