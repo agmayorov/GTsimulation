@@ -292,10 +292,15 @@ class JF12mod(AbsBfield):
                 Gz_p = Gz[ix, iy, iz]
 
                 # Anisotropic random field
-                B_aniso_rms = np.sqrt(1.5 * beta_str) * Babs * (Bx * Gx_p + By * Gy_p + Bz * Gz_p)
-                Bx_aniso = B_aniso_rms * Bx
-                By_aniso = B_aniso_rms * By
-                Bz_aniso = B_aniso_rms * Bz
+                if Babs > 0:
+                    B_aniso_rms = (
+                        np.sqrt(1.5 * beta_str)
+                        * (Bx * Gx_p + By * Gy_p + Bz * Gz_p)
+                        / Babs
+                    )
+                    Bx_aniso = B_aniso_rms * Bx
+                    By_aniso = B_aniso_rms * By
+                    Bz_aniso = B_aniso_rms * Bz
 
                 # Isotropic random field
                 if r < 5:
