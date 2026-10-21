@@ -27,7 +27,7 @@ n2 = int(np.floor(n / 2)) + 1
 
 K = np.arange(n) / n - np.arange(n) // (n / 2)
 
-ek = np.array(np.meshgrid(K, K, K[:n2]))
+ek = np.array(np.meshgrid(K, K, K[:n2], indexing="ij"))
 k = np.linalg.norm(ek, axis=0)
 k[0, 0, 0] = 1.e-8 # to avoid division by zero
 
