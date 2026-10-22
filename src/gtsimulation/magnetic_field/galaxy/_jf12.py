@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import numpy as np
 import scipy.io
@@ -21,6 +21,10 @@ class JF12mod(AbsBfield):
     ----------
     use_turb : bool, optional
         If `True`, include turbulent magnetic field components. Default is `True`.
+    turbulence_file : str or path-like, optional
+        Path to a pre-computed turbulent-field ``.mat`` file. When omitted,
+        the model looks for the default realization in the ``Data`` directory
+        next to this module.
 
     Notes
     -----
@@ -39,6 +43,13 @@ class JF12mod(AbsBfield):
     The turbulent field (if enabled) includes:
       - an anisotropic (striated) component with parameter `beta_str`,
       - an isotropic component combining a thin disk and a halo term.
+
+    The turbulent-field realization is not distributed with GTsimulation due
+    to its size. It can be generated with
+    ``python -m gtsimulation.magnetic_field.galaxy.Scripts.generate_jf12_turbulence``.
+    The script writes the file to the current working directory; move it to the
+    model's ``Data`` directory or pass its path through ``turbulence_file``.
+    Alternatively, construct the model with ``use_turb=False``.
 
     Coordinates are expected in **kiloparsecs (kpc)**. The returned field
     components are in **nanotesla (nT)**.
@@ -62,7 +73,11 @@ class JF12mod(AbsBfield):
 
     ToMeters = Units.kpc
 
-    def __init__(self, use_turb=True):
+    _DEFAULT_TURBULENCE_FILENAME = (
+        "G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat"
+    )
+
+    def __init__(self, use_turb=True, turbulence_file=None):
         super().__init__()
         self.Region = Regions.Galaxy
         self.ModelName = "JF12mod"
@@ -117,10 +132,38 @@ class JF12mod(AbsBfield):
         self.z_halo_turb = 2.84
 
         if self.use_turb:
-            # coeffs = np.load(f"Data/G_nCell=250_boxSize=0.5kpc_lMin=4.0pc_lMax=500.0pc_seed=0.npy", allow_pickle=True).item(0)
-            path = os.path.dirname(os.path.realpath(__file__))
-            coeffs = scipy.io.loadmat(
-                f"{path}/Data/G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat")
+            default_file = (
+                Path(__file__).resolve().parent
+                / "Data"
+                / self._DEFAULT_TURBULENCE_FILENAME
+            )
+            turbulence_path = (
+                default_file
+                if turbulence_file is None
+                else Path(turbulence_file).expanduser()
+            )
+
+            if not turbulence_path.is_file():
+                generator_script = (
+                    Path(__file__).resolve().parent
+                    / "Scripts"
+                    / "generate_jf12_turbulence.py"
+                )
+                raise FileNotFoundError(
+                    "JF12 turbulence data file was not found:\n"
+                    f"  {turbulence_path}\n\n"
+                    "The turbulent realization is not bundled with "
+                    "GTsimulation because of its size. Generate it by running:\n"
+                    f'  python "{generator_script}"\n\n'
+                    "The script saves the generated file in the current working "
+                    "directory. Create the parent directory of the expected "
+                    "path and move the file there, or pass its location with "
+                    "JF12mod(turbulence_file=...), or disable turbulence with "
+                    "JF12mod(use_turb=False)."
+                )
+
+            self.turbulence_file = turbulence_path.resolve()
+            coeffs = scipy.io.loadmat(self.turbulence_file)
             self.Gx = coeffs["Gx"]
             self.Gy = coeffs["Gy"]
             self.Gz = coeffs["Gz"]
@@ -129,6 +172,7 @@ class JF12mod(AbsBfield):
         else:
             self.Gx, self.Gy, self.Gz = np.zeros((1, 1, 1)), np.zeros((1, 1, 1)), np.zeros((1, 1, 1))
             self.box_size = 1.0
+            self.turbulence_file = None
 
     def CalcBfield(self, x, y, z, **kwargs):
         """
