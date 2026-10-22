@@ -138,12 +138,9 @@ class GTSimulator(ABC):
         Results of simulation.
 
         * If `Output` is None:
-            Returns a list of simulation results. The structure depends on `Nfiles`:
-
-            - `Nfiles = 1` — a flat list of dictionaries, one per simulated particle
-              (the number of particles is determined by the `Particles` argument).
-            - `Nfiles > 1` — a list of lists. Each inner list corresponds to one output file
-              and contains dictionaries for the particles processed in that file.
+            Returns a list of lists. Each outer element corresponds to one file,
+            and each inner list contains one result dictionary per simulated particle.
+            With `Nfiles = 1`, the outer list still contains one inner list.
         * If `Output` is not None:
             Results are saved to disk (NumPy binary files) and the method returns `None`.
 
