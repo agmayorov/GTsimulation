@@ -5,7 +5,7 @@ docs/reference/generated
 __pycache__/
 
 src/gtsimulation/interaction/_build_config.py
-src/gtsimulation/interaction/Atmosphere
+src/gtsimulation/interaction/atmosphere*
 src/gtsimulation/interaction/matter_layer*
 src/gtsimulation/interaction/DecayGenerator
 

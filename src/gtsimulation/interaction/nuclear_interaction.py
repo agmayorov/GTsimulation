@@ -1,16 +1,28 @@
 import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
+
 import numpy as np
+from pymsis import msis
+from pyproj import Transformer
+
 from ._build_config import GEANT4_COMPONENTS_AVAILABLE
 
 
 PRIMARY_DTYPE = np.dtype({
     'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position', 'LastProcess'],
-    'formats': ['U16', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8', 'U32']
+    'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8', 'U32']
 })
 
 SECONDARY_DTYPE = np.dtype({
     'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection'],
-    'formats': ['U16', 'i4', 'f8', 'i4', 'f8', '(3,)f8']
+    'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8']
+})
+
+ATMOSPHERE_SECONDARY_DTYPE = np.dtype({
+    'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'Position', 'MomentumDirection', 'KineticEnergy',
+              'VertexPosition', 'VertexMomentumDirection', 'VertexKineticEnergy'],
+    'formats': ['U32', 'i4', 'f8', 'i4', '(3,)f8', '(3,)f8', 'f8', '(3,)f8', '(3,)f8', 'f8']
 })
 
 
@@ -51,6 +63,39 @@ def convert_to_numpy(run_result):
     return primary_arr, secondary_arr
 
 
+def convert_atmosphere_to_numpy(run_result):
+    """
+    Convert C++ Geant4 atmosphere result object to structured NumPy arrays.
+
+    Parameters
+    ----------
+    run_result : atmosphere.RunResult
+        C++ result object returned by ``atmosphere.run``.
+
+    Returns
+    -------
+    primary : numpy.ndarray
+        Structured array with dtype ``PRIMARY_DTYPE`` containing the final state
+        of the primary particle.
+    secondary : numpy.ndarray
+        Structured array of shape ``(N,)`` with dtype ``ATMOSPHERE_SECONDARY_DTYPE``
+        containing secondary particles leaving the atmosphere (empty if ``N=0``).
+    """
+    p = run_result.primary
+    primary_arr = np.array((
+        p.name, p.pdgCode, p.mass, p.charge, p.kineticEnergy,
+        np.array(p.momentumDirection), np.array(p.position), p.lastProcess
+    ), dtype=PRIMARY_DTYPE)
+    secondaries_list = [
+        (s.name, s.pdgCode, s.mass, s.charge, np.array(s.position), np.array(s.momentumDirection), s.kineticEnergy,
+         np.array(s.vertexPosition), np.array(s.vertexMomentumDirection), s.vertexKineticEnergy)
+        for s in run_result.secondaries
+    ]
+    secondary_arr = np.array(secondaries_list, dtype=ATMOSPHERE_SECONDARY_DTYPE) \
+        if secondaries_list else np.empty(0, dtype=ATMOSPHERE_SECONDARY_DTYPE)
+    return primary_arr, secondary_arr
+
+
 def sim_worker(input_queue, output_queue, seed):
     """
     Geant4 worker process loop.
@@ -83,6 +128,31 @@ def sim_worker(input_queue, output_queue, seed):
         output_queue.put((*convert_to_numpy(run_result), count))
 
 
+def atmosphere_worker(params):
+    """
+    Run a single Geant4 atmosphere event.
+
+    Geant4 can be initialized only once per process, so this function must be
+    executed in a fresh process for every call.
+
+    Parameters
+    ----------
+    params : dict
+        Keyword arguments for ``atmosphere.run``.
+
+    Returns
+    -------
+    primary, secondary : numpy.ndarray
+        Result converted by ``convert_atmosphere_to_numpy``.
+
+    Notes
+    -----
+    Internal worker function for ``NuclearInteraction``. Not intended for direct use.
+    """
+    from . import atmosphere
+    return convert_atmosphere_to_numpy(atmosphere.run(**params))
+
+
 class NuclearInteraction:
     """
     Geant4-backed nuclear interaction simulator with optional process restarts.
@@ -113,6 +183,10 @@ class NuclearInteraction:
     Internally, the C++ result object is converted to structured NumPy arrays with the
     dtypes ``PRIMARY_DTYPE`` and ``SECONDARY_DTYPE``.
 
+    The class also simulates air showers in the Earth's atmosphere (``run_atmosphere``).
+    Each shower is computed in a separate short-lived process, since Geant4 can be
+    initialized only once per process.
+
     Parameters
     ----------
     max_generations : int, default=1
@@ -121,9 +195,12 @@ class NuclearInteraction:
         Grammage threshold [g/cm²] above which the Geant4 subroutine is triggered.
         Should be set as a fraction of the expected nuclear interaction length in the material.
     seed : int
-        Random seed used to initialize the Geant4 simulator inside the worker process.
+        Seed of the random generator that provides seeds for the Geant4 worker processes.
     restart_limit : int, default=20
         Number of runs after which the worker process is restarted automatically.
+    atmosphere_height : float, default=80e3
+        Height of the atmosphere [m] simulated by ``run_atmosphere``. Must be a positive
+        multiple of 1 km (thickness of one atmospheric layer).
     """
 
     def __init__(
@@ -131,17 +208,24 @@ class NuclearInteraction:
             max_generations: int = 1,
             grammage_threshold: float = 10.,
             seed: int = None,
-            restart_limit: int = 20
+            restart_limit: int = 20,
+            atmosphere_height: float = 80e3
     ):
         if not GEANT4_COMPONENTS_AVAILABLE:
             raise ValueError(
                 "GTsimulation was installed without Geant4 support. "
                 "Please reinstall the package or disable nuclear interactions."
             )
+        if atmosphere_height <= 0:
+            raise ValueError(f"Atmosphere height must be positive, got {atmosphere_height} m")
         self.max_generations = max_generations
         self.grammage_threshold = grammage_threshold  # g/cm2
         self.seed = np.random.randint(2147483647) if seed is None else seed
+        self.rng = np.random.default_rng(self.seed)
         self.restart_limit = restart_limit
+        self.atmosphere_height = atmosphere_height  # m
+        self.geo_to_lla = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
+                                               {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
         self.restart_counter = 0
         self.process = None
         self.in_q = mp.Queue()
@@ -151,7 +235,8 @@ class NuclearInteraction:
     def __start_new_process(self):
         if self.process: self.__terminate_process()
         self.restart_counter = 0
-        self.process = mp.Process(target=sim_worker, args=(self.in_q, self.out_q, self.seed))
+        seed = int(self.rng.integers(2147483647))
+        self.process = mp.Process(target=sim_worker, args=(self.in_q, self.out_q, seed))
         self.process.daemon = True
         self.process.start()
 
@@ -235,3 +320,78 @@ class NuclearInteraction:
         self.in_q.put((pdg, energy, mass, density, element_name, element_abundance))
         primary, secondary, self.restart_counter = self.out_q.get()
         return primary, secondary
+
+    def run_atmosphere(
+            self,
+            pdg: int,
+            energy: float,
+            r: np.ndarray,
+            v: np.ndarray,
+            date: datetime
+    ):
+        """
+        Simulate an air shower produced by a particle in the Earth's atmosphere.
+
+        The atmosphere is a spherical layer of height ``atmosphere_height`` above the local
+        Earth radius, divided into 1 km layers. The density and composition of each layer
+        are calculated with the NRLMSISE-00 model at the position of the particle.
+        Under the atmosphere there is a 0.5 km layer of soil. All calculations are carried
+        out in the GEO coordinate system.
+
+        Parameters
+        ----------
+        pdg : int
+            PDG code of the primary particle.
+        energy : float
+            Primary particle kinetic energy in MeV.
+        r : numpy.ndarray
+            Coordinates of the primary particle in GEO [m].
+        v : numpy.ndarray
+            Direction of the primary particle velocity in GEO.
+        date : datetime
+            Current date and time.
+
+        Returns
+        -------
+        primary : numpy.ndarray
+            Structured NumPy array with dtype ``PRIMARY_DTYPE`` (final state of the primary
+            particle, see ``run_matter_layer``).
+
+        secondary : numpy.ndarray
+            Structured NumPy array with dtype ``ATMOSPHERE_SECONDARY_DTYPE`` and shape ``(N,)``,
+            where ``N`` is the number of secondary particles with kinetic energy above 1 MeV
+            leaving the atmosphere upwards or the soil downwards (may be 0).
+            Fields:
+
+            - ``Name`` : str
+            - ``PDGcode`` : int
+            - ``Mass`` : float, MeV
+            - ``Charge`` : int
+            - ``Position`` : (3,) float, m, GEO
+            - ``MomentumDirection`` : (3,) float, unit vector, GEO
+            - ``KineticEnergy`` : float, MeV
+            - ``VertexPosition`` : (3,) float, m, GEO
+            - ``VertexMomentumDirection`` : (3,) float, unit vector, GEO
+            - ``VertexKineticEnergy`` : float, MeV
+        """
+        r = np.asarray(r, dtype=float)
+        lon, lat, alt = self.geo_to_lla.transform(*r, radians=False)
+        f107, f107a, ap = msis.get_f107_ap(date)
+        params = dict(
+            seed=int(self.rng.integers(2147483647)),
+            pdg=int(pdg),
+            energy=float(energy),
+            coordinates=r.tolist(),
+            direction=np.asarray(v, dtype=float).tolist(),
+            earth_radius=np.linalg.norm(r) - alt,
+            max_height=self.atmosphere_height,
+            doy=date.timetuple().tm_yday,
+            sec=(date - date.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds(),
+            lat=float(lat),
+            lon=float(lon),
+            f107a=float(f107a[0]),
+            f107=float(f107[0]),
+            ap=float(ap[0][0]),
+        )
+        with ProcessPoolExecutor(max_workers=1) as executor:
+            return executor.submit(atmosphere_worker, params).result()
