@@ -1,9 +1,21 @@
 #include "DetectorConstruction.hh"
+#include "AtmosphereParameterisation.hh"
 
-#include "G4PhysicalConstants.hh"
-#include "G4Element.hh"
+#include <G4SystemOfUnits.hh>
+#include <G4PhysicalConstants.hh>
+#include <G4NistManager.hh>
+#include <G4Material.hh>
+#include <G4Element.hh>
+#include <G4Sphere.hh>
+#include <G4LogicalVolume.hh>
+#include <G4PVPlacement.hh>
+#include <G4PVParameterised.hh>
+#include <G4ThreeVector.hh>
+#include <G4String.hh>
 
 #include <array>
+#include <string>
+#include <vector>
 
 namespace Atmosphere
 {
@@ -14,24 +26,21 @@ DetectorConstruction::DetectorConstruction(G4double earthRadius, nrlmsise_input 
   fNrlmsiseInput(input)
 {}
 
-DetectorConstruction::~DetectorConstruction()
-{}
-
-G4VPhysicalVolume *DetectorConstruction::Construct()
+G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-  G4NistManager *nist = G4NistManager::Instance();
+  G4NistManager* nist = G4NistManager::Instance();
   G4bool check_overlaps = false;
 
   //------ World -----------------------------------------------------------------------------------
 
-  G4double innerRadius = (fEarthRadius - 0.5)*km;
+  G4double innerRadius = (fEarthRadius - fSurfaceThickness)*km;
   G4double outerRadius = (fEarthRadius + fMaxHeight)*km;
-  G4Sphere *world_svol = new G4Sphere("world", innerRadius, outerRadius, 0., 360*deg, 0., 180*deg);
+  G4Sphere* world_svol = new G4Sphere("world", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
-  G4Material *world_mat = nist->FindOrBuildMaterial("G4_Galactic");
-  G4LogicalVolume *world_lvol = new G4LogicalVolume(world_svol, world_mat, "world");
+  G4Material* world_mat = nist->FindOrBuildMaterial("G4_Galactic");
+  G4LogicalVolume* world_lvol = new G4LogicalVolume(world_svol, world_mat, "world");
 
-  G4VPhysicalVolume *world_pvol = 
+  G4VPhysicalVolume* world_pvol =
   new G4PVPlacement(nullptr,            // no rotation
                     G4ThreeVector(),    // position
                     world_lvol,         // logical volume
@@ -43,12 +52,12 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
 
   //------ Surface ---------------------------------------------------------------------------------
 
-  innerRadius = (fEarthRadius - 0.5)*km;
+  innerRadius = (fEarthRadius - fSurfaceThickness)*km;
   outerRadius = fEarthRadius*km;
-  G4Sphere *surface_svol = new G4Sphere("surface", innerRadius, outerRadius, 0., 360*deg, 0., 180*deg);
+  G4Sphere* surface_svol = new G4Sphere("surface", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
-  G4Material *surface_mat = nist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-  G4LogicalVolume *surface_lvol = new G4LogicalVolume(surface_svol, surface_mat, "surface");
+  G4Material* surface_mat = nist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
+  G4LogicalVolume* surface_lvol = new G4LogicalVolume(surface_svol, surface_mat, "surface");
 
   new G4PVPlacement(nullptr,            // no rotation
                     G4ThreeVector(),    // position
@@ -63,14 +72,14 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
 
   innerRadius = fEarthRadius*km;
   outerRadius = (fEarthRadius + fMaxHeight)*km;
-  G4Sphere *atmopshere_svol = new G4Sphere("atmosphere", innerRadius, outerRadius, 0., 360*deg, 0., 180*deg);
+  G4Sphere* atmosphere_svol = new G4Sphere("atmosphere", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
-  G4Material *atmopshere_mat = nist->FindOrBuildMaterial("G4_AIR");
-  G4LogicalVolume *atmopshere_lvol = new G4LogicalVolume(atmopshere_svol, atmopshere_mat, "atmosphere");
+  G4Material* atmosphere_mat = nist->FindOrBuildMaterial("G4_AIR");
+  G4LogicalVolume* atmosphere_lvol = new G4LogicalVolume(atmosphere_svol, atmosphere_mat, "atmosphere");
 
   new G4PVPlacement(nullptr,            // no rotation
                     G4ThreeVector(),    // position
-                    atmopshere_lvol,    // logical volume
+                    atmosphere_lvol,    // logical volume
                     "atmosphere",       // name
                     world_lvol,         // mother volume
                     false,              // no boolean operation
@@ -97,7 +106,7 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
 
   // Mass density of each element at given altitude [km] from NRLMSISE-00 number densities [cm-3].
   // Anomalous oxygen (d[8]) is excluded, as in the total mass density d[5] of gtd7
-  auto compute_element_density = [&](G4double altitude, std::array<G4double, n_elements> &density) {
+  auto compute_element_density = [&](G4double altitude, std::array<G4double, n_elements>& density) {
     fNrlmsiseInput.alt = altitude;
     gtd7(&fNrlmsiseInput, &flags, &output);
     density[0] = output.d[6] / cm3 * atom_mass[0];                           // H
@@ -151,13 +160,13 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
   }
 
   outerRadius = (fEarthRadius + fThicknessOfOneLayer)*km;
-  G4Sphere *atmopshere_layer_svol = new G4Sphere("atmospheric_layer", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
-  G4LogicalVolume *atmopshere_layer_lvol = new G4LogicalVolume(atmopshere_layer_svol, atmopshere_mat, "atmospheric_layer");
+  G4Sphere* atmosphere_layer_svol = new G4Sphere("atmospheric_layer", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
+  G4LogicalVolume* atmosphere_layer_lvol = new G4LogicalVolume(atmosphere_layer_svol, atmosphere_mat, "atmospheric_layer");
 
-  AtmosphereParameterisation *atmosphere_param = new AtmosphereParameterisation(fThicknessOfOneLayer, fEarthRadius, atmospheric_layer_mat);
+  AtmosphereParameterisation* atmosphere_param = new AtmosphereParameterisation(fThicknessOfOneLayer, fEarthRadius, atmospheric_layer_mat);
   new G4PVParameterised("atmosphere",             // name
-                        atmopshere_layer_lvol,    // logical volume
-                        atmopshere_lvol,          // mother volume
+                        atmosphere_layer_lvol,    // logical volume
+                        atmosphere_lvol,          // mother volume
                         kUndefined,               // along this axis
                         numberOfLayers,           // copy number
                         atmosphere_param,         // parametrisation

@@ -1,5 +1,11 @@
 #include "PhysicsList.hh"
 
+#include <G4RadioactiveDecayPhysics.hh>
+#include <G4Neutron.hh>
+#include <G4ProcessManager.hh>
+#include <G4ProcessVector.hh>
+#include <G4VProcess.hh>
+
 namespace Atmosphere
 {
 
@@ -9,10 +15,8 @@ PhysicsList::PhysicsList()
   RegisterPhysics(new G4RadioactiveDecayPhysics());
 }
 
-PhysicsList::~PhysicsList()
-{}
-
-void PhysicsList::ConstructProcess() {
+void PhysicsList::ConstructProcess()
+{
   FTFP_BERT::ConstructProcess();
   // Remove neutron killing process
   G4ProcessManager* pManager = G4Neutron::Neutron()->GetProcessManager();

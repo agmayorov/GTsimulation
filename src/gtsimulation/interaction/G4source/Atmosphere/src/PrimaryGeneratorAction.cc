@@ -1,11 +1,18 @@
-﻿#include "PrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
+
+#include <G4ParticleGun.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
+#include <G4IonTable.hh>
+#include <G4SystemOfUnits.hh>
+
+#include <iostream>
 
 namespace Atmosphere
 {
 
 PrimaryGeneratorAction::PrimaryGeneratorAction(const SimConfig& config)
 : G4VUserPrimaryGeneratorAction(),
-  fParticleGun(0),
   fConfig(config)
 {
   fParticleGun = new G4ParticleGun();
@@ -19,9 +26,9 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
   delete fParticleGun;
 }
 
-void PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
+void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  G4ParticleDefinition *particle = 0;
+  G4ParticleDefinition* particle = nullptr;
   if (G4ParticleTable::GetParticleTable()->FindParticle(fConfig.particlePDG))
     particle = G4ParticleTable::GetParticleTable()->FindParticle(fConfig.particlePDG);
   else if (G4IonTable::GetIonTable()->GetIon(fConfig.particlePDG))

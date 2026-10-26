@@ -1,21 +1,27 @@
-﻿#include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "G4RunManager.hh"
-#include "CLHEP/Random/MixMaxRng.h"
+#include <G4RunManager.hh>
+#include <G4ThreeVector.hh>
+#include <CLHEP/Random/Random.h>
+#include <CLHEP/Random/MixMaxRng.h>
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
 #include "SimConfig.hh"
 #include "RunResult.hh"
+#include "nrlmsise-00.hh"
 
+#include <array>
+#include <iostream>
 #include <streambuf>
 
 namespace py = pybind11;
 using namespace Atmosphere;
 
-class NullBuffer : public std::streambuf {
+class NullBuffer : public std::streambuf
+{
   public:
     int overflow(int c) override { return c; }
 };
@@ -78,7 +84,8 @@ RunResult run(
   return result;
 }
 
-PYBIND11_MODULE(atmosphere, m) {
+PYBIND11_MODULE(atmosphere, m)
+{
   m.doc() = "Geant4 Atmosphere Simulator";
 
   // Exporting data structures

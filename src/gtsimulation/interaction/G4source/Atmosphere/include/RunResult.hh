@@ -1,5 +1,4 @@
-#ifndef RunResult_hh
-#define RunResult_hh
+#pragma once
 
 #include <string>
 #include <vector>
@@ -7,7 +6,8 @@
 namespace Atmosphere
 {
 
-struct ParticleData {
+struct ParticleData
+{
   std::string name;
   int pdgCode;
   double mass;
@@ -21,11 +21,10 @@ struct ParticleData {
   std::string lastProcess;
 };
 
-struct RunResult {
+struct RunResult
+{
   ParticleData primary;
   std::vector<ParticleData> secondaries;
 };
 
 }
-
-#endif

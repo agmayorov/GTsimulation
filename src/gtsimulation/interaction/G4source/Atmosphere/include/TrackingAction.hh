@@ -1,11 +1,6 @@
-#ifndef TrackingAction_hh
-#define TrackingAction_hh
+#pragma once
 
-#include "G4UserTrackingAction.hh"
-#include "G4Track.hh"
-
-#include "G4SystemOfUnits.hh"
-#include "G4VProcess.hh"
+#include <G4UserTrackingAction.hh>
 #include "RunResult.hh"
 
 namespace Atmosphere
@@ -13,15 +8,13 @@ namespace Atmosphere
 
 class TrackingAction : public G4UserTrackingAction
 {
-  public:  
+  public:
     TrackingAction(RunResult& result);
-   ~TrackingAction() override = default;
-    void PostUserTrackingAction(const G4Track *aTrack) override;
+    ~TrackingAction() override = default;
+    void PostUserTrackingAction(const G4Track* aTrack) override;
 
   private:
     RunResult& fResult;
 };
 
 }
-
-#endif

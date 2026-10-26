@@ -1,5 +1,15 @@
 #include "TrackingAction.hh"
 
+#include <G4Track.hh>
+#include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4VProcess.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4ThreeVector.hh>
+#include <G4SystemOfUnits.hh>
+
+#include <vector>
+
 namespace Atmosphere
 {
 
@@ -7,10 +17,10 @@ TrackingAction::TrackingAction(RunResult& result)
 : fResult(result)
 {}
 
-void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
+void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 {
   G4bool isPrimary = aTrack->GetTrackID() == 1;
-  G4bool isLeavingWorld = aTrack->GetTrackID() != 1 && aTrack->GetKineticEnergy() > 1. &&
+  G4bool isLeavingWorld = aTrack->GetTrackID() != 1 && aTrack->GetKineticEnergy() > 1. * MeV &&
                           aTrack->GetStep()->GetPostStepPoint()->GetStepStatus() == fWorldBoundary;
   if (!isPrimary && !isLeavingWorld)
     return;

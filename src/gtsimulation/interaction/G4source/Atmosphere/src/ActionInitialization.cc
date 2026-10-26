@@ -1,14 +1,14 @@
 #include "ActionInitialization.hh"
 
+#include "PrimaryGeneratorAction.hh"
+#include "TrackingAction.hh"
+
 namespace Atmosphere
 {
 
 ActionInitialization::ActionInitialization(const SimConfig& config, RunResult& result)
 : fConfig(config),
   fResult(result)
-{}
-
-ActionInitialization::~ActionInitialization()
 {}
 
 void ActionInitialization::Build() const
