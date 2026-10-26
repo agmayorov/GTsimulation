@@ -10,6 +10,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 #include <G4PVParameterised.hh>
+#include <G4GeometryManager.hh>
 #include <G4ThreeVector.hh>
 #include <G4String.hh>
 
@@ -28,6 +29,9 @@ DetectorConstruction::DetectorConstruction(G4double earthRadius, nrlmsise_input 
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
+  // Surface tolerances are computed relative to the world size; must be set before any solid is created
+  G4GeometryManager::GetInstance()->SetWorldMaximumExtent(2. * (fEarthRadius + fMaxHeight)*km);
+
   G4NistManager* nist = G4NistManager::Instance();
   G4bool check_overlaps = false;
 
@@ -118,7 +122,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // Initialization of variables for numerical integration
   G4double h = 0; // km above ground
-  G4int n_integrating = 100; // free parameter
+  G4int n_integrating = 10; // free parameter
   G4double dx = fThicknessOfOneLayer / n_integrating;
   G4double x2 = 0., x3 = 0.;
   std::array<G4double, n_elements> f1{}, f2{}, f3{};
