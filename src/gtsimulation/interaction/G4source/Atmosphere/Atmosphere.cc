@@ -1,4 +1,5 @@
 ﻿#include "G4RunManager.hh"
+#include "CLHEP/Random/MixMaxRng.h"
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
     nullptr,  /* ap_array */
   };
 
-  CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
+  CLHEP::HepRandom::setTheEngine(new CLHEP::MixMaxRng);
   CLHEP::HepRandom::setTheSeed(seed);
 
   // Construct RunManager and initialize G4 kernel

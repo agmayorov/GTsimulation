@@ -1,5 +1,10 @@
 #include "DetectorConstruction.hh"
 
+#include "G4PhysicalConstants.hh"
+#include "G4Element.hh"
+
+#include <array>
+
 namespace Atmosphere
 {
 
@@ -79,47 +84,70 @@ G4VPhysicalVolume *DetectorConstruction::Construct()
   flags.switches[0] = 0;
   for (G4int i = 1; i < 24; i++)
     flags.switches[i] = 1;
-  gtd7(&fNrlmsiseInput, &flags, &output);
 
-  G4Element *He = new G4Element("Helium",   "He",  2., 4.003*g/mole);
-  G4Element *N  = new G4Element("Nitrogen", "N",   7., 14.01*g/mole);
-  G4Element *O  = new G4Element("Oxygen",   "O",   8., 16.00*g/mole);
-  G4Element *Ar = new G4Element("Argon",    "Ar", 18., 39.95*g/mole);
+  // Elements of the atmosphere; mass of one atom is in Geant4 internal units
+  constexpr G4int n_elements = 5;
+  std::array<G4String, n_elements> element_symbols = {"H", "He", "N", "O", "Ar"};
+  std::array<G4Element*, n_elements> elements;
+  std::array<G4double, n_elements> atom_mass;
+  for (G4int e = 0; e < n_elements; e++) {
+    elements[e] = nist->FindOrBuildElement(element_symbols[e]);
+    atom_mass[e] = elements[e]->GetA() / Avogadro;
+  }
+
+  // Mass density of each element at given altitude [km] from NRLMSISE-00 number densities [cm-3].
+  // Anomalous oxygen (d[8]) is excluded, as in the total mass density d[5] of gtd7
+  auto compute_element_density = [&](G4double altitude, std::array<G4double, n_elements> &density) {
+    fNrlmsiseInput.alt = altitude;
+    gtd7(&fNrlmsiseInput, &flags, &output);
+    density[0] = output.d[6] / cm3 * atom_mass[0];                           // H
+    density[1] = output.d[0] / cm3 * atom_mass[1];                           // He
+    density[2] = (2. * output.d[2] + output.d[7]) / cm3 * atom_mass[2];      // N2, N
+    density[3] = (output.d[1] + 2. * output.d[3]) / cm3 * atom_mass[3];      // O, O2
+    density[4] = output.d[4] / cm3 * atom_mass[4];                           // Ar
+  };
 
   // Initialization of variables for numerical integration
-  G4double layer_density = 0.;
   G4double h = 0; // km above ground
   G4int n_integrating = 100; // free parameter
   G4double dx = fThicknessOfOneLayer / n_integrating;
-  G4double x2 = 0., x3 = 0., f1 = 0., f2 = 0., f3 = output.d[5];
+  G4double x2 = 0., x3 = 0.;
+  std::array<G4double, n_elements> f1{}, f2{}, f3{};
+  compute_element_density(0., f3);
 
   G4int numberOfLayers = fMaxHeight / fThicknessOfOneLayer;
 
   std::vector<G4Material*> atmospheric_layer_mat(numberOfLayers);
 
   for (G4int i = 0; i < numberOfLayers; i++) {
-    layer_density = 0.;
+    // Integral of the element mass density over the layer height (Simpson's rule)
+    std::array<G4double, n_elements> layer_mass{};
     h = i * fThicknessOfOneLayer;
     for (G4int k = 0; k < n_integrating; k++) {
       x2 = h + dx / 2. + dx * k;
       x3 = x2 + dx / 2.;
       f1 = f3;
-      fNrlmsiseInput.alt = x2;
-      gtd7(&fNrlmsiseInput, &flags, &output);
-      f2 = output.d[5];
-      fNrlmsiseInput.alt = x3;
-      gtd7(&fNrlmsiseInput, &flags, &output);
-      f3 = output.d[5];
-      layer_density += (f1 + 4. * f2 + f3) / 6.;
+      compute_element_density(x2, f2);
+      compute_element_density(x3, f3);
+      for (G4int e = 0; e < n_elements; e++)
+        layer_mass[e] += (f1[e] + 4. * f2[e] + f3[e]) / 6. * dx;
     }
-    layer_density *= dx;
+
+    G4double total_mass = 0.;
+    G4int n_components = 0;
+    for (G4int e = 0; e < n_elements; e++) {
+      total_mass += layer_mass[e];
+      if (layer_mass[e] > 0.)
+        n_components++;
+    }
+    G4double layer_density = total_mass / fThicknessOfOneLayer;
 
     std::string copyNoString = std::to_string(i);
-    atmospheric_layer_mat[i] = new G4Material("Air_" + copyNoString, layer_density*g/cm3, 4);
-    atmospheric_layer_mat[i]->AddElement(He, 0.00052418*perCent);
-    atmospheric_layer_mat[i]->AddElement(O, 78.11046347*perCent);
-    atmospheric_layer_mat[i]->AddElement(N, 20.95469404*perCent);
-    atmospheric_layer_mat[i]->AddElement(Ar, 0.93431831*perCent);
+    atmospheric_layer_mat[i] = new G4Material("Air_" + copyNoString, layer_density, n_components);
+    for (G4int e = 0; e < n_elements; e++) {
+      if (layer_mass[e] > 0.)
+        atmospheric_layer_mat[i]->AddElement(elements[e], layer_mass[e] / total_mass);
+    }
   }
 
   outerRadius = (fEarthRadius + fThicknessOfOneLayer)*km;
