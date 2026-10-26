@@ -1,4 +1,12 @@
-﻿#include "PrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
+
+#include <G4ParticleGun.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
+#include <G4IonTable.hh>
+#include <G4SystemOfUnits.hh>
+
+#include <iostream>
 
 namespace MatterLayer
 {

@@ -1,13 +1,22 @@
-﻿#include "DetectorConstruction.hh"
+#include "DetectorConstruction.hh"
+
+#include <G4SystemOfUnits.hh>
+#include <G4NistManager.hh>
+#include <G4Material.hh>
+#include <G4Element.hh>
+#include <G4Tubs.hh>
+#include <G4LogicalVolume.hh>
+#include <G4PVPlacement.hh>
+#include <G4RunManager.hh>
+
+#include <cmath>
+#include <iostream>
 
 namespace MatterLayer
 {
 
 DetectorConstruction::DetectorConstruction()
-: fMatCounter(0)
-{}
-
-DetectorConstruction::~DetectorConstruction()
+: materialCount(0)
 {}
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
@@ -51,7 +60,7 @@ void DetectorConstruction::UpdateParameters(
   fCurrentNames = elementName;
   fCurrentAbundances = elementAbundance;
 
-  std::string uniqueName = "Matter_" + std::to_string(fMatCounter++);
+  std::string uniqueName = "Matter_" + std::to_string(materialCount++);
   fWorldMaterial = new G4Material(uniqueName, density * g/cm3, elementName.size());
   for (G4int i = 0; i < elementName.size(); ++i) {
     G4Element* e = G4NistManager::Instance()->FindOrBuildElement(elementName[i]);
