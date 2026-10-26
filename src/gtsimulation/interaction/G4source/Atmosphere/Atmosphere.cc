@@ -33,7 +33,7 @@ RunResult run(
   int pdg, double energy,
   std::array<double, 3> coordinates,
   std::array<double, 3> direction,
-  double earth_radius,
+  double earth_radius, double max_height,
   int doy, double sec,
   double lat, double lon,
   double f107a, double f107, double ap
@@ -69,7 +69,7 @@ RunResult run(
 
   // Construct RunManager and initialize G4 kernel
   G4RunManager* runManager = new G4RunManager();
-  runManager->SetUserInitialization(new DetectorConstruction(earth_radius, input));
+  runManager->SetUserInitialization(new DetectorConstruction(earth_radius, max_height, input));
   runManager->SetUserInitialization(new PhysicsList());
   runManager->SetUserInitialization(new ActionInitialization(simConfig, result));
   runManager->Initialize();
@@ -109,7 +109,7 @@ PYBIND11_MODULE(atmosphere, m)
   // Exporting the main function
   m.def("run", &run,
         py::arg("seed"), py::arg("pdg"), py::arg("energy"), py::arg("coordinates"), py::arg("direction"),
-        py::arg("earth_radius"), py::arg("doy"), py::arg("sec"), py::arg("lat"), py::arg("lon"),
+        py::arg("earth_radius"), py::arg("max_height"), py::arg("doy"), py::arg("sec"), py::arg("lat"), py::arg("lon"),
         py::arg("f107a"), py::arg("f107"), py::arg("ap"),
         "Run one event with given parameters (only once per process)");
 }

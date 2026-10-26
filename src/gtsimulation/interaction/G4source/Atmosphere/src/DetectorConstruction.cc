@@ -21,24 +21,25 @@
 namespace Atmosphere
 {
 
-DetectorConstruction::DetectorConstruction(G4double earthRadius, nrlmsise_input input)
+DetectorConstruction::DetectorConstruction(G4double earthRadius, G4double maxHeight, nrlmsise_input input)
 : G4VUserDetectorConstruction(),
   fEarthRadius(earthRadius),
+  fMaxHeight(maxHeight),
   fNrlmsiseInput(input)
 {}
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   // Surface tolerances are computed relative to the world size; must be set before any solid is created
-  G4GeometryManager::GetInstance()->SetWorldMaximumExtent(2. * (fEarthRadius + fMaxHeight)*km);
+  G4GeometryManager::GetInstance()->SetWorldMaximumExtent(2. * (fEarthRadius + fMaxHeight)*m);
 
   G4NistManager* nist = G4NistManager::Instance();
   G4bool check_overlaps = false;
 
   //------ World -----------------------------------------------------------------------------------
 
-  G4double innerRadius = (fEarthRadius - fSurfaceThickness)*km;
-  G4double outerRadius = (fEarthRadius + fMaxHeight)*km;
+  G4double innerRadius = (fEarthRadius - fSurfaceThickness)*m;
+  G4double outerRadius = (fEarthRadius + fMaxHeight)*m;
   G4Sphere* world_svol = new G4Sphere("world", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
   G4Material* world_mat = nist->FindOrBuildMaterial("G4_Galactic");
@@ -56,8 +57,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   //------ Surface ---------------------------------------------------------------------------------
 
-  innerRadius = (fEarthRadius - fSurfaceThickness)*km;
-  outerRadius = fEarthRadius*km;
+  innerRadius = (fEarthRadius - fSurfaceThickness)*m;
+  outerRadius = fEarthRadius*m;
   G4Sphere* surface_svol = new G4Sphere("surface", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
   G4Material* surface_mat = nist->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
@@ -74,8 +75,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   //------ Atmosphere ------------------------------------------------------------------------------
 
-  innerRadius = fEarthRadius*km;
-  outerRadius = (fEarthRadius + fMaxHeight)*km;
+  innerRadius = fEarthRadius*m;
+  outerRadius = (fEarthRadius + fMaxHeight)*m;
   G4Sphere* atmosphere_svol = new G4Sphere("atmosphere", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
 
   G4Material* atmosphere_mat = nist->FindOrBuildMaterial("G4_AIR");
@@ -108,10 +109,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     atom_mass[e] = elements[e]->GetA() / Avogadro;
   }
 
-  // Mass density of each element at given altitude [km] from NRLMSISE-00 number densities [cm-3].
+  // Mass density of each element at given altitude [m] from NRLMSISE-00 number densities [cm-3].
   // Anomalous oxygen (d[8]) is excluded, as in the total mass density d[5] of gtd7
   auto compute_element_density = [&](G4double altitude, std::array<G4double, n_elements>& density) {
-    fNrlmsiseInput.alt = altitude;
+    fNrlmsiseInput.alt = altitude / 1e3; // NRLMSISE-00 takes altitude in km
     gtd7(&fNrlmsiseInput, &flags, &output);
     density[0] = output.d[6] / cm3 * atom_mass[0];                           // H
     density[1] = output.d[0] / cm3 * atom_mass[1];                           // He
@@ -121,7 +122,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   };
 
   // Initialization of variables for numerical integration
-  G4double h = 0; // km above ground
+  G4double h = 0; // m above ground
   G4int n_integrating = 10; // free parameter
   G4double dx = fThicknessOfOneLayer / n_integrating;
   G4double x2 = 0., x3 = 0.;
@@ -163,7 +164,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
   }
 
-  outerRadius = (fEarthRadius + fThicknessOfOneLayer)*km;
+  outerRadius = (fEarthRadius + fThicknessOfOneLayer)*m;
   G4Sphere* atmosphere_layer_svol = new G4Sphere("atmospheric_layer", innerRadius, outerRadius, 0., 360.*deg, 0., 180.*deg);
   G4LogicalVolume* atmosphere_layer_lvol = new G4LogicalVolume(atmosphere_layer_svol, atmosphere_mat, "atmospheric_layer");
 

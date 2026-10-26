@@ -24,8 +24,8 @@ void AtmosphereParameterisation::ComputeDimensions(G4Sphere& atmosphericLayer, c
 {
   G4double innerRadius = fEarthRadius + copyNo * fThicknessOfLayer;
   G4double outerRadius = innerRadius + fThicknessOfLayer;
-  atmosphericLayer.SetInnerRadius(innerRadius*km);
-  atmosphericLayer.SetOuterRadius(outerRadius*km);
+  atmosphericLayer.SetInnerRadius(innerRadius*m);
+  atmosphericLayer.SetOuterRadius(outerRadius*m);
 }
 
 G4Material* AtmosphereParameterisation::ComputeMaterial(const G4int copyNo, G4VPhysicalVolume* /*currentVol*/, const G4VTouchable* parentTouch)

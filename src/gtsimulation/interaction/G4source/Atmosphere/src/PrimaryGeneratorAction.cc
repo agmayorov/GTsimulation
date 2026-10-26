@@ -17,7 +17,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(const SimConfig& config)
 {
   fParticleGun = new G4ParticleGun();
   fParticleGun->SetParticleEnergy(fConfig.energy*MeV);
-  fParticleGun->SetParticlePosition(fConfig.coordinates*km);
+  fParticleGun->SetParticlePosition(fConfig.coordinates*m);
   fParticleGun->SetParticleMomentumDirection(fConfig.direction);
 }
 
