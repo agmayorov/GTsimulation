@@ -3,106 +3,200 @@ Simulation output
 
 Saving files
 ------------
-The files are saved in **.npy** format. Each file contains `Nevents` events (trajectories). The `Nevents` parameter is
-passed to the particle generator and defines how many particles are generated per file.
 
-Another parameter related to saving is `Nfiles`, which defines how many files are created. In total, `Nfiles` files will
-be saved, each containing `Nevents` trajectories. The base name for the saved files is defined by the `Output` variable.
+The output format is selected by the extension of the ``Output`` file name:
+
+- ``.npy`` saves the legacy NumPy representation;
+- ``.h5`` or ``.hdf5`` saves an HDF5 file.
+
+The extension is required. If ``Output`` is ``None``, no file is created and
+the simulator returns the results in memory.
+
+Each file contains ``Nevents`` events (trajectories). ``Nevents`` is passed to
+the particle generator and defines how many particles are generated per file.
+``Nfiles`` defines how many files are created.
 
 .. code-block:: python
 
     Flux = {"Nevents": 200, **other_params}
     Nfiles = 20
-    Output = "saving_files_example"
 
-The resulting files follow the naming structure: ``saving_files_example_i.npy``, where ``i`` is the file index (starting from 1).
+    # Legacy NumPy output
+    Output = "simulation.npy"
 
-Reading files
--------------
-Each file contains a list of dictionaries, where each dictionary corresponds to a single particle event. The dictionary
-has the following keys:
+    # HDF5 output
+    Output = "simulation.h5"
 
-- `Track`
-- `Particle`
-- `BC`
-- `Child`
-- `Additions` (only present for the :py:attr:`~gtsimulation.common.regions.Regions.Magnetosphere` region)
+With ``Nfiles = 1``, these examples create ``simulation.npy`` or
+``simulation.h5``. With an integer ``Nfiles`` greater than one, the file index
+is inserted before the extension, for example ``simulation_0.h5``,
+``simulation_1.h5``, and so on.
+
+GT also writes the simulation parameters to ``simulation_params.json``.
+
+HDF5 options
+^^^^^^^^^^^^
+
+HDF5 writes trajectory points incrementally instead of keeping the complete
+trajectory in memory. Its options can be supplied together with the file name:
+
+.. code-block:: python
+
+    Output = [
+        "simulation.h5",
+        {
+            "ChunkSize": 4096,
+            "Compression": None,
+        },
+    ]
+
+``ChunkSize`` is the number of saved trajectory points buffered before they
+are written. Its default value is 4096. ``Compression`` can be ``None``,
+``"lzf"``, or ``"gzip"``. Compression can reduce the file size at the cost of
+additional processing time.
+
+.. note::
+
+   When ``TrackParams`` or ``ParticleOrigin`` is enabled, GT currently keeps
+   the complete event trajectory in memory because the additional parameters
+   are calculated after trajectory propagation. HDF5 output remains
+   functional in this mode, but it does not provide the same reduction in
+   memory consumption.
+
+Reading NumPy files
+-------------------
+
+A NumPy output file contains an object array with one result dictionary per
+event:
 
 .. code-block:: python
 
     import numpy as np
 
-    events = np.load("reading_files_example_1.npy", allow_pickle=True)
-    # len(events) equals the number of particles in the file
+    events = np.load("simulation_0.npy", allow_pickle=True)
 
-    # Iterate over each event
     for event in events:
-        # event is a dictionary with the structure described above
         print(event)
 
-Dictionary structure
-^^^^^^^^^^^^^^^^^^^^
 
-1. **Track** – contains trajectory data:
+Reading HDF5 files
+------------------
 
-   - `Coordinates` – particle trajectory points
-   - `Velocities` – velocity vectors at each point
-   - `Efield` – electric field along the trajectory
-   - `Bfield` – magnetic field along the trajectory
-   - `Angle` – scattering angle relative to the previous point
-   - `Path` – cumulative path length
-   - `Density` – amount of matter traversed: :math:`\int \rho \, dr`, where :math:`\rho` is the density at each point
-   - `Clock` – elapsed time from the start
-   - `Energy` – kinetic energy along the trajectory
+An HDF5 file stores events in separate groups:
 
-2. **Particle** – particle properties:
+.. code-block:: text
 
-   - `M` – mass
-   - `Z` – charge number
-   - `PDG` – PDG code
-   - `T0` – initial kinetic energy
-   - `Gen` – particle generation (primary, secondary, etc.)
+    events/
+        0/
+            Track/
+                Coordinates
+                Velocities
+                ...
+            Particle/
+            BC/
+            Child/
+        1/
+            ...
 
-3. **BC** – break conditions:
+The trajectory datasets can be sliced without loading the complete trajectory
+into memory:
 
-   - `WOut` – break code indicating why the simulation stopped (see :py:data:`~gtsimulation.common.codes.BreakCode`)
+.. code-block:: python
 
-4. **Child** – array of secondary particles produced in interactions. Each element has the same structure as described above.
+    import h5py
 
-5. **Additions** – additional calculated parameters (see :py:class:`~gtsimulation.GTSimulator` class for details).
+    with h5py.File("simulation_0.h5", "r") as file:
+        event = file["events"]["0"]
+
+        # Read the complete coordinate array.
+        coordinates = event["Track"]["Coordinates"][:]
+
+        # Or read only the first 100,000 saved points.
+        coordinates_part = event["Track"]["Coordinates"][:100_000]
+
+        # Scalar datasets are read with [()].
+        pdg = event["Particle"]["PDG"][()]
+
+HDF5 files and event groups have a ``complete`` attribute. It is set to
+``True`` only after the corresponding calculation has finished successfully:
+
+.. code-block:: python
+
+    with h5py.File("simulation_0.h5", "r") as file:
+        if not file.attrs["complete"]:
+            print("The file contains an incomplete calculation")
+
+        for event_id, event in file["events"].items():
+            if event.attrs["complete"]:
+                print(f"Event {event_id} can be analysed")
+
+If a calculation stops with an exception, successfully completed events can
+therefore be distinguished from a partially written event. This does not
+guarantee that a file remains readable after an operating-system failure,
+power loss, or storage failure.
+
+Event structure
+---------------
+
+Each event has the same logical sections in NumPy and HDF5 output:
+
+- ``Track`` -- trajectory data;
+- ``Particle`` -- particle properties;
+- ``BC`` -- the condition which stopped propagation;
+- ``Child`` -- secondary particles produced in interactions;
+- ``Additions`` -- optional region-specific parameters.
+
+``Track`` can contain the following saved quantities:
+
+- ``Coordinates`` -- particle trajectory points;
+- ``Velocities`` -- velocity directions at the saved points;
+- ``Efield`` -- electric field along the trajectory;
+- ``Bfield`` -- magnetic field along the trajectory;
+- ``Angles`` -- angle relative to the previous trajectory point;
+- ``Path`` -- cumulative path length;
+- ``Density`` -- amount of matter traversed,
+  :math:`\int \rho\,dr`, where :math:`\rho` is the density;
+- ``Clock`` -- elapsed time from the start;
+- ``Energy`` -- kinetic energy along the trajectory;
+- ``PitchAngles`` -- particle pitch angle;
+- ``LarmorRadii`` -- particle Larmor radius;
+- ``GuidingCenter`` -- guiding-centre coordinates.
+
+The exact contents of ``Track`` depend on the ``Save`` configuration.
+
+``Particle`` contains the particle PDG code, mass, charge, generation, initial
+coordinates, initial velocity direction, and initial kinetic energy. ``BC``
+contains ``WOut``, the break code indicating why propagation stopped; see
+:py:data:`~gtsimulation.common.codes.BreakCode`.
 
 Plotting trajectories
 ---------------------
-To plot the trajectory of the *i*-th particle, use ``events[i]["Track"]["Coordinates"]``. Coordinates are in
-the default **GT** units (meters). You may convert them to other units using the :py:data:`~gtsimulation.common.Units` class.
+
+The following example plots the first trajectory from an HDF5 file. Coordinates
+are stored in the default GT units (metres) and can be converted with
+:py:data:`~gtsimulation.common.Units`.
 
 .. code-block:: python
 
-    import numpy as np
+    import h5py
     import matplotlib.pyplot as plt
     from gtsimulation.common import Units
 
-    # Load data
-    events = np.load("reading_files_example_1.npy", allow_pickle=True)
+    with h5py.File("simulation_0.h5", "r") as file:
+        coordinates = file["events"]["0"]["Track"]["Coordinates"][:]
 
-    # Plot only the first event for clarity
-    event = events[0]
+    coordinates = coordinates / Units.kpc
+    x, y, z = coordinates.T
 
-    # Convert to desired units (e.g., kpc)
-    R = event["Track"]["Coordinates"] / Units.kpc
-    X, Y, Z = R[:, 0], R[:, 1], R[:, 2]
+    figure = plt.figure()
+    axes = figure.add_subplot(111, projection="3d")
+    axes.set_xlabel("X [kpc]")
+    axes.set_ylabel("Y [kpc]")
+    axes.set_zlabel("Z [kpc]")
 
-    # Create 3D plot
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel("X [kpc]")
-    ax.set_ylabel("Y [kpc]")
-    ax.set_zlabel("Z [kpc]")
+    axes.plot(x, y, z, label="Trajectory")
+    axes.scatter(x[0], y[0], z[0], label="Start point")
+    axes.scatter(x[-1], y[-1], z[-1], label="End point")
+    axes.legend()
 
-    # Plot trajectory and markers
-    ax.plot(X, Y, Z, label="Trajectory")
-    ax.scatter(X[0], Y[0], Z[0], label="Start point")
-    ax.scatter(X[-1], Y[-1], Z[-1], label="End point")
-
-    ax.legend()
     plt.show()

@@ -45,7 +45,7 @@ NuclearInteraction = None
 # NuclearInteraction = {"GenMax": 3}
 
 Nfiles = 2
-Output = f"output/filename"
+Output = "output/filename.npy"
 Save = [1, {"Clock": True, "Path": True}]
 
 Verbose = 2

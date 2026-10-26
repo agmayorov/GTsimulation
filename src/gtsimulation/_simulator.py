@@ -16,6 +16,7 @@ from gtsimulation.common import Constants, Units, Regions, BreakCode, BreakIndex
 from gtsimulation.interaction import NuclearInteraction, G4Decay, SynchCounter, RadLossStep
 from gtsimulation.magnetic_field import AbsBfield
 from gtsimulation.medium import GTGeneralMedium
+from gtsimulation.output import HDF5Writer
 from gtsimulation.particle import ConvertT2R, GetAntiParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
 
@@ -105,9 +106,14 @@ class GTSimulator(ABC):
         If list: create files with specified indices.
         Default is 1.
 
-    Output : str or None, optional
-        Output file base name. If None, results are not saved to disk.
-        Default is None.
+    Output : str, list or None, optional
+        Output file name. The extension selects the format: ``.npy`` for NumPy
+        or ``.h5``/``.hdf5`` for HDF5. The extension is required when an
+        output file is specified.
+        HDF5 options can be passed as
+        ``[name, {"ChunkSize": 4096, "Compression": None}]``. ``ChunkSize``
+        and ``Compression`` are optional; compression can be ``"gzip"`` or
+        ``"lzf"``. If None, results are not saved to disk. Default is None.
 
     Verbose : int, optional
         Verbosity level: 0 (no output), 1 (short output), 2 (verbose output).
@@ -142,7 +148,7 @@ class GTSimulator(ABC):
             and each inner list contains one result dictionary per simulated particle.
             With `Nfiles = 1`, the outer list still contains one inner list.
         * If `Output` is not None:
-            Results are saved to disk (NumPy binary files) and the method returns `None`.
+            Results are saved to disk (NumPy or HDF5 files) and the method returns `None`.
 
     Notes
     -----
@@ -174,7 +180,7 @@ class GTSimulator(ABC):
             Date: datetime.datetime = datetime.datetime(2008, 1, 1),
             Save: int | list = 1,
             Nfiles: int | list = 1,
-            Output: str | None = None,
+            Output: str | list | None = None,
             Verbose: int = 1,
             ForwardTrck=None,
             TrackParams=False,
@@ -228,13 +234,73 @@ class GTSimulator(ABC):
 
         self.IsFirstRun = IsFirstRun
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
-        self.Output = Output
+
+        output_options = {}
+        if isinstance(Output, list):
+            if (
+                len(Output) != 2
+                or not isinstance(Output[0], str)
+                or not isinstance(Output[1], dict)
+            ):
+                raise ValueError("Output must be [name, options] when given as a list")
+            self.Output, output_options = Output
+        elif isinstance(Output, str) or Output is None:
+            self.Output = Output
+        else:
+            raise TypeError("Output must be a string, [name, options], or None")
+
+        unknown_options = set(output_options) - {"ChunkSize", "Compression"}
+        if unknown_options:
+            raise ValueError(f"Unknown Output options: {sorted(unknown_options)}")
+
+        output_root, extension = os.path.splitext(self.Output or "")
+        extension_format = {
+            ".npy": "npy",
+            ".h5": "hdf5",
+            ".hdf5": "hdf5",
+        }.get(extension.lower())
+        if self.Output is not None and extension_format is None:
+            raise ValueError("Output file name must end with .npy, .h5, or .hdf5")
+
+        self.OutputFormat = extension_format
+        if self.Output is not None:
+            self.OutputBase = output_root
+            self.OutputExtension = extension
+        else:
+            self.OutputBase = None
+            self.OutputExtension = None
+
+        hdf5_options = {"ChunkSize", "Compression"}
+        if (
+            self.OutputFormat != "hdf5"
+            and hdf5_options.intersection(output_options)
+        ):
+            raise ValueError("ChunkSize and Compression are only available for HDF5 output")
+
+        self.OutputChunkSize = output_options.get("ChunkSize", 4096)
+        if (
+            not isinstance(self.OutputChunkSize, int)
+            or isinstance(self.OutputChunkSize, bool)
+            or self.OutputChunkSize <= 0
+        ):
+            raise ValueError("Output ChunkSize must be a positive integer")
+        self.OutputCompression = output_options.get("Compression")
+        if self.OutputCompression not in {None, "gzip", "lzf"}:
+            raise ValueError("Output Compression must be None, 'gzip', or 'lzf'")
+
         self.Npts = 2
         self.Save = SaveDef.copy()
         self.SaveCode = dict([(key, SaveCode[key][1]) for key in SaveCode.keys()])
         self.SaveColumnLen = 22
         self.logger.debug("Number of files: %s", self.Nfiles)
-        self.logger.debug("Output file name: %s_num.npy", self.Output)
+        if self.Output is not None:
+            output_suffix = "" if self.Nfiles == 1 else "_num"
+            self.logger.debug(
+                "Output file name: %s%s%s",
+                self.OutputBase,
+                output_suffix,
+                self.OutputExtension,
+            )
 
         if self.ParticleOriginIsOn or (
             BreakCondition is not None
@@ -455,7 +521,7 @@ class GTSimulator(ABC):
                 self.logger.info("File %d/%d started", idx + 1, len(file_nums))
                 self.logger.debug("")
             if self.Output is not None:
-                file = self.Output.split(os.sep)
+                file = self.OutputBase.split(os.sep)
                 folder = os.sep.join(file[:-1])
                 if len(file) != 1 and not os.path.isdir(folder):
                     os.mkdir(folder)
@@ -472,29 +538,39 @@ class GTSimulator(ABC):
                     raise TypeError(f"Type {type(obj)} not serializable")
                 def custom_serializer_safe(obj):
                     return str(obj)
-                with open(f'{self.Output}_params.json', 'w') as file:
+                with open(f'{self.OutputBase}_params.json', 'w') as file:
                     try:
                         json.dump(self.ParamDict, file, default=custom_serializer, indent=4)
                     except:
                         json.dump(self.ParamDict, file, default=custom_serializer_safe, indent=4)
 
-            RetArr = self.CallOneFile()
-
-            if self.Output is not None:
-                if self.Nfiles == 1:
-                    np.save(f"{self.Output}.npy", RetArr)
-                else:
-                    np.save(f"{self.Output}_{i}.npy", RetArr)
+            if self.Output is not None and self.OutputFormat == "hdf5":
+                output_suffix = "" if self.Nfiles == 1 else f"_{i}"
+                output_path = f"{self.OutputBase}{output_suffix}{self.OutputExtension}"
+                with HDF5Writer(
+                    output_path,
+                    self.SaveCode,
+                    self.OutputChunkSize,
+                    self.OutputCompression,
+                ) as writer:
+                    self.CallOneFile(output_writer=writer)
                 self.logger.info("File %d/%d saved\n", idx + 1, len(file_nums))
-                RetArr.clear()
             else:
-                Track.append(RetArr)
+                RetArr = self.CallOneFile()
+                if self.Output is not None:
+                    output_suffix = "" if self.Nfiles == 1 else f"_{i}"
+                    output_path = f"{self.OutputBase}{output_suffix}{self.OutputExtension}"
+                    np.save(output_path, RetArr)
+                    self.logger.info("File %d/%d saved\n", idx + 1, len(file_nums))
+                    RetArr.clear()
+                else:
+                    Track.append(RetArr)
 
         self.logger.info("Simulation completed!")
         if self.Output is None:
             return Track
 
-    def CallOneFile(self):
+    def CallOneFile(self, output_writer=None):
         self.Particles.generate()
         RetArr = []
 
@@ -519,6 +595,9 @@ class GTSimulator(ABC):
         n_events = len(self.Particles)
         progress_step = self.Num // 10
         for self.index in range(n_events):
+            event_writer = output_writer.start_event(self.index) if output_writer is not None else None
+            stream_track = event_writer is not None and not self.TrackParamsIsOn
+
             self.logger.debug("Event %d/%d started", self.index + 1, n_events)
             TotTime, TotPathLen, TotPathDen = 0, 0, 0
             if self.Medium is not None and self.nuclear_interaction is not None:
@@ -529,7 +608,9 @@ class GTSimulator(ABC):
                 local_velocity = []
             lon_total, lon_prev, full_revolutions = np.array([[0.]]), np.array([[0.]]), np.array([[0.]])
             particle = self.Particles[self.index]
-            Saves = []
+
+            Saves = event_writer if stream_track else []
+
             BrckArr = self.__brck_arr
             BCcenter = self.BCcenter
             tau = particle.tau
@@ -787,44 +868,52 @@ class GTSimulator(ABC):
                 )
             self.logger.debug("")
 
-            Saves = np.array(Saves)
-            track = {}
-            if SaveR:
-                track['Coordinates'] = Saves[:, self.SaveCode["Coordinates"]]
-            if SaveV:
-                track["Velocities"] = Saves[:, self.SaveCode["Velocities"]]
-            if SaveE:
-                track["Efield"] = Saves[:, self.SaveCode["Efield"]]
-            if SaveB:
-                track["Bfield"] = Saves[:, self.SaveCode["Bfield"]]
-            if SaveA:
-                track["Angles"] = Saves[:, self.SaveCode["Angles"]]
-            if SaveP:
-                track["Path"] = Saves[:, self.SaveCode["Path"]]
-            if SaveC:
-                track["Clock"] = Saves[:, self.SaveCode["Clock"]]
-            if SaveT:
-                track["Energy"] = Saves[:, self.SaveCode["Energy"]]
-            if SaveD:
-                track["Density"] = Saves[:, self.SaveCode["Density"]]
-            if SavePA:
-                track["PitchAngles"] = Saves[:, self.SaveCode["PitchAngles"]]
-            if SaveLR:
-                track["LarmorRadii"] = Saves[:, self.SaveCode["LarmorRadii"]]
-            if SaveGC:
-                track["GuidingCenter"] = Saves[:, self.SaveCode["GuidingCenter"]]
+            if stream_track:
+                track = {}
+            else:
+                Saves = np.array(Saves)
+                track = {}
+                if SaveR:
+                    track['Coordinates'] = Saves[:, self.SaveCode["Coordinates"]]
+                if SaveV:
+                    track["Velocities"] = Saves[:, self.SaveCode["Velocities"]]
+                if SaveE:
+                    track["Efield"] = Saves[:, self.SaveCode["Efield"]]
+                if SaveB:
+                    track["Bfield"] = Saves[:, self.SaveCode["Bfield"]]
+                if SaveA:
+                    track["Angles"] = Saves[:, self.SaveCode["Angles"]]
+                if SaveP:
+                    track["Path"] = Saves[:, self.SaveCode["Path"]]
+                if SaveC:
+                    track["Clock"] = Saves[:, self.SaveCode["Clock"]]
+                if SaveT:
+                    track["Energy"] = Saves[:, self.SaveCode["Energy"]]
+                if SaveD:
+                    track["Density"] = Saves[:, self.SaveCode["Density"]]
+                if SavePA:
+                    track["PitchAngles"] = Saves[:, self.SaveCode["PitchAngles"]]
+                if SaveLR:
+                    track["LarmorRadii"] = Saves[:, self.SaveCode["LarmorRadii"]]
+                if SaveGC:
+                    track["GuidingCenter"] = Saves[:, self.SaveCode["GuidingCenter"]]
 
-            RetArr.append({"Track": track,
-                           "BC": {"WOut": brk},
-                           "Particle": {"PDG": particle.PDG, "M": M, "Ze": int(particle.Z), "Gen": Gen,
-                                        "R0": particle.coordinates, "V0": particle.velocities, "T0": particle.T},
-                           "Child": prod_tracks})
+            result = {"Track": track,
+                      "BC": {"WOut": brk},
+                      "Particle": {"PDG": particle.PDG, "M": M, "Ze": int(particle.Z), "Gen": Gen,
+                                   "R0": particle.coordinates, "V0": particle.velocities, "T0": particle.T},
+                      "Child": prod_tracks}
 
             # Additions in Magnetosphere
             self.Region.value.do_after_loop(
-                self, RetArr[self.index], lon_total,
+                self, result, lon_total,
                 BrckArr[BreakCode["MaxRev"]] != BreakDef[-1],
             )
+
+            if event_writer is None:
+                RetArr.append(result)
+            else:
+                event_writer.finish(result)
 
         return RetArr
 
