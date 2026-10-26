@@ -187,8 +187,14 @@ class NuclearInteraction:
         element_name : list of str
             Chemical element symbols (e.g. ``["N", "O"]``) forming the medium.
         element_abundance : list of float
-            Mass fractions (or the fractions expected by your Geant4 material definition);
-            the sum should be 1.
+            Mass fractions of the elements, one per entry of ``element_name``;
+            the sum must be 1.
+
+        Raises
+        ------
+        ValueError
+            If ``element_name`` and ``element_abundance`` differ in length,
+            or the abundances do not sum to 1.
 
         Returns
         -------
@@ -217,6 +223,13 @@ class NuclearInteraction:
             - ``KineticEnergy`` : float, MeV
             - ``MomentumDirection`` : (3,) float, unit vector
         """
+        if len(element_name) != len(element_abundance):
+            raise ValueError(
+                f"The number of elements ({len(element_name)}) does not match "
+                f"the number of their fractions ({len(element_abundance)})"
+            )
+        if not 0.999 < np.sum(element_abundance) < 1.001:
+            raise ValueError(f"Total sum of element fractions is {np.sum(element_abundance)}, expected 1")
         if self.restart_counter >= self.restart_limit:
             self.__start_new_process()
         self.in_q.put((pdg, energy, mass, density, element_name, element_abundance))

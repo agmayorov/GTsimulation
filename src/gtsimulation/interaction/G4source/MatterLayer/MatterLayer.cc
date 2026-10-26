@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 
 #include <G4RunManager.hh>
+#include <CLHEP/Random/MixMaxRng.h>
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
@@ -22,7 +23,7 @@ class NullBuffer : public std::streambuf {
 class Simulator {
   public:
     Simulator(long seed, double decay_time) {
-      CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
+      CLHEP::HepRandom::setTheEngine(new CLHEP::MixMaxRng());
       CLHEP::HepRandom::setTheSeed(seed);
       simConfig.decay_time = decay_time;
 
