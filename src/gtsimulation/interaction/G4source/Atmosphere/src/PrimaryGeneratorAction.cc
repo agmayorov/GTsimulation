@@ -3,18 +3,15 @@
 namespace Atmosphere
 {
 
-PrimaryGeneratorAction::PrimaryGeneratorAction(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity)
+PrimaryGeneratorAction::PrimaryGeneratorAction(const SimConfig& config)
 : G4VUserPrimaryGeneratorAction(),
   fParticleGun(0),
-  fParticlePDG(particlePDG),
-  fEnergy(energy),
-  fCoordinates(coordinates),
-  fVelocity(velocity)
+  fConfig(config)
 {
   fParticleGun = new G4ParticleGun();
-  
-  fParticleGun->SetParticleMomentumDirection(fVelocity);
-  fParticleGun->SetParticleEnergy(fEnergy*MeV);
+  fParticleGun->SetParticleEnergy(fConfig.energy*MeV);
+  fParticleGun->SetParticlePosition(fConfig.coordinates*km);
+  fParticleGun->SetParticleMomentumDirection(fConfig.direction);
 }
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
@@ -25,16 +22,14 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
 {
   G4ParticleDefinition *particle = 0;
-  if (G4ParticleTable::GetParticleTable()->FindParticle(fParticlePDG))
-    particle = G4ParticleTable::GetParticleTable()->FindParticle(fParticlePDG);
-  else if (G4IonTable::GetIonTable()->GetIon(fParticlePDG))
-    particle = G4IonTable::GetIonTable()->GetIon(fParticlePDG);
+  if (G4ParticleTable::GetParticleTable()->FindParticle(fConfig.particlePDG))
+    particle = G4ParticleTable::GetParticleTable()->FindParticle(fConfig.particlePDG);
+  else if (G4IonTable::GetIonTable()->GetIon(fConfig.particlePDG))
+    particle = G4IonTable::GetIonTable()->GetIon(fConfig.particlePDG);
   else
     std::cerr << "Error: particle was not found in G4ParticleTable and G4IonTable" << std::endl;
-
   fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticlePosition(fCoordinates);
-
+  // Primary vertex
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 

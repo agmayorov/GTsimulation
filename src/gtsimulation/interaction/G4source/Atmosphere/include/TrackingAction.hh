@@ -6,6 +6,7 @@
 
 #include "G4SystemOfUnits.hh"
 #include "G4VProcess.hh"
+#include "RunResult.hh"
 
 namespace Atmosphere
 {
@@ -13,13 +14,12 @@ namespace Atmosphere
 class TrackingAction : public G4UserTrackingAction
 {
   public:  
-    TrackingAction();
+    TrackingAction(RunResult& result);
    ~TrackingAction() override = default;
-    void  PreUserTrackingAction(const G4Track *aTrack) override;
     void PostUserTrackingAction(const G4Track *aTrack) override;
 
   private:
-    G4bool fFirstSecondaryParticle;
+    RunResult& fResult;
 };
 
 }

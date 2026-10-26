@@ -3,11 +3,9 @@
 namespace Atmosphere
 {
 
-ActionInitialization::ActionInitialization(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity)
-: fParticlePDG(particlePDG),
-  fEnergy(energy),
-  fCoordinates(coordinates),
-  fVelocity(velocity)
+ActionInitialization::ActionInitialization(const SimConfig& config, RunResult& result)
+: fConfig(config),
+  fResult(result)
 {}
 
 ActionInitialization::~ActionInitialization()
@@ -15,8 +13,8 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-  SetUserAction(new PrimaryGeneratorAction(fParticlePDG, fEnergy, fCoordinates, fVelocity));
-  SetUserAction(new TrackingAction());
+  SetUserAction(new PrimaryGeneratorAction(fConfig));
+  SetUserAction(new TrackingAction(fResult));
 }
 
 }

@@ -2,29 +2,23 @@
 cmake_minimum_required(VERSION 3.16)
 project(Atmosphere)
 
-# Find Geant4 package, activating all available UI and Vis drivers by default
-find_package(Geant4 REQUIRED ui_all vis_all)
+# Find Geant4 package
+find_package(Geant4 REQUIRED)
 
 # Locate sources and headers for this project
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
-# Visualization option
-option(USE_VISUALIZATION "Use visualization code" OFF)
-if (USE_VISUALIZATION)
-  add_definitions(-DUSE_VISUALIZATION)
-  file(COPY ${PROJECT_SOURCE_DIR}/../vis.mac DESTINATION ${PROJECT_BINARY_DIR})
-endif()
+# Find pybind11 package
+find_package(Python 3.10 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED HINTS ${Python_SITELIB})
 
-# Add the executable, use our local headers, and link it to the Geant4 libraries
-add_executable(Atmosphere Atmosphere.cc ${sources} ${headers})
+# Create Python extension module
+pybind11_add_module(Atmosphere Atmosphere.cc ${sources} ${headers})
 target_include_directories(Atmosphere PRIVATE include)
-target_link_libraries(Atmosphere ${Geant4_LIBRARIES})
-
-# Copy executable 
-add_custom_command(
-  TARGET Atmosphere
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy $<TARGET_FILE:Atmosphere> ${PROJECT_SOURCE_DIR}/../..
+target_link_libraries(Atmosphere PRIVATE ${Geant4_LIBRARIES} Python::Python)
+set_target_properties(Atmosphere PROPERTIES
+    OUTPUT_NAME "atmosphere"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../.."
 )
