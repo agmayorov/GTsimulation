@@ -1,16 +1,8 @@
-﻿#ifndef DetectorConstruction_hh
-#define DetectorConstruction_hh
+#pragma once
 
-#include "G4VUserDetectorConstruction.hh"
-#include "G4VPhysicalVolume.hh"
-
-#include "G4SystemOfUnits.hh"
-#include "G4NistManager.hh"
-#include "G4Sphere.hh"
-#include "G4LogicalVolume.hh"
-#include "G4PVPlacement.hh"
-#include "AtmosphereParameterisation.hh"
-#include "G4PVParameterised.hh"
+#include <G4VUserDetectorConstruction.hh>
+#include <G4Types.hh>
+#include "nrlmsise-00.hh"
 
 namespace Atmosphere
 {
@@ -18,17 +10,16 @@ namespace Atmosphere
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction(G4double earthRadius, nrlmsise_input input);
-    ~DetectorConstruction() override;
-    virtual G4VPhysicalVolume *Construct() override;
+    DetectorConstruction(G4double earthRadius, G4double maxHeight, nrlmsise_input input);
+    ~DetectorConstruction() override = default;
+    G4VPhysicalVolume* Construct() override;
 
   private:
     G4double fEarthRadius;
+    G4double fMaxHeight; // m
     nrlmsise_input fNrlmsiseInput;
-    G4double fMaxHeight = 80.; // km
-    G4double fThicknessOfOneLayer = 1.; // km
+    G4double fSurfaceThickness = 500.; // m
+    G4double fThicknessOfOneLayer = 1000.; // m
 };
 
 }
-
-#endif

@@ -1,5 +1,10 @@
 #include "AtmosphereParameterisation.hh"
 
+#include <G4Sphere.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4ThreeVector.hh>
+#include <G4SystemOfUnits.hh>
+
 namespace Atmosphere
 {
 
@@ -9,21 +14,21 @@ AtmosphereParameterisation::AtmosphereParameterisation(G4double thicknessOfLayer
   fAtmosphericLayerMat(atmospheric_layer_mat)
 {}
 
-void AtmosphereParameterisation::ComputeTransformation(const G4int copyNo, G4VPhysicalVolume *physVol) const
+void AtmosphereParameterisation::ComputeTransformation(const G4int copyNo, G4VPhysicalVolume* physVol) const
 {
   physVol->SetTranslation(G4ThreeVector());
   physVol->SetRotation(nullptr);
 }
 
-void AtmosphereParameterisation::ComputeDimensions(G4Sphere &atmosphericLayer, const G4int copyNo, const G4VPhysicalVolume *physVol) const
+void AtmosphereParameterisation::ComputeDimensions(G4Sphere& atmosphericLayer, const G4int copyNo, const G4VPhysicalVolume* physVol) const
 {
   G4double innerRadius = fEarthRadius + copyNo * fThicknessOfLayer;
   G4double outerRadius = innerRadius + fThicknessOfLayer;
-  atmosphericLayer.SetInnerRadius(innerRadius*km);
-  atmosphericLayer.SetOuterRadius(outerRadius*km);
+  atmosphericLayer.SetInnerRadius(innerRadius*m);
+  atmosphericLayer.SetOuterRadius(outerRadius*m);
 }
 
-G4Material *AtmosphereParameterisation::ComputeMaterial(const G4int copyNo, G4VPhysicalVolume */*currentVol*/, const G4VTouchable *parentTouch)
+G4Material* AtmosphereParameterisation::ComputeMaterial(const G4int copyNo, G4VPhysicalVolume* /*currentVol*/, const G4VTouchable* parentTouch)
 {
   return fAtmosphericLayerMat[copyNo];
 }

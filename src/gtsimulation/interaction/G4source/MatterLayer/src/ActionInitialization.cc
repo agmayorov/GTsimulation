@@ -1,13 +1,15 @@
 #include "ActionInitialization.hh"
 
+#include "PrimaryGeneratorAction.hh"
+#include "RunAction.hh"
+#include "StackingAction.hh"
+#include "TrackingAction.hh"
+
 namespace MatterLayer
 {
 
 ActionInitialization::ActionInitialization(const SimConfig& config)
 : fConfig(config)
-{}
-
-ActionInitialization::~ActionInitialization()
 {}
 
 void ActionInitialization::Build() const

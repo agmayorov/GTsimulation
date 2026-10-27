@@ -1,16 +1,32 @@
 import multiprocessing as mp
+import queue
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
+
 import numpy as np
+from pymsis import msis
+from pyproj import Transformer
+
 from ._build_config import GEANT4_COMPONENTS_AVAILABLE
+
+# fork does not re-import the user's main script, so the "if __name__ == '__main__':" guard is not required
+mp_context = mp.get_context("fork")
 
 
 PRIMARY_DTYPE = np.dtype({
     'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection', 'Position', 'LastProcess'],
-    'formats': ['U16', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8', 'U32']
+    'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8', '(3,)f8', 'U32']
 })
 
 SECONDARY_DTYPE = np.dtype({
     'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'KineticEnergy', 'MomentumDirection'],
-    'formats': ['U16', 'i4', 'f8', 'i4', 'f8', '(3,)f8']
+    'formats': ['U32', 'i4', 'f8', 'i4', 'f8', '(3,)f8']
+})
+
+ATMOSPHERE_SECONDARY_DTYPE = np.dtype({
+    'names': ['Name', 'PDGcode', 'Mass', 'Charge', 'Position', 'MomentumDirection', 'KineticEnergy',
+              'VertexPosition', 'VertexMomentumDirection', 'VertexKineticEnergy'],
+    'formats': ['U32', 'i4', 'f8', 'i4', '(3,)f8', '(3,)f8', 'f8', '(3,)f8', '(3,)f8', 'f8']
 })
 
 
@@ -51,6 +67,39 @@ def convert_to_numpy(run_result):
     return primary_arr, secondary_arr
 
 
+def convert_atmosphere_to_numpy(run_result):
+    """
+    Convert C++ Geant4 atmosphere result object to structured NumPy arrays.
+
+    Parameters
+    ----------
+    run_result : atmosphere.RunResult
+        C++ result object returned by ``atmosphere.run``.
+
+    Returns
+    -------
+    primary : numpy.ndarray
+        Structured array with dtype ``PRIMARY_DTYPE`` containing the final state
+        of the primary particle.
+    secondary : numpy.ndarray
+        Structured array of shape ``(N,)`` with dtype ``ATMOSPHERE_SECONDARY_DTYPE``
+        containing secondary particles leaving the atmosphere (empty if ``N=0``).
+    """
+    p = run_result.primary
+    primary_arr = np.array((
+        p.name, p.pdgCode, p.mass, p.charge, p.kineticEnergy,
+        np.array(p.momentumDirection), np.array(p.position), p.lastProcess
+    ), dtype=PRIMARY_DTYPE)
+    secondaries_list = [
+        (s.name, s.pdgCode, s.mass, s.charge, np.array(s.position), np.array(s.momentumDirection), s.kineticEnergy,
+         np.array(s.vertexPosition), np.array(s.vertexMomentumDirection), s.vertexKineticEnergy)
+        for s in run_result.secondaries
+    ]
+    secondary_arr = np.array(secondaries_list, dtype=ATMOSPHERE_SECONDARY_DTYPE) \
+        if secondaries_list else np.empty(0, dtype=ATMOSPHERE_SECONDARY_DTYPE)
+    return primary_arr, secondary_arr
+
+
 def sim_worker(input_queue, output_queue, seed):
     """
     Geant4 worker process loop.
@@ -64,7 +113,8 @@ def sim_worker(input_queue, output_queue, seed):
     input_queue : multiprocessing.Queue
         Input queue containing parameter tuples: ``(pdg, energy, mass, density, el_names, el_fracs)``.
     output_queue : multiprocessing.Queue
-        Output queue for results: ``(primary_array, secondary_array, material_count)``.
+        Output queue for results: ``(primary_array, secondary_array, material_count)``,
+        or the exception raised by the simulator.
     seed : int
         Random seed passed to the Geant4 simulator constructor.
 
@@ -78,9 +128,39 @@ def sim_worker(input_queue, output_queue, seed):
     while True:
         params = input_queue.get()
         if params is None: break
-        run_result = sim.run(*params)
+        try:
+            run_result = sim.run(*params)
+        except Exception as e:
+            # Without traceback: otherwise the simulator is destroyed in the queue's feeder thread and Geant4 crashes
+            output_queue.put(e.with_traceback(None))
+            break
         count = sim.material_count
         output_queue.put((*convert_to_numpy(run_result), count))
+
+
+def atmosphere_worker(params):
+    """
+    Run a single Geant4 atmosphere event.
+
+    Geant4 can be initialized only once per process, so this function must be
+    executed in a fresh process for every call.
+
+    Parameters
+    ----------
+    params : dict
+        Keyword arguments for ``atmosphere.run``.
+
+    Returns
+    -------
+    primary, secondary : numpy.ndarray
+        Result converted by ``convert_atmosphere_to_numpy``.
+
+    Notes
+    -----
+    Internal worker function for ``NuclearInteraction``. Not intended for direct use.
+    """
+    from . import atmosphere
+    return convert_atmosphere_to_numpy(atmosphere.run(**params))
 
 
 class NuclearInteraction:
@@ -113,6 +193,10 @@ class NuclearInteraction:
     Internally, the C++ result object is converted to structured NumPy arrays with the
     dtypes ``PRIMARY_DTYPE`` and ``SECONDARY_DTYPE``.
 
+    The class also simulates air showers in the Earth's atmosphere (``run_atmosphere``).
+    Each shower is computed in a separate short-lived process, since Geant4 can be
+    initialized only once per process.
+
     Parameters
     ----------
     max_generations : int, default=1
@@ -121,9 +205,12 @@ class NuclearInteraction:
         Grammage threshold [g/cm²] above which the Geant4 subroutine is triggered.
         Should be set as a fraction of the expected nuclear interaction length in the material.
     seed : int
-        Random seed used to initialize the Geant4 simulator inside the worker process.
+        Seed of the random generator that provides seeds for the Geant4 worker processes.
     restart_limit : int, default=20
         Number of runs after which the worker process is restarted automatically.
+    atmosphere_height : float, default=80e3
+        Height of the atmosphere [m] simulated by ``run_atmosphere``. Must be a positive
+        multiple of 1 km (thickness of one atmospheric layer).
     """
 
     def __init__(
@@ -131,27 +218,35 @@ class NuclearInteraction:
             max_generations: int = 1,
             grammage_threshold: float = 10.,
             seed: int = None,
-            restart_limit: int = 20
+            restart_limit: int = 20,
+            atmosphere_height: float = 80e3
     ):
         if not GEANT4_COMPONENTS_AVAILABLE:
             raise ValueError(
                 "GTsimulation was installed without Geant4 support. "
                 "Please reinstall the package or disable nuclear interactions."
             )
+        if atmosphere_height <= 0:
+            raise ValueError(f"Atmosphere height must be positive, got {atmosphere_height} m")
         self.max_generations = max_generations
         self.grammage_threshold = grammage_threshold  # g/cm2
         self.seed = np.random.randint(2147483647) if seed is None else seed
+        self.rng = np.random.default_rng(self.seed)
         self.restart_limit = restart_limit
+        self.atmosphere_height = atmosphere_height  # m
+        self.geo_to_lla = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
+                                               {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
         self.restart_counter = 0
         self.process = None
-        self.in_q = mp.Queue()
-        self.out_q = mp.Queue()
+        self.in_q = mp_context.Queue()
+        self.out_q = mp_context.Queue()
         self.__start_new_process()
 
     def __start_new_process(self):
         if self.process: self.__terminate_process()
         self.restart_counter = 0
-        self.process = mp.Process(target=sim_worker, args=(self.in_q, self.out_q, self.seed))
+        seed = int(self.rng.integers(2147483647))
+        self.process = mp_context.Process(target=sim_worker, args=(self.in_q, self.out_q, seed))
         self.process.daemon = True
         self.process.start()
 
@@ -187,8 +282,14 @@ class NuclearInteraction:
         element_name : list of str
             Chemical element symbols (e.g. ``["N", "O"]``) forming the medium.
         element_abundance : list of float
-            Mass fractions (or the fractions expected by your Geant4 material definition);
-            the sum should be 1.
+            Mass fractions of the elements, one per entry of ``element_name``;
+            the sum must be 1.
+
+        Raises
+        ------
+        ValueError
+            If ``element_name`` and ``element_abundance`` differ in length,
+            or the abundances do not sum to 1.
 
         Returns
         -------
@@ -217,8 +318,100 @@ class NuclearInteraction:
             - ``KineticEnergy`` : float, MeV
             - ``MomentumDirection`` : (3,) float, unit vector
         """
+        if len(element_name) != len(element_abundance):
+            raise ValueError(
+                f"The number of elements ({len(element_name)}) does not match "
+                f"the number of their fractions ({len(element_abundance)})"
+            )
+        if not 0.999 < np.sum(element_abundance) < 1.001:
+            raise ValueError(f"Total sum of element fractions is {np.sum(element_abundance)}, expected 1")
         if self.restart_counter >= self.restart_limit:
             self.__start_new_process()
         self.in_q.put((pdg, energy, mass, density, element_name, element_abundance))
-        primary, secondary, self.restart_counter = self.out_q.get()
+        # Wait for the result, checking every second that the worker has not crashed
+        while True:
+            try:
+                result = self.out_q.get(timeout=1)
+                break
+            except queue.Empty:
+                if not self.process.is_alive():
+                    raise RuntimeError(f"Geant4 worker terminated with exit code {self.process.exitcode}")
+        if isinstance(result, Exception):
+            raise result
+        primary, secondary, self.restart_counter = result
         return primary, secondary
+
+    def run_atmosphere(
+            self,
+            pdg: int,
+            energy: float,
+            r: np.ndarray,
+            v: np.ndarray,
+            date: datetime
+    ):
+        """
+        Simulate an air shower produced by a particle in the Earth's atmosphere.
+
+        The atmosphere is a spherical layer of height ``atmosphere_height`` above the local
+        Earth radius, divided into 1 km layers. The density and composition of each layer
+        are calculated with the NRLMSISE-00 model at the position of the particle.
+        Under the atmosphere there is a 0.5 km layer of soil. All calculations are carried
+        out in the GEO coordinate system.
+
+        Parameters
+        ----------
+        pdg : int
+            PDG code of the primary particle.
+        energy : float
+            Primary particle kinetic energy in MeV.
+        r : numpy.ndarray
+            Coordinates of the primary particle in GEO [m].
+        v : numpy.ndarray
+            Direction of the primary particle velocity in GEO.
+        date : datetime
+            Current date and time.
+
+        Returns
+        -------
+        primary : numpy.ndarray
+            Structured NumPy array with dtype ``PRIMARY_DTYPE`` (final state of the primary
+            particle, see ``run_matter_layer``).
+
+        secondary : numpy.ndarray
+            Structured NumPy array with dtype ``ATMOSPHERE_SECONDARY_DTYPE`` and shape ``(N,)``,
+            where ``N`` is the number of secondary particles with kinetic energy above 1 MeV
+            leaving the atmosphere upwards or the soil downwards (may be 0).
+            Fields:
+
+            - ``Name`` : str
+            - ``PDGcode`` : int
+            - ``Mass`` : float, MeV
+            - ``Charge`` : int
+            - ``Position`` : (3,) float, m, GEO
+            - ``MomentumDirection`` : (3,) float, unit vector, GEO
+            - ``KineticEnergy`` : float, MeV
+            - ``VertexPosition`` : (3,) float, m, GEO
+            - ``VertexMomentumDirection`` : (3,) float, unit vector, GEO
+            - ``VertexKineticEnergy`` : float, MeV
+        """
+        r = np.asarray(r, dtype=float)
+        lon, lat, alt = self.geo_to_lla.transform(*r, radians=False)
+        f107, f107a, ap = msis.get_f107_ap(date)
+        params = dict(
+            seed=int(self.rng.integers(2147483647)),
+            pdg=int(pdg),
+            energy=float(energy),
+            coordinates=r.tolist(),
+            direction=np.asarray(v, dtype=float).tolist(),
+            earth_radius=np.linalg.norm(r) - alt,
+            max_height=self.atmosphere_height,
+            doy=date.timetuple().tm_yday,
+            sec=(date - date.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds(),
+            lat=float(lat),
+            lon=float(lon),
+            f107a=float(f107a[0]),
+            f107=float(f107[0]),
+            ap=float(ap[0][0]),
+        )
+        with ProcessPoolExecutor(max_workers=1, mp_context=mp_context) as executor:
+            return executor.submit(atmosphere_worker, params).result()

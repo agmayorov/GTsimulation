@@ -1,13 +1,15 @@
 #include "TrackingAction.hh"
+#include "RunAction.hh"
+
+#include <G4SystemOfUnits.hh>
+#include <G4Track.hh>
+#include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4VProcess.hh>
+#include <G4ParticleDefinition.hh>
 
 namespace MatterLayer
 {
-
-TrackingAction::TrackingAction()
-{}
-
-TrackingAction::~TrackingAction()
-{}
 
 void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 {

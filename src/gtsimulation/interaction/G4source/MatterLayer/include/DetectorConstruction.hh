@@ -1,14 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <G4VUserDetectorConstruction.hh>
-#include <G4VPhysicalVolume.hh>
 
-#include <G4SystemOfUnits.hh>
-#include <G4NistManager.hh>
-#include <G4Tubs.hh>
-#include <G4LogicalVolume.hh>
-#include <G4PVPlacement.hh>
-#include <G4RunManager.hh>
+#include <string>
+#include <vector>
+
+class G4Tubs;
+class G4LogicalVolume;
+class G4Material;
 
 namespace MatterLayer
 {
@@ -17,7 +16,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
     DetectorConstruction();
-    ~DetectorConstruction();
+    ~DetectorConstruction() override = default;
     G4VPhysicalVolume* Construct() override;
 
     void UpdateParameters(double thickness,
@@ -25,7 +24,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
                           const std::vector<std::string>& elementName,
                           const std::vector<double>& elementAbundance);
 
-    int fMatCounter;
+    int materialCount;
 
   private:
     G4Tubs* fWorldSolid = nullptr;

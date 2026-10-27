@@ -1,6 +1,8 @@
 #pragma once
 
 #include <G4UserRunAction.hh>
+
+#include <string>
 #include <vector>
 
 namespace MatterLayer
@@ -25,8 +27,8 @@ struct RunResult {
 class RunAction : public G4UserRunAction
 {
   public:
-    RunAction();
-    ~RunAction();
+    RunAction() = default;
+    ~RunAction() override = default;
     void BeginOfRunAction(const G4Run* aRun) override;
 
     static void SetPrimaryParticle(ParticleData data);

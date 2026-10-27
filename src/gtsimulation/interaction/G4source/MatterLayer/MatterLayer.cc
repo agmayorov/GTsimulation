@@ -1,15 +1,19 @@
-﻿#include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <G4RunManager.hh>
+#include <CLHEP/Random/MixMaxRng.h>
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
-
-#include <streambuf>
 #include "RunAction.hh"
 #include "SimConfig.hh"
+
+#include <iostream>
+#include <streambuf>
+#include <string>
+#include <vector>
 
 namespace py = pybind11;
 using namespace MatterLayer;
@@ -22,9 +26,9 @@ class NullBuffer : public std::streambuf {
 class Simulator {
   public:
     Simulator(long seed, double decay_time) {
-      CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
+      CLHEP::HepRandom::setTheEngine(new CLHEP::MixMaxRng());
       CLHEP::HepRandom::setTheSeed(seed);
-      simConfig.decay_time = decay_time;
+      simConfig.decayTime = decay_time;
 
       // Suppress G4 output during initialization
       NullBuffer nullBuffer;
@@ -36,8 +40,7 @@ class Simulator {
       detectorConstruction = new DetectorConstruction();
       runManager->SetUserInitialization(detectorConstruction);
       runManager->SetUserInitialization(new PhysicsList());
-      actionInitialization = new ActionInitialization(simConfig);
-      runManager->SetUserInitialization(actionInitialization);
+      runManager->SetUserInitialization(new ActionInitialization(simConfig));
       runManager->Initialize();
 
       std::cout.rdbuf(oldCout);
@@ -55,7 +58,7 @@ class Simulator {
     ) {
       double thickness = mass / density / 1e2; // layer thickness in [m]
       detectorConstruction->UpdateParameters(thickness, density, element_name, element_abundance);
-      materialCount = detectorConstruction->fMatCounter;
+      materialCount = detectorConstruction->materialCount;
       simConfig.particlePDG = pdg;
       simConfig.energy = energy;
       runManager->BeamOn(1);
@@ -67,7 +70,6 @@ class Simulator {
   private:
     G4RunManager* runManager;
     DetectorConstruction* detectorConstruction;
-    ActionInitialization* actionInitialization;
     SimConfig simConfig;
 };
 

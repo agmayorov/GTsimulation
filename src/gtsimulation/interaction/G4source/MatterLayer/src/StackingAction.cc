@@ -1,4 +1,11 @@
 #include "StackingAction.hh"
+#include "RunAction.hh"
+
+#include <G4SystemOfUnits.hh>
+#include <G4EventManager.hh>
+#include <G4TrackingManager.hh>
+#include <G4Track.hh>
+#include <G4ParticleDefinition.hh>
 
 namespace MatterLayer
 {
@@ -6,9 +13,6 @@ namespace MatterLayer
 StackingAction::StackingAction(const SimConfig& config)
 : fDeathTime(-1.),
   fConfig(config)
-{}
-
-StackingAction::~StackingAction()
 {}
 
 G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* aTrack)
@@ -22,8 +26,8 @@ G4ClassificationOfNewTrack StackingAction::ClassifyNewTrack(const G4Track* aTrac
 
   if (aTrack->GetGlobalTime() < fDeathTime) return fKill;
 
-  G4double lifeTime = aTrack->GetDefinition()->GetPDGLifeTime();
-  if (lifeTime > fConfig.decay_time * s || lifeTime < 0.0) {
+  G4double lifeTime = aTrack->GetParticleDefinition()->GetPDGLifeTime();
+  if (lifeTime > fConfig.decayTime * s || lifeTime < 0.0) {
     G4double kineticEnergy = aTrack->GetKineticEnergy();
     if (kineticEnergy > 1.0 * MeV) {
       G4ThreeVector momentumDirection = aTrack->GetMomentumDirection();

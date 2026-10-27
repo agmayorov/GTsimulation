@@ -1,10 +1,6 @@
-#ifndef PhysicsList_hh
-#define PhysicsList_hh
+#pragma once
 
-#include "FTFP_BERT.hh"
-
-#include "G4SystemOfUnits.hh"
-#include "G4RadioactiveDecayPhysics.hh"
+#include <FTFP_BERT.hh>
 
 namespace Atmosphere
 {
@@ -13,9 +9,8 @@ class PhysicsList : public FTFP_BERT
 {
   public:
     PhysicsList();
-    ~PhysicsList();
+    ~PhysicsList() override = default;
+    void ConstructProcess() override;
 };
 
 }
-
-#endif

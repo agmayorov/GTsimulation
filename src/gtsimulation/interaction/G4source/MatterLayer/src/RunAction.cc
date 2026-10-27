@@ -5,13 +5,7 @@ namespace MatterLayer
 
 RunResult RunAction::fCurrentResult;
 
-RunAction::RunAction()
-{}
-
-RunAction::~RunAction()
-{}
-
-void RunAction::BeginOfRunAction(const G4Run* aRun) {
+void RunAction::BeginOfRunAction(const G4Run*) {
   fCurrentResult.secondaries.clear();
 }
 

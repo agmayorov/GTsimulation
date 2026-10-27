@@ -7,7 +7,6 @@ from pyproj import Transformer
 
 from gtsimulation.particle import CRParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
-from gtsimulation.interaction import G4Shower
 
 
 class _AbsRegion(ABC):
@@ -178,8 +177,8 @@ class _Magnetosphere(_AbsRegion):
                                               {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
             lon, lat, alt = geo_to_lla.transform(r[0], r[1], r[2], radians=False)
             angle = np.arccos(np.dot(-V_normalized, r / np.linalg.norm(r))) / np.pi * 180
-            if 0 < alt < 80e3 and angle < 70:
-                primary, secondary = G4Shower(particle.PDG, T, r, V_normalized, simulator.Date)
+            if 0 < alt < simulator.nuclear_interaction.atmosphere_height and angle < 70:
+                primary, secondary = simulator.nuclear_interaction.run_atmosphere(particle.PDG, T, r, V_normalized, simulator.Date)
                 simulator.IsPrimDeath = True
                 if secondary.size > 0 and gen < simulator.nuclear_interaction.max_generations:
                     for p in secondary:

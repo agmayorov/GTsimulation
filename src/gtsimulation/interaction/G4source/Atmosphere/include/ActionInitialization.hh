@@ -1,10 +1,8 @@
-#ifndef ActionInitialization_hh
-#define ActionInitialization_hh
+#pragma once
 
-#include "G4VUserActionInitialization.hh"
-
-#include "PrimaryGeneratorAction.hh"
-#include "TrackingAction.hh"
+#include <G4VUserActionInitialization.hh>
+#include "SimConfig.hh"
+#include "RunResult.hh"
 
 namespace Atmosphere
 {
@@ -12,17 +10,13 @@ namespace Atmosphere
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization(G4int particlePDG, G4double energy, G4ThreeVector coordinates, G4ThreeVector velocity);
-    ~ActionInitialization() override;
-    virtual void Build() const override;
+    ActionInitialization(const SimConfig& config, RunResult& result);
+    ~ActionInitialization() override = default;
+    void Build() const override;
 
   private:
-    G4int fParticlePDG;
-    G4double fEnergy;
-    G4ThreeVector fCoordinates;
-    G4ThreeVector fVelocity;
+    const SimConfig& fConfig;
+    RunResult& fResult;
 };
 
 }
-
-#endif

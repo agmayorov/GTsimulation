@@ -1,106 +1,115 @@
-﻿#include "G4RunManager.hh"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <G4RunManager.hh>
+#include <G4ThreeVector.hh>
+#include <CLHEP/Random/Random.h>
+#include <CLHEP/Random/MixMaxRng.h>
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
 #include "ActionInitialization.hh"
+#include "SimConfig.hh"
+#include "RunResult.hh"
+#include "nrlmsise-00.hh"
 
-#include "G4UImanager.hh"
+#include <array>
+#include <iostream>
+#include <streambuf>
 
-#ifdef USE_VISUALIZATION
-  #include "G4UIExecutive.hh"
-  #include "G4VisExecutive.hh"
-#endif
-
+namespace py = pybind11;
 using namespace Atmosphere;
 
-int main(int argc, char* argv[])
+class NullBuffer : public std::streambuf
 {
-  // Read input
-  // Input example: ./Atmosphere 0 2212 10000 0 0 6480 0 0 -1 6400 1 0 0 0 150 150 4
-  if (argc != 18) {
-    G4cerr << "Wrong number of input parameters" << G4endl;
-    return 3;
-  }
-  // Read values of input variables
-  G4long seed          = atol(argv[1]);
-  G4int particlePDG    = atoi(argv[2]); // PDG code of particle
-  G4double energy      = atof(argv[3]); // MeV
-  G4double X           = atof(argv[4]); // km
-  G4double Y           = atof(argv[5]); // km
-  G4double Z           = atof(argv[6]); // km
-  G4double Vx          = atof(argv[7]);
-  G4double Vy          = atof(argv[8]);
-  G4double Vz          = atof(argv[9]);
-  G4double earthRadius = atof(argv[10]); // km
-  G4int doy            = atoi(argv[11]); // day of year
-  G4double sec         = atof(argv[12]); // sec
-  G4double lat         = atof(argv[13]); // degrees
-  G4double lon         = atof(argv[14]); // degrees
-  G4double f107A       = atof(argv[15]);
-  G4double f107        = atof(argv[16]);
-  G4double ap          = atof(argv[17]);
-  G4cout << "Input particlePDG: " << particlePDG << "\n"
-         << "Input energy: " << energy << " GeV" << "\n"
-         << "Input X, Y, Z: " << X << " " << Y << " "  << Z << " km" << "\n"
-         << "Input Vx, Vy, Vz: " << Vx << " " << Vy << " "  << Vz << "\n"
-         << "Input Earth radius: " << earthRadius << " km" << "\n"
-         << "Input day of year: " << doy << "\n"
-         << "Input number of seconds in day: " << sec << " sec" << "\n"
-         << "Input geodetic latitude: " << lat << " degrees" << "\n"
-         << "Input geodetic longitude: " << lon << " degrees" << "\n"
-         << "Input average of F10.7 flux: " << f107A << "\n"
-         << "Input daily F10.7 flux: " << f107 << "\n"
-         << "Input ap magnetic index: " << ap << "\n\n"
-         << "Seed: " << seed << "\n" << G4endl;
+  public:
+    int overflow(int c) override { return c; }
+};
 
-  // Preliminary definitions and calculations
-  G4ThreeVector coordinates(X*km, Y*km, Z*km);
-  G4ThreeVector velocity(Vx, Vy, Vz);
-  G4double lst = sec / 3600. + lon / 15.;
-  nrlmsise_input input = {
-    0,        /* year, currently ignored */
-    doy,      /* day of year */
-    sec,      /* seconds in day (UT) */
-    0,        /* altitude in kilometers */
-    lat,      /* geodetic latitude */
-    lon,      /* geodetic longitude */
-    lst,      /* local apparent solar time (hours) */
-    f107A,    /* 81 day average of F10.7 flux (centered on doy) */
-    f107,     /* daily F10.7 flux for previous day */
-    ap,       /* magnetic index(daily) */
-    nullptr,  /* ap_array */
-  };
-
-  CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
+// Geant4 kernel can be initialized only once per process,
+// so the function runs a single event and must not be called again in the same process
+RunResult run(
+  long seed,
+  int pdg, double energy,
+  std::array<double, 3> coordinates,
+  std::array<double, 3> direction,
+  double earth_radius, double max_height,
+  int doy, double sec,
+  double lat, double lon,
+  double f107a, double f107, double ap
+) {
+  CLHEP::HepRandom::setTheEngine(new CLHEP::MixMaxRng());
   CLHEP::HepRandom::setTheSeed(seed);
 
+  nrlmsise_input input = {
+    0,                        /* year, currently ignored */
+    doy,                      /* day of year */
+    sec,                      /* seconds in day (UT) */
+    0,                        /* altitude in kilometers */
+    lat,                      /* geodetic latitude */
+    lon,                      /* geodetic longitude */
+    sec / 3600. + lon / 15.,  /* local apparent solar time (hours) */
+    f107a,                    /* 81 day average of F10.7 flux (centered on doy) */
+    f107,                     /* daily F10.7 flux for previous day */
+    ap,                       /* magnetic index(daily) */
+    nullptr,                  /* ap_array */
+  };
+
+  SimConfig simConfig;
+  simConfig.particlePDG = pdg;
+  simConfig.energy = energy;
+  simConfig.coordinates = G4ThreeVector(coordinates[0], coordinates[1], coordinates[2]);
+  simConfig.direction = G4ThreeVector(direction[0], direction[1], direction[2]);
+  RunResult result;
+
+  // Suppress G4 output during initialization
+  NullBuffer nullBuffer;
+  std::streambuf* oldCout = std::cout.rdbuf();
+  std::cout.rdbuf(&nullBuffer);
+
   // Construct RunManager and initialize G4 kernel
-  G4RunManager *runManager = new G4RunManager();
-  runManager->SetUserInitialization(new DetectorConstruction(earthRadius, input));
+  G4RunManager* runManager = new G4RunManager();
+  runManager->SetUserInitialization(new DetectorConstruction(earth_radius, max_height, input));
   runManager->SetUserInitialization(new PhysicsList());
-  runManager->SetUserInitialization(new ActionInitialization(particlePDG, energy, coordinates, velocity));
+  runManager->SetUserInitialization(new ActionInitialization(simConfig, result));
   runManager->Initialize();
 
-  // Get the pointer to the User Interface manager
-  G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  UImanager->ApplyCommand("/process/inactivate nKiller");
-  // UImanager->ApplyCommand("/tracking/verbose 1");
+  std::cout.rdbuf(oldCout);
 
-  #ifdef USE_VISUALIZATION
-    // Get the pointer to the visualization mmnager
-    G4VisManager *visManager = new G4VisExecutive();
-    visManager->Initialize();
-    G4UIExecutive *UI = new G4UIExecutive(argc, argv);
-    UImanager->ApplyCommand("/control/execute vis.mac");
-    UI->SessionStart();
-    delete UI;
-  #else
-    // Run 1 particle
-    runManager->BeamOn(1);
-  #endif
+  runManager->BeamOn(1);
 
   // Job termination
   delete runManager;
 
-  return 0;
+  return result;
+}
+
+PYBIND11_MODULE(atmosphere, m)
+{
+  m.doc() = "Geant4 Atmosphere Simulator";
+
+  // Exporting data structures
+  py::class_<ParticleData>(m, "ParticleData")
+    .def_readonly("name", &ParticleData::name)
+    .def_readonly("pdgCode", &ParticleData::pdgCode)
+    .def_readonly("mass", &ParticleData::mass)
+    .def_readonly("charge", &ParticleData::charge)
+    .def_readonly("kineticEnergy", &ParticleData::kineticEnergy)
+    .def_readonly("momentumDirection", &ParticleData::momentumDirection)
+    .def_readonly("position", &ParticleData::position)
+    .def_readonly("vertexKineticEnergy", &ParticleData::vertexKineticEnergy)
+    .def_readonly("vertexMomentumDirection", &ParticleData::vertexMomentumDirection)
+    .def_readonly("vertexPosition", &ParticleData::vertexPosition)
+    .def_readonly("lastProcess", &ParticleData::lastProcess);
+
+  py::class_<RunResult>(m, "RunResult")
+    .def_readonly("primary", &RunResult::primary)
+    .def_readonly("secondaries", &RunResult::secondaries);
+
+  // Exporting the main function
+  m.def("run", &run,
+        py::arg("seed"), py::arg("pdg"), py::arg("energy"), py::arg("coordinates"), py::arg("direction"),
+        py::arg("earth_radius"), py::arg("max_height"), py::arg("doy"), py::arg("sec"), py::arg("lat"), py::arg("lon"),
+        py::arg("f107a"), py::arg("f107"), py::arg("ap"),
+        "Run one event with given parameters (only once per process)");
 }
