@@ -7,7 +7,8 @@ subclass and define several core methods. The primary method, :py:meth:`~gtsimul
 updates the model's internal state for given coordinates. The subclass must also implement
 :py:meth:`~gtsimulation.medium.GTGeneralMedium.get_density` (returns the mass density),
 :py:meth:`~gtsimulation.medium.GTGeneralMedium.get_element_list` (returns the list of chemical elements), and
-:py:meth:`~gtsimulation.medium.GTGeneralMedium.get_element_abundance` (returns their fractional abundances).
+:py:meth:`~gtsimulation.medium.GTGeneralMedium.get_element_abundance` (returns their mass fractions in the same order,
+summing to 1).
 
 The module provides several pre-configured models for common environments:
 
