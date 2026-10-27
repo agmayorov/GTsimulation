@@ -4,6 +4,9 @@ import h5py
 import numpy as np
 
 
+_HDF5_CHUNK_SIZE = 4096
+
+
 def _write_value(parent, name, value, compression):
     """Write a value from the simulation result to an HDF5 group."""
     if isinstance(value, dict):
@@ -96,12 +99,11 @@ class _HDF5EventWriter:
 class HDF5Writer:
     """Write simulation events to HDF5 as they are calculated."""
 
-    def __init__(self, path, save_codes, chunk_size=4096, compression=None):
+    def __init__(self, path, save_codes, compression=None):
         self.file = h5py.File(path, "w")
         self.file.attrs["complete"] = False
         self.events = self.file.create_group("events")
         self.save_codes = save_codes
-        self.chunk_size = chunk_size
         self.compression = compression
 
     def start_event(self, index):
@@ -110,7 +112,7 @@ class HDF5Writer:
         return _HDF5EventWriter(
             group,
             self.save_codes,
-            self.chunk_size,
+            _HDF5_CHUNK_SIZE,
             self.compression,
         )
 

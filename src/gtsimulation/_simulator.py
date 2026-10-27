@@ -111,8 +111,7 @@ class GTSimulator(ABC):
         or ``.h5``/``.hdf5`` for HDF5. The extension is required when an
         output file is specified.
         HDF5 options can be passed as
-        ``[name, {"ChunkSize": 4096, "Compression": None}]``. ``ChunkSize``
-        and ``Compression`` are optional; compression can be ``"gzip"`` or
+        ``[name, {"Compression": None}]``. Compression can be ``"gzip"`` or
         ``"lzf"``. If None, results are not saved to disk. Default is None.
 
     Verbose : int, optional
@@ -249,7 +248,7 @@ class GTSimulator(ABC):
         else:
             raise TypeError("Output must be a string, [name, options], or None")
 
-        unknown_options = set(output_options) - {"ChunkSize", "Compression"}
+        unknown_options = set(output_options) - {"Compression"}
         if unknown_options:
             raise ValueError(f"Unknown Output options: {sorted(unknown_options)}")
 
@@ -270,20 +269,9 @@ class GTSimulator(ABC):
             self.OutputBase = None
             self.OutputExtension = None
 
-        hdf5_options = {"ChunkSize", "Compression"}
-        if (
-            self.OutputFormat != "hdf5"
-            and hdf5_options.intersection(output_options)
-        ):
-            raise ValueError("ChunkSize and Compression are only available for HDF5 output")
+        if self.OutputFormat != "hdf5" and "Compression" in output_options:
+            raise ValueError("Compression is only available for HDF5 output")
 
-        self.OutputChunkSize = output_options.get("ChunkSize", 4096)
-        if (
-            not isinstance(self.OutputChunkSize, int)
-            or isinstance(self.OutputChunkSize, bool)
-            or self.OutputChunkSize <= 0
-        ):
-            raise ValueError("Output ChunkSize must be a positive integer")
         self.OutputCompression = output_options.get("Compression")
         if self.OutputCompression not in {None, "gzip", "lzf"}:
             raise ValueError("Output Compression must be None, 'gzip', or 'lzf'")
@@ -550,8 +538,7 @@ class GTSimulator(ABC):
                 with HDF5Writer(
                     output_path,
                     self.SaveCode,
-                    self.OutputChunkSize,
-                    self.OutputCompression,
+                    compression=self.OutputCompression,
                 ) as writer:
                     self.CallOneFile(output_writer=writer)
                 self.logger.info("File %d/%d saved\n", idx + 1, len(file_nums))

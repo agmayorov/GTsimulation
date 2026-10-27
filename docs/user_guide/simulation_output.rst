@@ -45,15 +45,12 @@ trajectory in memory. Its options can be supplied together with the file name:
     Output = [
         "simulation.h5",
         {
-            "ChunkSize": 4096,
-            "Compression": None,
+            "Compression": "lzf",
         },
     ]
 
-``ChunkSize`` is the number of saved trajectory points buffered before they
-are written. Its default value is 4096. ``Compression`` can be ``None``,
-``"lzf"``, or ``"gzip"``. Compression can reduce the file size at the cost of
-additional processing time.
+``Compression`` can be ``None``, ``"lzf"``, or ``"gzip"``. Compression can
+reduce the file size at the cost of additional processing time.
 
 .. note::
 
