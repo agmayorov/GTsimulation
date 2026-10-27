@@ -10,7 +10,8 @@
 #include <G4RunManager.hh>
 
 #include <cmath>
-#include <iostream>
+#include <stdexcept>
+#include <string>
 
 namespace MatterLayer
 {
@@ -64,10 +65,8 @@ void DetectorConstruction::UpdateParameters(
   fWorldMaterial = new G4Material(uniqueName, density * g/cm3, elementName.size());
   for (G4int i = 0; i < elementName.size(); ++i) {
     G4Element* e = G4NistManager::Instance()->FindOrBuildElement(elementName[i]);
-    if (!e) {
-      std::cerr << "Error: Element " << elementName[i] << " not found!" << std::endl;
-      exit(3);
-    }
+    if (!e)
+      throw std::invalid_argument("Element " + elementName[i] + " not found");
     fWorldMaterial->AddElement(e, elementAbundance[i]);
   }
   fWorldLogic->SetMaterial(fWorldMaterial);

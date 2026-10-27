@@ -6,7 +6,8 @@
 #include <G4IonTable.hh>
 #include <G4SystemOfUnits.hh>
 
-#include <iostream>
+#include <stdexcept>
+#include <string>
 
 namespace MatterLayer
 {
@@ -33,7 +34,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   else if (G4IonTable::GetIonTable()->GetIon(fConfig.particlePDG))
     particle = G4IonTable::GetIonTable()->GetIon(fConfig.particlePDG);
   else
-    std::cerr << "Error: Particle was not found in G4ParticleTable and G4IonTable" << std::endl;
+    throw std::invalid_argument("Particle with PDG code " + std::to_string(fConfig.particlePDG) +
+                                " was not found in G4ParticleTable and G4IonTable");
   fParticleGun->SetParticleDefinition(particle);
   // Particle energy
   fParticleGun->SetParticleEnergy(fConfig.energy * MeV);
