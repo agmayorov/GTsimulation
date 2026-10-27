@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import queue
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 
@@ -7,6 +8,9 @@ from pymsis import msis
 from pyproj import Transformer
 
 from ._build_config import GEANT4_COMPONENTS_AVAILABLE
+
+# fork does not re-import the user's main script, so the "if __name__ == '__main__':" guard is not required
+mp_context = mp.get_context("fork")
 
 
 PRIMARY_DTYPE = np.dtype({
@@ -109,7 +113,8 @@ def sim_worker(input_queue, output_queue, seed):
     input_queue : multiprocessing.Queue
         Input queue containing parameter tuples: ``(pdg, energy, mass, density, el_names, el_fracs)``.
     output_queue : multiprocessing.Queue
-        Output queue for results: ``(primary_array, secondary_array, material_count)``.
+        Output queue for results: ``(primary_array, secondary_array, material_count)``,
+        or the exception raised by the simulator.
     seed : int
         Random seed passed to the Geant4 simulator constructor.
 
@@ -123,7 +128,12 @@ def sim_worker(input_queue, output_queue, seed):
     while True:
         params = input_queue.get()
         if params is None: break
-        run_result = sim.run(*params)
+        try:
+            run_result = sim.run(*params)
+        except Exception as e:
+            # Without traceback: otherwise the simulator is destroyed in the queue's feeder thread and Geant4 crashes
+            output_queue.put(e.with_traceback(None))
+            break
         count = sim.material_count
         output_queue.put((*convert_to_numpy(run_result), count))
 
@@ -228,15 +238,15 @@ class NuclearInteraction:
                                                {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
         self.restart_counter = 0
         self.process = None
-        self.in_q = mp.Queue()
-        self.out_q = mp.Queue()
+        self.in_q = mp_context.Queue()
+        self.out_q = mp_context.Queue()
         self.__start_new_process()
 
     def __start_new_process(self):
         if self.process: self.__terminate_process()
         self.restart_counter = 0
         seed = int(self.rng.integers(2147483647))
-        self.process = mp.Process(target=sim_worker, args=(self.in_q, self.out_q, seed))
+        self.process = mp_context.Process(target=sim_worker, args=(self.in_q, self.out_q, seed))
         self.process.daemon = True
         self.process.start()
 
@@ -318,7 +328,17 @@ class NuclearInteraction:
         if self.restart_counter >= self.restart_limit:
             self.__start_new_process()
         self.in_q.put((pdg, energy, mass, density, element_name, element_abundance))
-        primary, secondary, self.restart_counter = self.out_q.get()
+        # Wait for the result, checking every second that the worker has not crashed
+        while True:
+            try:
+                result = self.out_q.get(timeout=1)
+                break
+            except queue.Empty:
+                if not self.process.is_alive():
+                    raise RuntimeError(f"Geant4 worker terminated with exit code {self.process.exitcode}")
+        if isinstance(result, Exception):
+            raise result
+        primary, secondary, self.restart_counter = result
         return primary, secondary
 
     def run_atmosphere(
@@ -393,5 +413,5 @@ class NuclearInteraction:
             f107=float(f107[0]),
             ap=float(ap[0][0]),
         )
-        with ProcessPoolExecutor(max_workers=1) as executor:
+        with ProcessPoolExecutor(max_workers=1, mp_context=mp_context) as executor:
             return executor.submit(atmosphere_worker, params).result()
