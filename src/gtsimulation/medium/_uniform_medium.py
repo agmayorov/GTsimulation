@@ -3,7 +3,7 @@ from gtsimulation.medium import GTGeneralMedium
 
 class GTUniformMedium(GTGeneralMedium):
 
-    def __init__(self, density = 1., element = 'H'):
+    def __init__(self, density=1., element='H'):
         super().__init__()
         self.model = "UniformMedium"
         self.density = density
@@ -23,15 +23,17 @@ class GTUniformMedium(GTGeneralMedium):
         return self.element_abundance
 
     def __str__(self):
-        return f"""{self.model}
-        Density: {self.density} kg/m3"""
+        return (
+            f"{self.model}\n"
+            f"\tDensity: {self.density} kg/m3"
+        )
 
 
 class GTVacuum(GTUniformMedium):
 
     def __init__(self):
-        super().__init__(density = 0.)
+        super().__init__(density=0.)
         self.model = "Vacuum"
 
     def __str__(self):
-        return f"{self.model}"
+        return self.model

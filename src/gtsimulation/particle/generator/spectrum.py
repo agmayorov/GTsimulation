@@ -26,10 +26,10 @@ class ContinuumSpectrum(AbsSpectrum):
         return []
 
     def __str__(self):
-        s = f"""
-        Minimal Energy: {self.energy_min}
-        Maximal Energy: {self.energy_max}"""
-        return s
+        return (
+            f"\n\tMinimal Energy: {self.energy_min}"
+            f"\n\tMaximal Energy: {self.energy_max}"
+        )
 
 
 class Monolines(AbsSpectrum):
@@ -48,9 +48,10 @@ class Monolines(AbsSpectrum):
         return energy
 
     def __str__(self):
-        s = f"""Monolines
-        Energy: {self.T}"""
-        return s
+        return (
+            "Monolines\n"
+            f"\tEnergy: {self.T}"
+        )
 
 
 class PowerSpectrum(ContinuumSpectrum):
@@ -81,10 +82,11 @@ class PowerSpectrum(ContinuumSpectrum):
         return energy
 
     def __str__(self):
-        s = f"""PowerSpectrum
-        Spectrum Index: {self.spectrum_index}"""
-        s_super = super().__str__()
-        return s + s_super
+        s = (
+            "PowerSpectrum\n"
+            f"\tSpectrum Index: {self.spectrum_index}"
+        )
+        return s + super().__str__()
 
 
 class ForceField(ContinuumSpectrum):
@@ -106,7 +108,7 @@ class ForceField(ContinuumSpectrum):
 
             f_max = GetGCRflux('T', np.geomspace(energy_range_s[0], energy_range_s[1], 1000) / 1e3, self.modulation_potential / 1e3, particle).max()
             index_particle = np.flatnonzero(index_inverse == i)
-            bunch_size = count[i] * 10 # multiplying by 10 for faster calculations
+            bunch_size = count[i] * 10  # multiplying by 10 for faster calculations
             while True:
                 energy_played = np.random.uniform(*energy_range_s, bunch_size)
                 ksi = f_max * np.random.rand(bunch_size)
@@ -123,10 +125,11 @@ class ForceField(ContinuumSpectrum):
         return energy
 
     def __str__(self):
-        s = f"""ForceField
-        Modulation Potential: {self.modulation_potential} MV"""
-        s_super = super().__str__()
-        return s + s_super
+        s = (
+            "ForceField\n"
+            f"\tModulation Potential: {self.modulation_potential} MV"
+        )
+        return s + super().__str__()
 
 
 class Uniform(ContinuumSpectrum):
@@ -137,9 +140,7 @@ class Uniform(ContinuumSpectrum):
         return np.random.uniform(self.energy_min, self.energy_max, self.flux.Nevents)
 
     def __str__(self):
-        s = f"""Uniform"""
-        s_super = super().__str__()
-        return s + s_super
+        return "Uniform" + super().__str__()
 
 
 class UserInput(AbsSpectrum):
@@ -153,6 +154,7 @@ class UserInput(AbsSpectrum):
         return self.energy
 
     def __str__(self):
-        s = f"""User Input
-        Energy size: {self.energy.size}"""
-        return s
+        return (
+            "User Input\n"
+            f"\tEnergy size: {self.energy.size}"
+        )

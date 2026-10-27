@@ -39,6 +39,7 @@ class AbsDistribution(ABC):
         v = np.array(v)
         return v
 
+
 class SphereSurf(AbsDistribution):
     def __init__(self, Radius=0, Center=np.zeros(3), *args, **kwargs):
         self.Center = Center
@@ -83,11 +84,11 @@ class SphereSurf(AbsDistribution):
         return r_ret, v
 
     def __str__(self):
-        s = f"""Sphere Surface
-        Center: {self.Center}
-        Radius: {self.Radius}"""
-
-        return s
+        return (
+            "Sphere Surface\n"
+            f"\tCenter: {self.Center}\n"
+            f"\tRadius: {self.Radius}"
+        )
 
 
 class SphereVol(AbsDistribution):
@@ -119,11 +120,11 @@ class SphereVol(AbsDistribution):
         return r_ret, v
 
     def __str__(self):
-        s = f"""Sphere Volume
-        Center: {self.Center}
-        Radius: {self.Radius}"""
-
-        return s
+        return (
+            "Sphere Volume\n"
+            f"\tCenter: {self.Center}\n"
+            f"\tRadius: {self.Radius}"
+        )
 
 
 class Disk(AbsDistribution):
@@ -154,11 +155,11 @@ class Disk(AbsDistribution):
         return r, v
 
     def __str__(self):
-        s = f"""Disk Surface
-        Width: {self.Width}
-        Radius: {self.Radius}"""
-
-        return s
+        return (
+            "Disk Surface\n"
+            f"\tWidth: {self.Width}\n"
+            f"\tRadius: {self.Radius}"
+        )
 
 
 class UserInput(AbsDistribution):
@@ -174,7 +175,8 @@ class UserInput(AbsDistribution):
         return self.r, self.v / np.linalg.norm(self.v, axis=1)[:, None]
 
     def __str__(self):
-        s = f"""User Input
-        R0 shape: {self.r.shape}
-        V0 shape: {self.v.shape}"""
-        return s
+        return (
+            "User Input\n"
+            f"\tR0 shape: {self.r.shape}\n"
+            f"\tV0 shape: {self.v.shape}"
+        )

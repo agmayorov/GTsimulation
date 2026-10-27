@@ -145,12 +145,11 @@ class ParkerUniform(Parker):
             By_2d = deltaB_2d * np.cos(phase_2d) * np.sin(alpha_2d[mod, 0])
             Bz_2d = 0
 
-
             # Total field
             coeff_slab = 0
             coeff_2d = 0
             if use_slab:
-                coeff_slab = 1. #5.546/2 #1 / 2
+                coeff_slab = 1.  # 5.546/2 # 1 / 2
 
             if use_2d:
                 coeff_2d = component_2d
@@ -166,8 +165,5 @@ class ParkerUniform(Parker):
         return Bx * (r_param > rs), By * (r_param > rs), Bz * (r_param > rs)
 
     def __str__(self):
-        s = super().__str__()
-        s = s.replace("Parker", "ParkerUniform")
-        s += f"""
-        Coordinates: {self.x}, {self.y}, {self.z} AU"""
-        return s
+        s = super().__str__().replace("Parker", "ParkerUniform")
+        return s + f"\n\tCoordinates: {self.x}, {self.y}, {self.z} AU"

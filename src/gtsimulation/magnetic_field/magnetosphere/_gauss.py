@@ -29,7 +29,7 @@ GaussBodies = Union[GaussPlanets, GaussMoons]
 
 
 class GaussModels(Enum):
-    IGRF = 1            #Planets
+    IGRF = 1            # Planets
     CHAOS = 2
     CM = 3
     COV_OBS = 4
@@ -44,7 +44,7 @@ class GaussModels(Enum):
     O8 = 13
     MBF_a_n = 14
     Langlais2019 = 15
-    MagModel4 = 16       #Moon
+    MagModel4 = 16       # Moon
 
 
 class GaussTypes(Enum):
@@ -374,10 +374,9 @@ class Gauss(AbsBfield):
         self.npy_file_loc = loc + os.sep + self.BBody.name + os.sep + self.ModelName + os.sep + npy_file
 
     def __str__(self):
-        s = f"""{self.Model.name}
-        {self.body_type}: {self.BBody.name}
-        Type: {self.type.name}
-        Version: {self.version}"""
-
-        return s
-
+        return (
+            f"{self.Model.name}\n"
+            f"\t{self.body_type}: {self.BBody.name}\n"
+            f"\tType: {self.type.name}\n"
+            f"\tVersion: {self.version}"
+        )

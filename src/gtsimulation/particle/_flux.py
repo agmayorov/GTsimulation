@@ -83,15 +83,14 @@ class Flux(Sequence):
         return len(self.particles)
 
     def __str__(self):
-        s = f"""
-        Number of particles: {self.Nevents}"""
+        s = f"\n\tNumber of particles: {self.Nevents}"
         if self.name is not None:
-            s += f"""
-        Particles: {np.unique(self.name)}"""
-        s += f"""
-        V: {self.V0 if self.V0 is not None else 'Isotropic'}
-        Spectrum: {str(self._spectrum)}
-        Distribution: {str(self._distribution)}"""
+            s += f"\n\tParticles: {np.unique(self.name)}"
+        s += (
+            f"\n\tV: {self.V0 if self.V0 is not None else 'Isotropic'}"
+            f"\n\tSpectrum: {self._spectrum}"
+            f"\n\tDistribution: {self._distribution}"
+        )
         return s
 
 
@@ -103,11 +102,10 @@ class FluxPitchPhase(Flux):
         self.Bfield = Bfield
 
     def __str__(self):
-        s = super().__str__()
-        s1 = f"""
-        Pitch Angle: {self.Pitch} [rad]
-        Phase Angles: {self.Phase} [rad]"""
-        return s + s1
+        return super().__str__() + (
+            f"\n\tPitch Angle: {self.Pitch} [rad]"
+            f"\n\tPhase Angles: {self.Phase} [rad]"
+        )
 
 
 class GyroCenterFlux(Flux):
@@ -176,9 +174,8 @@ class GyroCenterFlux(Flux):
         return (np.sqrt((T + M) ** 2 - M ** 2) * 1e6 / cc * np.sin(pitchd / 180 * np.pi)) / (Z * Bm * 1e-9)
 
     def __str__(self):
-        s = super().__str__()
-        s1 = f"""
-        GyroCenter Coordinates: {self.coo_gyr} [m]
-        Pitch Angle: {self.pitchd} [deg]
-        Phase Angles: {self.phased} [deg]"""
-        return s + s1
+        return super().__str__() + (
+            f"\n\tGyroCenter Coordinates: {self.coo_gyr} [m]"
+            f"\n\tPitch Angle: {self.pitchd} [deg]"
+            f"\n\tPhase Angles: {self.phased} [deg]"
+        )

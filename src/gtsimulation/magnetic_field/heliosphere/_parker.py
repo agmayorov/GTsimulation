@@ -369,7 +369,7 @@ class Parker(AbsBfield):
             # Polarization and phase
             phase_rad = k[mod, 0] * np.sqrt(r / a) + delta_rad[mod, 0]
             phase_az = k[mod, 0] * phi + delta_az[mod, 0]
-            phase_2d = k[mod, 0] * ((r / a + phi) * np.sin(alpha_2d[mod, 0]) + \
+            phase_2d = k[mod, 0] * ((r / a + phi) * np.sin(alpha_2d[mod, 0]) +
                                     theta * np.cos(alpha_2d[mod, 0])) + delta_2d[mod, 0]
 
             # Radial field
@@ -428,23 +428,23 @@ class Parker(AbsBfield):
         return Bx * (r > rs), By * (r > rs), Bz * (r > rs)
 
     def __str__(self):
-        s = f"""Parker
-        Regular: {self.use_reg}
-        Magnitude: {self.magnitude}
-        HCS: {self.use_hcs}
-        CIR: {self.use_cir}
-        Polarity: {self.polarity}
-        Noise: {self.use_noise}
-        """
-
+        s = (
+            "Parker\n"
+            f"\tRegular: {self.use_reg}\n"
+            f"\tMagnitude: {self.magnitude}\n"
+            f"\tHCS: {self.use_hcs}\n"
+            f"\tCIR: {self.use_cir}\n"
+            f"\tPolarity: {self.polarity}\n"
+            f"\tNoise: {self.use_noise}"
+        )
         if self.use_noise:
-            s += f"""
-            Min wave length: {self.log_kmin}
-            Max wave length: {self.log_kmax}
-            Number of waves: {self.noise_num}
-            Coeff_Noise: {self.coeff_noise}
-            Coeff_2d: {self.coeff_2d}
-            Using Slab: {self.use_slab}
-            Using 2D: {self.use_2d}"""
-
+            s += (
+                f"\n\tMin wave length: {self.log_kmin}"
+                f"\n\tMax wave length: {self.log_kmax}"
+                f"\n\tNumber of waves: {self.noise_num}"
+                f"\n\tCoeff_Noise: {self.coeff_noise}"
+                f"\n\tCoeff_2d: {self.coeff_2d}"
+                f"\n\tUsing Slab: {self.use_slab}"
+                f"\n\tUsing 2D: {self.use_2d}"
+            )
         return s

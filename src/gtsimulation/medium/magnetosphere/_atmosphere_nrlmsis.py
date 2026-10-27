@@ -27,7 +27,7 @@ class GTnrlmsis(GTGeneralMedium):
 
     def calculate_model(self, x, y, z, **kwargs):
         lon, lat, alt = self.convert_xyz_to_lla(x, y, z)
-        alt *= 1e-3 # m -> km
+        alt *= 1e-3  # m -> km
         if alt > 0:
             self.output = np.nan_to_num(msis.run(self.date, lon, lat, alt, self.f107, self.f107a, [self.ap], version=self.version)[0])
         else:
@@ -37,7 +37,7 @@ class GTnrlmsis(GTGeneralMedium):
         return self.transformer.transform(x, y, z, radians=False)
 
     def get_density(self):
-        return self.output[0] # kg/m3
+        return self.output[0]  # kg/m3
 
     def get_component_abundance(self):
         c = self.output[1:-1]
@@ -60,5 +60,7 @@ class GTnrlmsis(GTGeneralMedium):
         return e
 
     def __str__(self):
-        return f"""{self.model}
-        Version: {self.version}"""
+        return (
+            f"{self.model}\n"
+            f"\tVersion: {self.version}"
+        )

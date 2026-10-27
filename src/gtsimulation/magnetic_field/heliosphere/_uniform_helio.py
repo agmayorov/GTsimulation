@@ -7,7 +7,8 @@ from gtsimulation.magnetic_field import AbsBfield
 
 class UniformHelio(AbsBfield):
     ToMeters = Units.AU2m
-    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab = 0.4, coeff_2d = 39000, q=1, nu=5/3, p=2.61, **kwargs):
+
+    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab=0.4, coeff_2d=39000, q=1, nu=5/3, p=2.61, **kwargs):
         super().__init__(**kwargs)
 
         self.Region = Regions.Heliosphere
@@ -171,19 +172,19 @@ class UniformHelio(AbsBfield):
         return Bx, By
 
     def __str__(self):
-        s = f"""{self.ModelName}
-            Regular: {self.use_reg}
-            Noise: {self.use_noise}
-            """
-
+        s = (
+            f"{self.ModelName}\n"
+            f"\tRegular: {self.use_reg}\n"
+            f"\tNoise: {self.use_noise}"
+        )
         if self.use_noise:
-            s += f"""
-            Using Slab: {self.use_slab}
-            Coeff Slab: {self.coeff_slab}
-            Using 2D: {self.use_2d}
-            Coeff 2D: {self.coeff_2d}
-	    q: {self.q}
-	    nu: {self.nu}
-	    p: {self.p}"""
-
+            s += (
+                f"\n\tUsing Slab: {self.use_slab}"
+                f"\n\tCoeff Slab: {self.coeff_slab}"
+                f"\n\tUsing 2D: {self.use_2d}"
+                f"\n\tCoeff 2D: {self.coeff_2d}"
+                f"\n\tq: {self.q}"
+                f"\n\tnu: {self.nu}"
+                f"\n\tp: {self.p}"
+            )
         return s

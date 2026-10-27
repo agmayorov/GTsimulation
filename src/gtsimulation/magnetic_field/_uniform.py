@@ -17,6 +17,7 @@ class Uniform(AbsBfield):
         pass
 
     def __str__(self):
-        s = f"""{self.ModelName}
-            B: {self.B} nT"""
-        return s
+        return (
+            f"{self.ModelName}\n"
+            f"\tB: {self.B} nT"
+        )

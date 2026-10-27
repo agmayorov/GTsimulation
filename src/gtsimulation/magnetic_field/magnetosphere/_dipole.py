@@ -107,9 +107,11 @@ class Dipole(AbsBfield):
                                    for key in ("g11_fit", "h11_fit", "g10_fit")))
 
     def __str__(self):
-        return (f"Dipole\n"
-                f"        Object: {self.name}\n"
-                f"        Equatorial field: {self.B_eq:g} nT\n"
-                f"        Reference radius: {self.ToMeters:g} m\n"
-                f"        Moment direction: {self.direction}\n"
-                f"        Center: {self.center} m")
+        return (
+            "Dipole\n"
+            f"\tObject: {self.name}\n"
+            f"\tEquatorial field: {self.B_eq:g} nT\n"
+            f"\tReference radius: {self.ToMeters:g} m\n"
+            f"\tMoment direction: {self.direction}\n"
+            f"\tCenter: {self.center} m"
+        )

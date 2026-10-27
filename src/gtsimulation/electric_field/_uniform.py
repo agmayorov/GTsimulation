@@ -14,6 +14,7 @@ class Uniform(GeneralFieldE):
         return self.E
 
     def __str__(self):
-        s = f"""{self.model_name}
-            E: {self.E} V/m"""
-        return s
+        return (
+            f"{self.model_name}\n"
+            f"\tE: {self.E} V/m"
+        )

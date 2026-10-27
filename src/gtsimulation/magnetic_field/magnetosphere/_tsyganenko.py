@@ -110,7 +110,8 @@ class Tsyganenko(AbsBfield):
         self.__set_psi_ind()
 
     def __str__(self):
-        s = f"""Tsyganenko
-        Mode: {self.mod_code}
-        Psi: {self.ps}"""
-        return s
+        return (
+            "Tsyganenko\n"
+            f"\tMode: {self.mod_code}\n"
+            f"\tPsi: {self.ps}"
+        )
