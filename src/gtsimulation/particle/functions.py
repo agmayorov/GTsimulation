@@ -19,10 +19,10 @@ def ConvertR2T(R, M, A, Z):
     return E
 
 
-def ConvertT2R(T, M, A, Z):
+def ConvertT2R(T_per_nucleon, M, A, Z):
     # Converts kinetic energy per nucleon into rigidity
     # INPUT:
-    #       T - Kinetic energy per nucleon in GeV/n
+    #       T_per_nucleon - Kinetic energy per nucleon in GeV/n
     #       M - Mass of particle in GV/c^2
     #       A - Number of nucleons
     #       Z - Charge
@@ -31,12 +31,20 @@ def ConvertT2R(T, M, A, Z):
     A = np.array(A)
     A[A == 0] = 1
 
-    R = (1 / Z) * (np.sqrt(np.power(A * T + M, 2) - np.power(M, 2)))
+    R = (1 / Z) * (np.sqrt(np.power(A * T_per_nucleon + M, 2) - np.power(M, 2)))
 
     return R
 
 
 def convert_units(energy, from_units, to_units, m, a, z):
+    valid_units = ('T', 'E', 'R')
+    if from_units not in valid_units:
+        raise ValueError(f"Unsupported source energy units {from_units!r}; expected one of {valid_units}")
+    if to_units not in valid_units:
+        raise ValueError(f"Unsupported target energy units {to_units!r}; expected one of {valid_units}")
+    if from_units == to_units:
+        return np.array(energy, copy=True)
+
     energy_converted = np.zeros_like(energy)
     match from_units:
         case 'T':
