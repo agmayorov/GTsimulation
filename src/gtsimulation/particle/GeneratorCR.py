@@ -566,6 +566,8 @@ def GetGCRflux(E_type, E, F, PartName=None):
             if E_type == 'R':
                 dRdT = A[i] / Z[i] / np.sqrt(1 - 1 / np.power((1 + A[i] * T[s] / M[i]), 2))
                 J[s] = J[s] / dRdT
+            elif E_type == 'E':
+                J[s] = J[s] / A[i]
             s += 1
     else:
         J = np.zeros(len(E))
@@ -574,5 +576,7 @@ def GetGCRflux(E_type, E, F, PartName=None):
         if E_type == 'R':
             dRdT = A[N] / Z[N] / np.sqrt(1 - 1 / np.power((1 + A[N] * T / M[N]), 2))
             J = J / dRdT
+        elif E_type == 'E':
+            J = J / A[N]
 
     return J

@@ -2,14 +2,14 @@ import numpy as np
 
 
 def ConvertR2T(R, M, A, Z):
-    # Converts rigidity into Energy
+    # Converts rigidity into kinetic energy per nucleon
     # INPUT:
     #       R - rigidity in GV
     #       M - Mass of particle in GV/c^2
     #       A - Number of nucleons
     #       Z - Charge
     # OUTPUT:
-    #       E - Kinetic energy in GeV
+    #       E - Kinetic energy per nucleon in GeV/n
 
     A = np.array(A)
     A[A == 0] = 1
@@ -20,9 +20,9 @@ def ConvertR2T(R, M, A, Z):
 
 
 def ConvertT2R(T, M, A, Z):
-    # Converts particles energy into rigidity
+    # Converts kinetic energy per nucleon into rigidity
     # INPUT:
-    #       T - Kinetic energy in GeV
+    #       T - Kinetic energy per nucleon in GeV/n
     #       M - Mass of particle in GV/c^2
     #       A - Number of nucleons
     #       Z - Charge

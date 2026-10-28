@@ -65,6 +65,7 @@ class PowerSpectrum(ContinuumSpectrum):
         energy = np.zeros(self.flux.Nevents)
         for s in range(self.flux.Nevents):
             z, a, m = int(self.flux.particles[s].Z), self.flux.particles[s].A, self.flux.particles[s].M
+            a = a if a != 0 else 1
             if self.energy_range_units != self.base:
                 energy_range_s = convert_units(self.energy_range, self.energy_range_units, self.base, m, a, z)
             else:
@@ -77,8 +78,8 @@ class PowerSpectrum(ContinuumSpectrum):
                 g = self.spectrum_index + 1.
                 energy[s] = (energy_range_s[0] ** g + ksi * (energy_range_s[1] ** g - energy_range_s[0] ** g)) ** (1 / g)
 
-            if self.energy_range_units != self.base:
-                energy[s] = convert_units(energy[s], self.base, self.energy_range_units, m, a, z)
+            if self.base != 'E':
+                energy[s] = convert_units(energy[s], self.base, 'E', m, a, z)
         return energy
 
     def __str__(self):
@@ -101,6 +102,7 @@ class ForceField(ContinuumSpectrum):
         unique_name, index, index_inverse, count = np.unique(self.flux.name, return_index=True, return_inverse=True, return_counts=True)
         for i, particle in enumerate(unique_name):
             z, a, m = int(self.flux.particles[index[i]].Z), self.flux.particles[index[i]].A, self.flux.particles[index[i]].M
+            a = a if a != 0 else 1
             if self.energy_range_units != 'T':
                 energy_range_s = convert_units(self.energy_range, self.energy_range_units, 'T', m, a, z)
             else:
@@ -120,8 +122,8 @@ class ForceField(ContinuumSpectrum):
                     energy[index_particle] = energy_played[index_suited[:index_particle.size]]
                     break
 
-            if self.energy_range_units != 'T':
-                energy[index_inverse == i] = convert_units(energy[index_inverse == i], 'T', self.energy_range_units, m, a, z)
+            # Flux and CRParticle always store the total kinetic energy.
+            energy[index_inverse == i] = convert_units(energy[index_inverse == i], 'T', 'E', m, a, z)
         return energy
 
     def __str__(self):

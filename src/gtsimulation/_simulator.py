@@ -642,7 +642,8 @@ class GTSimulator(ABC):
             )
             self.logger.debug(
                 "Energy: %f [MeV], Rigidity: %f [GV]",
-                T, ConvertT2R(T, M, particle.A, int(particle.Z)) / 1000 if int(particle.Z) != 0 else np.inf
+                T, ConvertT2R(T / (particle.A or 1), M, particle.A, int(particle.Z)) / 1000
+                if int(particle.Z) != 0 else np.inf
             )
             self.logger.debug("Coordinates: %s [m]", r)
             self.logger.debug("Velocity: %s", V_normalized)
