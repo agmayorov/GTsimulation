@@ -389,23 +389,26 @@ def GetGCRflux(E_type, E, F, PartName=None):
     PartNameAll = ['proton', 'he4', 'Li-7', 'Be-9', 'B-11', 'C-12', 'N-14', 'O-16', 'F-19', 'Ne-20', 'Na-23',
                    'Mg-24', 'Al-27', 'Si-28', 'Fe-56', 'ele', 'pos', 'apr']
 
+    particle_aliases = {name.replace('-', ''): name for name in PartNameAll if '-' in name}
+    particle_aliases.update({
+        'p': 'proton',
+        'H1': 'proton',
+        'H-1': 'proton',
+        'He4': 'he4',
+        'He-4': 'he4',
+        'alpha': 'he4',
+        'e-': 'ele',
+        'e+': 'pos',
+        'anti_proton': 'apr',
+        'anti_p': 'apr',
+        'p~': 'apr',
+        'p_bar': 'apr',
+    })
+
     def _normalize_part_name(name):
         if isinstance(name, str):
-            if name == "p":
-                return "proton"
-            if name == "anti_proton":
-                return "apr"
-            return name
-        else:
-            result = []
-            for item in name:
-                if item == "p":
-                    result.append("proton")
-                elif item == "anti_proton":
-                    result.append("apr")
-                else:
-                    result.append(item)
-            return result
+            return particle_aliases.get(name, name)
+        return [particle_aliases.get(item, item) for item in name]
 
     if PartName is not None:
         PartName = _normalize_part_name(PartName)
