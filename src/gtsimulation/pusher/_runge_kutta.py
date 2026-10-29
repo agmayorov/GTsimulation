@@ -8,12 +8,12 @@ class RungeKutta4Simulator(GTSimulator):
     # def getF(self, X, V, Q):
     #     x, y, z = X
     #     if self.Bfield is not None:
-    #         H = np.array(self.Bfield.GetBfield(x, y, z))
+    #         H = np.array(self.Bfield.get_field(x, y, z))
     #     else:
     #         H = np.zeros(3)
     #
     #     if self.Efield is not None:
-    #         E = np.array(self.Efield.GetEfield(x, y, z))
+    #         E = np.array(self.Efield.get_field(x, y, z))
     #     else:
     #         E = np.zeros(3)
     #
@@ -47,12 +47,12 @@ class RungeKutta4Simulator(GTSimulator):
     def getFields(self, X):
         x, y, z = X
         if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
+            H = np.array(self.Bfield.get_field(x, y, z))
         else:
             H = np.zeros(3)
 
         if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
+            E = np.array(self.Efield.get_field(x, y, z))
         else:
             E = np.zeros(3)
 
@@ -171,9 +171,9 @@ class RungeKutta4SimulatorFast(GTSimulator):
 #         vx, vy, vz = V
 #         dt = self.Step
 #         if self.Bfield is not None:
-#             # H1 = np.array(self.Bfield.GetBfield(x, y, z))
-#             H2 = np.array(self.Bfield.GetBfield(x + vx * dt / 2, y + vy * dt / 2, z + vz * dt / 2))
-#             H3 = np.array(self.Bfield.GetBfield(x + vx * dt, y + vy * dt, z + vz * dt))
+#             # H1 = np.array(self.Bfield.get_field(x, y, z))
+#             H2 = np.array(self.Bfield.get_field(x + vx * dt / 2, y + vy * dt / 2, z + vz * dt / 2))
+#             H3 = np.array(self.Bfield.get_field(x + vx * dt, y + vy * dt, z + vz * dt))
 #             if len(H1.shape) == 2:
 #                 # H1 = H1[:, 0]
 #                 H2 = H2[:, 0]
@@ -184,7 +184,7 @@ class RungeKutta4SimulatorFast(GTSimulator):
 #             H3 = np.zeros(3)
 #
 #         # if self.Efield is not None:
-#         #     E = np.array(self.Efield.GetEfield(x, y, z))
+#         #     E = np.array(self.Efield.get_field(x, y, z))
 #         # else:
 #         #     E = np.zeros(3)
 #
@@ -214,12 +214,12 @@ class RungeKutta6Simulator(GTSimulator):
     def getFields(self, X):
         x, y, z = X
         if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
+            H = np.array(self.Bfield.get_field(x, y, z))
         else:
             H = np.zeros(3)
 
         if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
+            E = np.array(self.Efield.get_field(x, y, z))
         else:
             E = np.zeros(3)
 

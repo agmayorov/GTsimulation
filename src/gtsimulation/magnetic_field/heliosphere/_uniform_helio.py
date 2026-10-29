@@ -6,14 +6,13 @@ from gtsimulation.magnetic_field import AbsBfield
 
 
 class UniformHelio(AbsBfield):
-    ToMeters = Units.AU2m
+    to_meters = Units.AU2m
 
-    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab=0.4, coeff_2d=39000, q=1, nu=5/3, p=2.61, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, use_noise=True, use_reg=True, use_slab=True, use_2d=True, coeff_slab=0.4, coeff_2d=39000, q=1, nu=5/3, p=2.61):
+        super().__init__()
 
         self.Region = Regions.Heliosphere
         self.ModelName = "UniformHelio"
-        self.Units = "AU"
 
         self.B0 = 6
         self.use_reg = use_reg
@@ -119,10 +118,10 @@ class UniformHelio(AbsBfield):
         return (l0 * k / (2 * np.pi)) ** (-q) * (k0 <= k) * (k < k1) + \
             (l0 / l1) ** (-q) * (l1 * k / (2 * np.pi)) ** (-s) * (k1 <= k) * (k <= k3)
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         pass
 
-    def CalcBfield(self, x, y, z, **kwargs):
+    def calc_field(self, x, y, z):
         Bx = By = Bz = 0
         if self.use_reg:
             Bx, By, Bz = 0, 0, self.B0

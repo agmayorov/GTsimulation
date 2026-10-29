@@ -51,8 +51,6 @@ class UF23(AbsBfield):
         If `True`, turbulent field components are enabled. **Currently not
         implemented** – the parameter is accepted but has no effect.
         Default is `True`.
-    **kwargs : additional keyword arguments
-        Passed to the base class :class:`~gtsimulation.magnetic_field.AbsBfield`.
 
     Notes
     -----
@@ -76,18 +74,17 @@ class UF23(AbsBfield):
     --------
     >>> from gtsimulation.magnetic_field.galaxy import UF23
     >>> model = UF23(model_type="base", use_turb=False)
-    >>> Bx, By, Bz = model.CalcBfield(x=-8.2, y=0.0, z=0.0)  # Sun's position
+    >>> Bx, By, Bz = model.calc_field(x=-8.2, y=0.0, z=0.0)  # Sun's position
     >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
     """
 
-    ToMeters = Units.kpc
+    to_meters = Units.kpc
 
-    def __init__(self, model_type: UF23ModelType | str = UF23ModelType.base, use_turb=True, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, model_type: UF23ModelType | str = UF23ModelType.base, use_turb=True):
+        super().__init__()
         self.Region = Regions.Galaxy
         self.ModelName = "UF23"
         self.model_type = model_type if isinstance(model_type, UF23ModelType) else UF23ModelType[model_type]
-        self.Units = "kpc"
         self.use_turb = use_turb
 
         # Regular field #
@@ -292,7 +289,7 @@ class UF23(AbsBfield):
                 self.xi = 0.250
                 self.beta_str = 1 - (1 + self.xi) ** 2
 
-    def CalcBfield(self, x, y, z, **kwargs):
+    def calc_field(self, x, y, z):
         """
         Compute the magnetic field vector at a given Galactic position.
 
@@ -304,8 +301,6 @@ class UF23(AbsBfield):
             Galactic Y‑coordinate (kpc).
         z : float
             Galactic Z‑coordinate (kpc).
-        **kwargs : additional arguments
-            Ignored; present only for compatibility with the base class.
 
         Returns
         -------
@@ -414,7 +409,7 @@ class UF23(AbsBfield):
 
         return 0.1 * Bx, 0.1 * By, 0.1 * Bz
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         pass
 
     def __str__(self):

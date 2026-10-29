@@ -19,16 +19,14 @@ class Tsyganenko(AbsBfield):
     :type date: datetime.datetime
     :param ModCode: Model version selector (89, 96, 15B)
     :type ModCode: str
-    :param kwargs: Additional arguments for base class
     :raises ValueError: If date is outside model's valid range
     """
-    ToMeters = Units.RE2m
+    to_meters = Units.RE2m
 
-    def __init__(self, date: datetime = datetime(2000, 1, 1), ModCode="96", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, date: datetime = datetime(2000, 1, 1), ModCode="96"):
+        super().__init__()
         self.ModelName = "Tsyganenko"
         self.Region = Regions.Magnetosphere
-        self.Units = "RE"
         self.mod_code = str(ModCode)
         self.T_input = None
         if self.mod_code == '15B':
@@ -92,7 +90,7 @@ class Tsyganenko(AbsBfield):
             case _:
                 return None
 
-    def CalcBfield(self, x, y, z, **kwargs):
+    def calc_field(self, x, y, z):
         X, Y, Z = transformations.geo2gsm(x, y, z, self.year, self.doy, self.sec, self.g, self.h)
         Bx, By, Bz = 0, 0, 0
         if self.mod_code == "89":
@@ -105,7 +103,7 @@ class Tsyganenko(AbsBfield):
         Bx, By, Bz = transformations.geo2gsm(Bx, By, Bz, self.year, self.doy, self.sec, self.g, self.h, inverse=True)
         return Bx, By, Bz
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         self.Date = new_date
         self.__set_psi_ind()
 

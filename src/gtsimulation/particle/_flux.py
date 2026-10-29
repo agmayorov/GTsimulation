@@ -129,10 +129,7 @@ class GyroCenterFlux(Flux):
         else:
             self.phased = np.array([Phased] * self.Nevents)[:, np.newaxis]
 
-        bfield = copy.deepcopy(Bfield)
-        bfield.use_tesla = False
-        bfield.use_meters = True
-        self.B = bfield.GetBfield(*self.coo_gyr)
+        self.B = np.array(Bfield.get_field(*self.coo_gyr)) * 1e9
         self.Bm = np.linalg.norm(self.B)
 
     def generate(self):

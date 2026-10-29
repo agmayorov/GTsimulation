@@ -37,7 +37,7 @@ def FieldLine(simulator, Rinp, sgn):
     scale = 1e3 * 6370e3 / np.linalg.norm(Rinp)
 
     while np.linalg.norm(rline[s, :]) > Units.RE:
-        B1, B2, B3 = simulator.Bfield.GetBfield(rline[s, 0], rline[s, 1], rline[s, 2])
+        B1, B2, B3 = simulator.Bfield.get_field(rline[s, 0], rline[s, 1], rline[s, 2])
         B = np.sqrt(B1 ** 2 + B2 ** 2 + B3 ** 2)
         d1 = sgn * B1 / B
         d2 = sgn * B2 / B

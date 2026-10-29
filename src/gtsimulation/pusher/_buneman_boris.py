@@ -72,12 +72,12 @@ class BunemanBorisSimulator(GTSimulator):
     def getFields(self, X):
         x, y, z = X
         if self.Bfield is not None:
-            H = np.array(self.Bfield.GetBfield(x, y, z))
+            H = np.array(self.Bfield.get_field(x, y, z))
         else:
             H = np.zeros(3)
 
         if self.Efield is not None:
-            E = np.array(self.Efield.GetEfield(x, y, z))
+            E = np.array(self.Efield.get_field(x, y, z))
         else:
             E = np.zeros(3)
 

@@ -639,8 +639,8 @@ class GTSimulator(ABC):
             r = np.array(particle.coordinates)
             r_old = r
 
-            B = np.array(self.Bfield.GetBfield(*r)) if self.Bfield is not None else np.zeros(3)
-            E = np.array(self.Efield.GetEfield(*r)) if self.Efield is not None else np.zeros(3)
+            B = np.array(self.Bfield.get_field(*r)) if self.Bfield is not None else np.zeros(3)
+            E = np.array(self.Efield.get_field(*r)) if self.Efield is not None else np.zeros(3)
 
             Step = self.Step
 
@@ -820,8 +820,8 @@ class GTSimulator(ABC):
                                 new_process.__gen = Gen + 1
                                 prod_tracks.append(new_process.CallOneFile()[0])
 
-                B = np.array(self.Bfield.GetBfield(*r)) if self.Bfield is not None else np.zeros(3)
-                E = np.array(self.Efield.GetEfield(*r)) if self.Efield is not None else np.zeros(3)
+                B = np.array(self.Bfield.get_field(*r)) if self.Bfield is not None else np.zeros(3)
+                E = np.array(self.Efield.get_field(*r)) if self.Efield is not None else np.zeros(3)
 
                 # Full revolution in Magnetosphere
                 lon_total, lon_prev, full_revolutions = self.Region.value.do_after_step(

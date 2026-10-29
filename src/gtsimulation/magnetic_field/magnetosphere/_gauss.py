@@ -116,15 +116,14 @@ versions_dict = {GaussModels.IGRF: [13, 14],
 
 
 class Gauss(AbsBfield):
-    ToMeters = Units.km2m
+    to_meters = Units.km2m
 
     def __init__(self, date: datetime.datetime, model: GaussModels | str, model_type: GaussTypes | str, version=None,
                  planet: Union[GaussPlanets, str, None] = None,
                  moon: Union[GaussMoons, str, None] = None,
-                 coord: int = 1, **kwargs):
-        super().__init__(**kwargs)
+                 coord: int = 1):
+        super().__init__()
         self.Region = Regions.Magnetosphere
-        self.Units = "km"
         body = planet or moon or GaussPlanets.Earth
         self.BBody = (GaussPlanets[body] if body in GaussPlanets.__members__ else GaussMoons[body]) if isinstance(body, str) else body
         self.body_type = "Planet" if isinstance(self.BBody, GaussPlanets) else "Moon"
@@ -140,7 +139,7 @@ class Gauss(AbsBfield):
         self.SetFullModelName()
         self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 
-    def CalcBfield(self, x, y, z, **kwargs):
+    def calc_field(self, x, y, z):
         coord = self.coord
         gh = self.gh
         Rbody_km = self.Rbody_km
@@ -254,7 +253,7 @@ class Gauss(AbsBfield):
 
         return Bx, By, Bz
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         self.Date = new_date
         self.g, self.h, self.gh = LoadGaussCoeffs(self.npy_file_loc, self.Date)
 

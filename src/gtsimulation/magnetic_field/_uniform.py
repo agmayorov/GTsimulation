@@ -5,15 +5,15 @@ from gtsimulation.magnetic_field import AbsBfield
 
 class Uniform(AbsBfield):
 
-    def __init__(self, B, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, B):
+        super().__init__()
         self.ModelName = "Uniform"
         self.B = np.array(B).astype(np.float64)
 
-    def CalcBfield(self, *args, **kwargs):
+    def calc_field(self, *args):
         return self.B
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         pass
 
     def __str__(self):

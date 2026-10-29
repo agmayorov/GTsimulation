@@ -13,6 +13,6 @@ class GeneralFieldE(ABC):
     def calc_field(self, x, y, z):
         pass
 
-    def GetEfield(self, x, y, z):
+    def get_field(self, x, y, z):
         Ex, Ey, Ez = self.calc_field(x, y, z)
         return Ex, Ey, Ez

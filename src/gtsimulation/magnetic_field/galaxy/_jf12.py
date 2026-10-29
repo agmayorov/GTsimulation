@@ -67,11 +67,11 @@ class JF12mod(AbsBfield):
     --------
     >>> from gtsimulation.magnetic_field.galaxy import JF12mod
     >>> model = JF12mod(use_turb=False)
-    >>> bx, by, bz = model.CalcBfield(x=-8.5, y=0.0, z=0.0)  # Sun's position
+    >>> Bx, By, Bz = model.calc_field(x=-8.5, y=0.0, z=0.0)  # Sun's position
     >>> print(f"B = ({Bx:.3f}, {By:.3f}, {Bz:.3f}) nT")
     """
 
-    ToMeters = Units.kpc
+    to_meters = Units.kpc
 
     _DEFAULT_TURBULENCE_FILENAME = (
         "G_n=512_boxSize=1_lMin=3.9e-03_lMax=1.0e+00_seed=0.mat"
@@ -81,7 +81,6 @@ class JF12mod(AbsBfield):
         super().__init__()
         self.Region = Regions.Galaxy
         self.ModelName = "JF12mod"
-        self.Units = "kpc"
         self.use_turb = use_turb
 
         # Regular field #
@@ -174,7 +173,7 @@ class JF12mod(AbsBfield):
             self.box_size = 1.0
             self.turbulence_file = None
 
-    def CalcBfield(self, x, y, z, **kwargs):
+    def calc_field(self, x, y, z):
         """
         Compute the magnetic field vector at a given Galactic position.
 
@@ -186,8 +185,6 @@ class JF12mod(AbsBfield):
             Galactic Y‑coordinate (kpc).
         z : float
             Galactic Z‑coordinate (kpc).
-        **kwargs : additional arguments
-            Ignored; present only for compatibility with the base class.
 
         Returns
         -------
@@ -365,7 +362,7 @@ class JF12mod(AbsBfield):
 
         return 0.1 * (Bx + f_a*Bx_aniso + f_i * Bx_iso), 0.1 * (By + f_a*By_aniso + f_i * By_iso), 0.1 * (Bz + f_a*Bz_aniso + f_i * Bz_iso)
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         pass
 
     def __str__(self):

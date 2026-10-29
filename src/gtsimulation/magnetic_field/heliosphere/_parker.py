@@ -54,8 +54,6 @@ class Parker(AbsBfield):
         Scaling factor for the turbulent component.
     coeff_2d : float, default=2.9
         Scaling factor for the 2D component of turbulence.
-    **kwargs
-        Additional arguments passed to the base class `AbsBfield`.
 
     Notes
     -----
@@ -84,17 +82,17 @@ class Parker(AbsBfield):
 
     >>> model = Parker()
     >>> x, y, z = 1.0, 0.0, 0.0   # coordinates in AU
-    >>> Bx, By, Bz = model.CalcBfield(x, y, z)
+    >>> Bx, By, Bz = model.calc_field(x, y, z)
     >>> print(f"B = ({Bx:.2f}, {By:.2f}, {Bz:.2f}) nT")
 
     Override the HCS tilt angle with a constant value (e.g., 0.5 rad).
 
     >>> model_tilt = Parker(tilt_angle=0.5)
-    >>> Bx_t, By_t, Bz_t = model_tilt.CalcBfield(-x, y, z)
+    >>> Bx_t, By_t, Bz_t = model_tilt.calc_field(-x, y, z)
     >>> print(f"B = ({Bx:.2f}, {By:.2f}, {Bz:.2f}) nT")
     """
 
-    ToMeters = Units.AU2m
+    to_meters = Units.AU2m
     rs = 0.0232523
     omega = 2 * np.pi / 2160000
     years11 = 347133600
@@ -102,11 +100,10 @@ class Parker(AbsBfield):
 
     def __init__(self, date: datetime.date | int = 0, magnitude=2.09, polarity=-1, tilt_angle=None,
                  use_reg=True, use_hcs=True, use_cir=False, use_noise=False, use_slab=True,  use_2d=True,
-                 noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=0.47, coeff_2d=2.9, **kwargs):
-        super().__init__(**kwargs)
+                 noise_num=256, log_kmin=1, log_kmax=6, coeff_noise=0.47, coeff_2d=2.9):
+        super().__init__()
         self.Region = Regions.Heliosphere
         self.ModelName = "Parker"
-        self.Units = "AU"
         self.magnitude = magnitude
         self.polarity = polarity
         self.tilt_angle = tilt_angle
@@ -133,9 +130,9 @@ class Parker(AbsBfield):
         second = date.second
         self.t += (((year * 365.25 + doy) * 24 + hour) * 60 + minute) * 60 + second
 
-    def CalcBfield(self, x, y, z, **kwargs):
-        if kwargs.get("t") is not None:
-            self.t = kwargs.get("t")
+    def calc_field(self, x, y, z, t=None):
+        if t is not None:
+            self.t = t
 
         A0 = self.magnitude * self.polarity
         t = self.t
@@ -211,7 +208,7 @@ class Parker(AbsBfield):
 
         return Bx, By, Bz
 
-    def UpdateState(self, new_date):
+    def update_state(self, new_date):
         self.__set_time(new_date)
 
     @staticmethod

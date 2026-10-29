@@ -14,12 +14,12 @@ class ParkerUniform(Parker):
         self.ModelName = "ParkerUniform"
         kwargs["use_noise"] = False
         self.b = Parker(*args, **kwargs)
-        self.Bx, self.By, self.Bz = self.b.CalcBfield(x, y, z, t=t)
+        self.Bx, self.By, self.Bz = self.b.calc_field(x, y, z, t=t)
         self.x, self.y, self.z = x, y, z
         self.r, _, self.theta, self.phi = transformations.Cart2Sphere(x, y, z)
         self.wind = self.v_wind(self.theta, self.km2AU)
 
-    def CalcBfield(self, x=None, y=None, z=None, **kwargs):
+    def calc_field(self, x=None, y=None, z=None):
         Bx, By, Bz = 0, 0, 0
         if self.use_reg:
             Bx += self.Bx

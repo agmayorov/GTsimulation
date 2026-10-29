@@ -27,7 +27,7 @@ class AbsDistribution(ABC):
         v = []
         for idx in range(r_ret.shape[0]):
             r = r_ret[idx, :]
-            B = self.flux.Bfield.GetBfield(*r)
+            B = self.flux.Bfield.get_field(*r)
             ez = B / np.linalg.norm(B)
             rnorm = r / np.linalg.norm(r)
             ey = np.cross(rnorm, ez)
