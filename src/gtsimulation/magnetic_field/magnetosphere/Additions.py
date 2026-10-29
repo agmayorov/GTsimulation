@@ -471,9 +471,11 @@ def FindParticleOrigin(Simulator, RetArr_i):
 
     Particles.Nevents = 1
 
-    BreakCondition = Simulator.ParamDict["BreakCondition"]
+    BreakCondition = copy.deepcopy(Simulator.ParamDict["BreakCondition"])
     if BreakCondition is None:
         BreakCondition = {"MaxRev": 5}
+    elif isinstance(BreakCondition, list):
+        BreakCondition[0]["MaxRev"] = 5
     else:
         BreakCondition["MaxRev"] = 5
     bGTsim = copy.deepcopy(Simulator)

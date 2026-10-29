@@ -78,6 +78,12 @@ class GTSimulator(ABC):
         Available conditions: see :py:data:`~gtsimulation.common.codes.BreakCode`.
         Default is None.
 
+        .. important::
+
+           In the magnetosphere, ``TrackParams`` and ``ParticleOrigin`` require
+           ``Rmin >= Units.RE``. Missing or smaller values are replaced with
+           ``Units.RE``.
+
     UseDecay : bool, optional
         Enable particle decay processes.
         Default is False.
@@ -227,6 +233,11 @@ class GTSimulator(ABC):
         if self.ParticleOrigin:
             TrackParams = True
 
+        BreakCondition = self.Region.value.configure_break_conditions(
+            BreakCondition, TrackParams, self.logger
+        )
+        self.ParamDict["BreakCondition"] = BreakCondition
+
         self.TrackParamsIsOn = False
         self.TrackParams = self.Region.value.SaveAdd
         Save = self.__SetAdditions(TrackParams, Save)
@@ -290,10 +301,10 @@ class GTSimulator(ABC):
                 self.OutputExtension,
             )
 
+        break_conditions = BreakCondition[0] if isinstance(BreakCondition, list) else BreakCondition
         if self.ParticleOriginIsOn or (
-            BreakCondition is not None
-            and hasattr(BreakCondition, "keys")
-            and "MaxRev" in BreakCondition
+            isinstance(break_conditions, dict)
+            and "MaxRev" in break_conditions
         ):
             if not isinstance(Save, list):
                 Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]

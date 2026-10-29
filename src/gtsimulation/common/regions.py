@@ -7,6 +7,7 @@ from pyproj import Transformer
 
 from gtsimulation.particle import CRParticle, Flux
 from gtsimulation.particle.generator import distribution, spectrum
+from ._consts import Units
 
 
 class _AbsRegion(ABC):
@@ -52,6 +53,10 @@ class _AbsRegion(ABC):
     @staticmethod
     def do_after_loop(simulator, result, lon_total, max_rev_enabled):
         pass
+
+    @staticmethod
+    def configure_break_conditions(break_conditions, track_params, logger=None):
+        return break_conditions
 
 class _Undefined(_AbsRegion):
 
@@ -103,6 +108,39 @@ class _Galaxy(_AbsRegion):
 class _Magnetosphere(_AbsRegion):
     SaveAdd = {"Invariants": False, "PitchAngles": False, "MirrorPoints": False, "Lshell": False,
                "GuidingCenter": False}
+
+    @staticmethod
+    def configure_break_conditions(break_conditions, track_params, logger=None):
+        if not (isinstance(track_params, dict) or track_params):
+            return break_conditions
+
+        if break_conditions is None:
+            break_conditions = {}
+        if isinstance(break_conditions, list):
+            radial_conditions = break_conditions[0].copy()
+            _Magnetosphere._set_minimum_radius(radial_conditions, logger)
+            return [radial_conditions, break_conditions[1]]
+        if isinstance(break_conditions, dict):
+            break_conditions = break_conditions.copy()
+            _Magnetosphere._set_minimum_radius(break_conditions, logger)
+        return break_conditions
+
+    @staticmethod
+    def _set_minimum_radius(break_conditions, logger):
+        if "Rmin" not in break_conditions:
+            break_conditions["Rmin"] = Units.RE
+            if logger is not None:
+                logger.info(
+                    "\t\tTrack parameters require 'Rmin' break condition; setting it to 1 RE (%g m)",
+                    Units.RE,
+                )
+        elif break_conditions["Rmin"] < Units.RE:
+            if logger is not None:
+                logger.warning(
+                    "\t\t'Rmin' break condition is below 1 RE; using Rmin=%g m",
+                    Units.RE,
+                )
+            break_conditions["Rmin"] = Units.RE
 
     @staticmethod
     def do_after_step(simulator, i, guiding_center,
