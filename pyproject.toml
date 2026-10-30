@@ -41,5 +41,19 @@ license-files = ["LICENSE"]
 Documentation = "https://geospace.mephi.ru/GTsimulation/"
 Source = "https://github.com/agmayorov/GTsimulation"
 
+[dependency-groups]
+docs = [
+  "sphinx",               # documentation generator
+  "myst-nb",              # renders the example Jupyter notebooks in the documentation
+  "pydata-sphinx-theme",  # HTML theme of the documentation
+  "numpydoc",             # parses NumPy-style docstrings
+  "sphinx-design",        # grid layout on the "About us" page
+]
+dev = [
+  "build",                # builds the sdist and wheel
+  "twine",                # uploads the built distributions to PyPI
+  {include-group = "docs"},
+]
+
 [tool.scikit-build]
 cmake.args = ["-G", "Ninja"]

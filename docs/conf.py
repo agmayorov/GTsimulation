@@ -70,6 +70,9 @@ autodoc_default_options = {
     'undoc-members': True,
 }
 autosectionlabel_prefix_document = True
+# The new autodoc in Sphinx 9 passes imported members (e.g. numba.jit) to numpydoc before skipping them,
+# which produces docstring warnings. See https://github.com/sphinx-doc/sphinx/issues/14089
+autodoc_use_legacy_class_based = True
 
 autosummary_generate = True
 
