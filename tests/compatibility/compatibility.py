@@ -153,10 +153,6 @@ def main():
         from gtsimulation.magnetic_field import Uniform
         Uniform(B=[0., 0., 100.])
 
-    with check("Summed: magnetic fields"):
-        from gtsimulation.magnetic_field import Summed, Uniform
-        Summed(models=[Uniform(B=[100., 0., 0.]), Uniform(B=[0., 100., 0.])])
-
     with check("Sum of magnetic fields"):
         from gtsimulation.magnetic_field import Uniform
         Uniform(B=[100., 0., 0.]) + Uniform(B=[0., 100., 0.])

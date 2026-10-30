@@ -13,6 +13,5 @@ from . import magnetosphere, heliosphere, galaxy
 
 __all__ = [
     "AbsBfield",
-    "Summed",
     "Uniform",
 ]
