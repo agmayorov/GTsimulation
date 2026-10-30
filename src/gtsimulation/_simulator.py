@@ -525,7 +525,7 @@ class GTSimulator(ABC):
                 if len(file) != 1 and not os.path.isdir(folder):
                     os.mkdir(folder)
                 def custom_serializer(obj):
-                    if isinstance(obj, (AbsBfield, GTGeneralMedium)):
+                    if isinstance(obj, (AbsBfield, GeneralFieldE, GTGeneralMedium)):
                         lines = [el.strip() for el in str(obj).strip().split('\n')]
                         return [lines[0], dict([el.split(': ') for el in lines[1:]])]
                     if isinstance(obj, Flux):

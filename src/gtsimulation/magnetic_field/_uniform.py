@@ -4,13 +4,23 @@ from gtsimulation.magnetic_field import AbsBfield
 
 
 class Uniform(AbsBfield):
+    """
+    Uniform magnetic field.
+
+    The field has the same magnitude and direction at every point.
+
+    Parameters
+    ----------
+    B : array-like, shape (3,)
+        Magnetic field components (Bx, By, Bz) in nT.
+    """
 
     def __init__(self, B):
         super().__init__()
         self.ModelName = "Uniform"
         self.B = np.array(B).astype(np.float64)
 
-    def calc_field(self, *args):
+    def calc_field(self, x, y, z):
         return self.B
 
     def update_state(self, new_date):

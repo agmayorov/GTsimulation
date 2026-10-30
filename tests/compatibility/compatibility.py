@@ -161,6 +161,10 @@ def main():
         from gtsimulation.electric_field import Uniform
         Uniform(E=[1., 0., 0.])
 
+    with check("Sum of electric fields"):
+        from gtsimulation.electric_field import Uniform
+        Uniform(E=[1., 0., 0.]) + Uniform(E=[0., 1., 0.])
+
     print("\n--- Magnetosphere fields ---", flush=True)
     with check("Dipole: constant"):
         from gtsimulation.magnetic_field.magnetosphere import Dipole
