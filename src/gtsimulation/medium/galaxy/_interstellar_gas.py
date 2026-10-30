@@ -14,7 +14,7 @@ class InterstellarGas(GTGeneralMedium):
         self.n_HI = 0
         self.n_H2 = 0
 
-    def calculate_model(self, x, y, z, **kwargs):
+    def calculate_model(self, x, y, z):
         self.n_HI, self.n_H2 = self.__calculate_b_field(x / Units.kpc, y / Units.kpc, z / Units.kpc)
 
     def get_density(self):

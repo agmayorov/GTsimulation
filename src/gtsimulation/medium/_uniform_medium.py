@@ -10,7 +10,7 @@ class GTUniformMedium(GTGeneralMedium):
         self.element_list = [element]
         self.element_abundance = [1]
 
-    def calculate_model(self, *args, **kwargs):
+    def calculate_model(self, x, y, z):
         pass
 
     def get_density(self):

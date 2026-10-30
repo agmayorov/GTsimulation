@@ -4,8 +4,9 @@ Medium
 The propagation medium is defined through the **Medium Module**. At the heart of this module lies the abstract base
 class :py:class:`gtsimulation.medium.GTGeneralMedium`. To create a custom medium model, users must implement a concrete
 subclass and define several core methods. The primary method, :py:meth:`~gtsimulation.medium.GTGeneralMedium.calculate_model`,
-updates the model's internal state for given coordinates. The subclass must also implement
-:py:meth:`~gtsimulation.medium.GTGeneralMedium.get_density` (returns the mass density),
+updates the model's internal state for given coordinates. At each step of the trajectory, the simulator calls it with
+the particle coordinates in metres. The subclass must also implement
+:py:meth:`~gtsimulation.medium.GTGeneralMedium.get_density` (returns the mass density in kg/m³),
 :py:meth:`~gtsimulation.medium.GTGeneralMedium.get_element_list` (returns the list of chemical elements), and
 :py:meth:`~gtsimulation.medium.GTGeneralMedium.get_element_abundance` (returns their mass fractions in the same order,
 summing to 1).

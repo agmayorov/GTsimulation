@@ -55,7 +55,7 @@ class GTnrlmsis(GTGeneralMedium):
         self.transformer = Transformer.from_crs({"proj": 'geocent', "ellps": 'WGS84', "datum": 'WGS84'},
                                                 {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'})
 
-    def calculate_model(self, x, y, z, **kwargs):
+    def calculate_model(self, x, y, z):
         """
         Evaluate the model at the given point.
 
@@ -65,8 +65,6 @@ class GTnrlmsis(GTGeneralMedium):
         ----------
         x, y, z : float
             Coordinates of the point in GEO, in metres.
-        **kwargs
-            Not used; accepted for compatibility with the medium interface.
         """
         lon, lat, alt = self.transformer.transform(x, y, z, radians=False)
         alt *= 1e-3  # m -> km
