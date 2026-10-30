@@ -26,6 +26,7 @@ project = 'GTsimulation'
 copyright = '2026, GeoSpace Research Lab'
 author = 'GeoSpaceLab'
 version = pyproject['project']['version']
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -60,6 +61,8 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
         },
     ],
+    "footer_start": ["package-version", "copyright"],
+    "footer_end": ["sphinx-version", "theme-version"],
 }
 
 autodoc_default_options = {
