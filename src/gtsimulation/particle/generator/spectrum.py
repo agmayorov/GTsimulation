@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from gtsimulation.particle.GeneratorCR import GetGCRflux
+from gtsimulation.particle.GeneratorCR import gcr_flux
 from gtsimulation.particle.functions import convert_units
 
 
@@ -108,13 +108,13 @@ class ForceField(ContinuumSpectrum):
             else:
                 energy_range_s = self.energy_range
 
-            f_max = GetGCRflux('T', np.geomspace(energy_range_s[0], energy_range_s[1], 1000) / 1e3, self.modulation_potential / 1e3, particle).max()
+            f_max = gcr_flux(np.geomspace(energy_range_s[0], energy_range_s[1], 1000), particle, self.modulation_potential).max()
             index_particle = np.flatnonzero(index_inverse == i)
             bunch_size = count[i] * 10  # multiplying by 10 for faster calculations
             while True:
                 energy_played = np.random.uniform(*energy_range_s, bunch_size)
                 ksi = f_max * np.random.rand(bunch_size)
-                index_suited = np.flatnonzero(ksi < GetGCRflux('T', energy_played / 1e3, self.modulation_potential / 1e3, particle))
+                index_suited = np.flatnonzero(ksi < gcr_flux(energy_played, particle, self.modulation_potential))
                 if index_suited.size < index_particle.size:
                     energy[index_particle[:index_suited.size]] = energy_played[index_suited]
                     index_particle = np.delete(index_particle, range(index_suited.size))
