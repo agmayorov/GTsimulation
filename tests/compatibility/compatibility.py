@@ -111,6 +111,16 @@ def main():
         from gtsimulation.particle.generator import spectrum
         spectrum.ForceField(energy_min=100., energy_max=200., modulation_potential=500.)
 
+    with check("local_interstellar_spectrum: default models"):
+        from gtsimulation.particle import local_interstellar_spectrum
+        for particle in ("proton", "Fe56", "e-", "e+", "anti_proton"):
+            local_interstellar_spectrum(1000., particle)
+
+    with check("gcr_flux: default models"):
+        from gtsimulation.particle import gcr_flux
+        for particle in ("proton", "Fe56", "e-", "e+", "anti_proton"):
+            gcr_flux(1000., particle, 500.)
+
     with check("Uniform: energy spectrum"):
         from gtsimulation.particle.generator import spectrum
         spectrum.Uniform(energy_min=100., energy_max=200.)

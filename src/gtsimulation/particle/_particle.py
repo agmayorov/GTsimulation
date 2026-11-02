@@ -19,7 +19,7 @@ for elements, replacement in alias_list:
     for element in elements:
         alias_map[element] = replacement
 
-nudat = np.load(Path(__file__).resolve().parent.joinpath("nndc_nudat_data.npy"))
+nudat = np.load(Path(__file__).resolve().parent.joinpath("data", "nndc_nudat_data.npy"))
 
 class Particle:
     def __init__(self, Name=None, PDG=None):

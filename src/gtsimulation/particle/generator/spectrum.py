@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from gtsimulation.particle.GeneratorCR import gcr_flux
+from gtsimulation.particle._gcr import gcr_flux
 from gtsimulation.particle.functions import convert_units
 
 
