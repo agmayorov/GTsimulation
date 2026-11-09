@@ -9,8 +9,9 @@ from pyproj import Transformer
 
 from ._build_config import GEANT4_COMPONENTS_AVAILABLE
 
-# fork does not re-import the user's main script, so the "if __name__ == '__main__':" guard is not required
-mp_context = mp.get_context("fork")
+# fork does not re-import the user's main script, so the "if __name__ == '__main__':" guard is not required;
+# Windows has only spawn, which requires the guard
+mp_context = mp.get_context("fork" if "fork" in mp.get_all_start_methods() else "spawn")
 
 
 PRIMARY_DTYPE = np.dtype({
