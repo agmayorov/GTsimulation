@@ -1,6 +1,7 @@
 import datetime
 import os
 from enum import Enum
+from pathlib import Path
 from typing import Union
 
 import numpy as np
@@ -113,6 +114,18 @@ versions_dict = {GaussModels.IGRF: [13, 14],
                  GaussModels.MBF_a_n: [None],
                  GaussModels.Langlais2019: [None],
                  GaussModels.MagModel4: [None]}
+
+
+def load_earth_reference(date: datetime.datetime) -> tuple[np.ndarray, np.ndarray]:
+    """Load the IGRF-14 coefficients used as the Earth reference field."""
+    coefficients_path = (
+        Path(__file__).resolve().parent
+        / "Earth"
+        / "IGRF14"
+        / "igrf14coeffs.npy"
+    )
+    g, h, _ = LoadGaussCoeffs(coefficients_path, date)
+    return g, h
 
 
 class Gauss(AbsBfield):

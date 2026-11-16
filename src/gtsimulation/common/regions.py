@@ -58,6 +58,11 @@ class _AbsRegion(ABC):
     def configure_break_conditions(break_conditions, track_params, logger=None):
         return break_conditions
 
+    @staticmethod
+    def load_reference(date):
+        return None
+
+
 class _Undefined(_AbsRegion):
 
     @staticmethod
@@ -110,6 +115,13 @@ class _Magnetosphere(_AbsRegion):
                "GuidingCenter": False}
 
     @staticmethod
+    def load_reference(date):
+        from gtsimulation.magnetic_field.magnetosphere import load_earth_reference
+
+        g, h = load_earth_reference(date)
+        return {"body": "Earth", "g": g, "h": h}
+
+    @staticmethod
     def configure_break_conditions(break_conditions, track_params, logger=None):
         if not (isinstance(track_params, dict) or track_params):
             return break_conditions
@@ -156,8 +168,8 @@ class _Magnetosphere(_AbsRegion):
             guiding_center[0][0],
             guiding_center[0][1],
             guiding_center[0][2],
-            simulator.Bfield.g,
-            simulator.Bfield.h,
+            simulator._region_reference["g"],
+            simulator._region_reference["h"],
         )
 
         return Additions.AddLon(

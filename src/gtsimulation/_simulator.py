@@ -225,6 +225,7 @@ class GTSimulator(ABC):
         self.__SetUseRadLosses(RadLosses)
 
         self.Region = Region
+        self._region_reference = None
         self.logger.debug("Region: %s", self.Region.name)
         self.logger.debug("%s", self.Region.value.ret_str())
 
@@ -241,6 +242,19 @@ class GTSimulator(ABC):
         self.TrackParamsIsOn = False
         self.TrackParams = self.Region.value.SaveAdd
         Save = self.__SetAdditions(TrackParams, Save)
+
+        break_conditions = BreakCondition[0] if isinstance(BreakCondition, list) else BreakCondition
+        max_rev_enabled = (
+            isinstance(break_conditions, dict)
+            and break_conditions.get("MaxRev", BreakDef[-1]) != BreakDef[-1]
+        )
+        reference_required = (
+            self.ParticleOriginIsOn
+            or max_rev_enabled
+            or (self.TrackParamsIsOn and self.TrackParams.get("GuidingCenter", False))
+        )
+        if reference_required:
+            self._region_reference = self.Region.value.load_reference(self.Date)
 
         self.IsFirstRun = IsFirstRun
         self.Nfiles = 1 if Nfiles is None or Nfiles == 0 else Nfiles
@@ -301,11 +315,7 @@ class GTSimulator(ABC):
                 self.OutputExtension,
             )
 
-        break_conditions = BreakCondition[0] if isinstance(BreakCondition, list) else BreakCondition
-        if self.ParticleOriginIsOn or (
-            isinstance(break_conditions, dict)
-            and "MaxRev" in break_conditions
-        ):
+        if self.ParticleOriginIsOn or max_rev_enabled:
             if not isinstance(Save, list):
                 Save = [Save, {'GuidingCenter': True, 'PitchAngles': True}]
             else:

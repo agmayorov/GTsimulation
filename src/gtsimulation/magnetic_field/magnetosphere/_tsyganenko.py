@@ -4,7 +4,8 @@ import numpy as np
 
 from gtsimulation.common import Units, Regions
 from gtsimulation.magnetic_field import AbsBfield
-from gtsimulation.magnetic_field.magnetosphere.Functions import transformations, t89, t96, t15B, gauss
+from gtsimulation.magnetic_field.magnetosphere.Functions import transformations, t89, t96, t15B
+from ._gauss import load_earth_reference
 
 
 class Tsyganenko(AbsBfield):
@@ -49,12 +50,7 @@ class Tsyganenko(AbsBfield):
         self.parmod = self._get_ind()
 
     def _get_psi(self):
-        self.g, self.h, _ = gauss.LoadGaussCoeffs(
-            Path(__file__).resolve().parent.joinpath(
-                "Earth", "IGRF13", "igrf13coeffs.npy"
-            ),
-            self.Date
-        )
+        self.g, self.h = load_earth_reference(self.Date)
 
         # Direction of the centered geomagnetic dipole in GEO
         dipole_geo = transformations.get_dipole_direction(
